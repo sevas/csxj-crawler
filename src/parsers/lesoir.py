@@ -3,6 +3,8 @@
 import copy, re
 import urllib
 from BeautifulSoup import BeautifulSoup,  BeautifulStoneSoup 
+from utils import fetch_html_content, fetch_rss_content
+
 
 class ArticleData(object):
     def __init__(self, url, title, date, content, links, category):
@@ -125,8 +127,7 @@ def get_frontpage_articles():
     Use the rss version for now.
     """
     url = "http://www.lesoir.be"
-    frontpage = urllib.urlopen(url)
-    html_content = frontpage.read()
+    html_content = fetch_html_content(url)
 
     soup = make_soup_from_html_content(html_content)
 
@@ -155,14 +156,12 @@ def get_frontpage_articles():
 def get_rss_articles():
     rss_url = "http://www.lesoir.be/la_une/rss.xml"
 
-    rss_file = urllib.urlopen(rss_url)
-    xml_content = rss_file.read()
-
+    xml_content = fetch_rss_content(rss_url)
     stonesoup = BeautifulStoneSoup(xml_content)
 
-    
-    
-
+    for item in stonesoup.findAll("item"):
+        stupid_link = item.link.contents[0]
+        
 
 def parse_sample_data():
     import sys
@@ -183,4 +182,5 @@ def parse_sample_data():
     
 if __name__ == '__main__':
     #parse_sample_data()
-    get_frontpage_articles()
+    #get_frontpage_articles()
+    get_rss_articles()
