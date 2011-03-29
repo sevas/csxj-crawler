@@ -119,6 +119,8 @@ def extract_article_data_from_html_content(html_content):
     
     links = extract_links(soup)
 
+    return title, content, category, date, title, links
+
 
 
 def get_frontpage_articles():
@@ -159,10 +161,23 @@ def get_rss_articles():
     xml_content = fetch_rss_content(rss_url)
     stonesoup = BeautifulStoneSoup(xml_content)
 
+    articles = []
+    
     for item in stonesoup.findAll("item"):
-        stupid_link = item.link.contents[0]
-        
+        url = item.link.contents[0]
+        html_content = fetch_html_content(url)
+        # fixme : urls sometimes point to an external blog article, with a different DOM
+        # todo : catch the redirect and look at the url, or something
+        print url
+        title, content, category, date, title, links = extract_article_data_from_html_content(html_content)
 
+        new_article_data = ArticleData(url, title, date, content, links, category)
+        articles.append(new_article_data)
+
+    print articles
+
+
+    
 def parse_sample_data():
     import sys
     data_directory = "../../sample_data" 
