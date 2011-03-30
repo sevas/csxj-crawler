@@ -99,6 +99,7 @@ def extract_title(story):
 def extract_date(story):
     header = story.find("div", {'id':"story_head"})
     date = header.find("p", {'class':"info st_date"})
+    # todo : this should probably be a real datetime object
     return date.contents[0]
     
 
@@ -253,16 +254,19 @@ def is_external_blog(url):
     
 if __name__ == '__main__':
 
-    frontpage_links = [(title, url) for (title, url) in  get_frontpage_articles() if not is_external_blog(url)]
+    frontpage_links = [(title, url)
+                       for (title, url) in  get_frontpage_articles()
+                       if not is_external_blog(url)]
 
     for (title, url) in frontpage_links:
         full_url = "http://www.lesoir.be%s" % url
-        print "fetching data for article : %s (%s)" % (title, full_url)
+        print "fetching data for article : %s" % title
 
         html_content = fetch_html_content(full_url)
         article_data = extract_article_data_from_html_content(html_content)
 
-        print article_data
+        pprint(article_data)
+        print "-" * 80
 
 
         
