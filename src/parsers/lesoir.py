@@ -44,7 +44,8 @@ def extract_to_read_links_from_sidebar(sidebar):
 
     #sometimes, it does not exist at all
     if to_read_links_container:
-        return [(link.get("href"), link.get("title")) for link in to_read_links_container.findAll("a")]
+        return [(link.get("href"), link.get("title"))
+                for link in to_read_links_container.findAll("a")]
     else:
         return []
 
@@ -54,7 +55,8 @@ def extract_external_links_from_sidebar(sidebar):
 
     #warning : weird javascript clickthru crap to process first
     if external_links_container:
-        return [(link.get("onclick"), link.get("title")) for link in external_links_container.findAll("a")]
+        return [(link.get("onclick"), link.get("title"))
+                for link in external_links_container.findAll("a")]
     else:
         return []
 
@@ -65,12 +67,17 @@ def extract_recent_links_from_soup(soup):
     recent_links_container = soup.find("div", {"id":"les_plus_recents"})
 
     if recent_links_container:
-        return [(link.get("href"), link.contents[0]) for link in recent_links_container.findAll("a") ]
+        return [(link.get("href"), link.contents[0])
+                for link in recent_links_container.findAll("a") ]
     else:
         return []
 
 
 def extract_links(soup):
+    """
+    Get the link lists for one news item, from the parsed html content.
+    'Le Soir' has 3 kinds of links, but they're not all always there.
+    """
     sidebar = soup.find("div", {'id':"st_top_center"})
     
     all_links = {"to_read":extract_to_read_links_from_sidebar(sidebar),
