@@ -1,15 +1,10 @@
 #!/usr/bin/env python
 
-import sys
-import copy, re
 import urllib
-from pprint import pprint
 import locale
 from datetime import datetime
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
 from utils import fetch_html_content, fetch_rss_content
-
-import chardet
 
 # for datetime conversions
 locale.setlocale(locale.LC_TIME, "fr_be")
