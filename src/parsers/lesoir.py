@@ -3,8 +3,14 @@
 import copy, re
 import urllib
 from pprint import pprint
+import locale
+from datetime import datetime
 from BeautifulSoup import BeautifulSoup,  BeautifulStoneSoup 
 from utils import fetch_html_content, fetch_rss_content
+
+
+# for datetime conversions
+locale.setlocale(locale.LC_TIME, "fr_be")
 
 
 class ArticleData(object):
@@ -37,7 +43,11 @@ def sanitize_content():
 
 def extract_content(story):
     header = story.find("div", {"id":"story_head"})
-    body = story.find("div", {"id":"story_body"})
+    story = story.find("div", {"id":"story_body"})
+    #paragraphs = story.findAll("p", recursive=False) 
+
+    #return "".join([p.contents[0] for p in paragraphs])
+    return ""
     
 
 def extract_to_read_links_from_sidebar(sidebar):
@@ -66,10 +76,9 @@ def extract_external_links_from_sidebar(sidebar):
 def extract_recent_links_from_soup(soup):
     #todo : check if those links are actually associated to the article
     recent_links_container = soup.find("div", {"id":"les_plus_recents"})
-
     if recent_links_container:
         return [(link.get("href"), link.contents[0])
-                for link in recent_links_container.findAll("a") ]
+                for link in recent_links_container.findAll("a", recursive=False) ]
     else:
         return []
 
@@ -99,8 +108,9 @@ def extract_title(story):
 def extract_date(story):
     header = story.find("div", {'id':"story_head"})
     date = header.find("p", {'class':"info st_date"})
-    # todo : this should probably be a real datetime object
-    return date.contents[0]
+
+    date_string = date.contents[0]
+    return datetime.strptime(date_string, "%A %d %B %Y, %H:%M")
     
 
 
@@ -267,9 +277,12 @@ if __name__ == '__main__':
         print "fetching data for article : %s" % title
 
         html_content = fetch_html_content(full_url)
-        article_data = extract_article_data_from_html_content(html_content)
-
-        pprint(article_data)
+        extracted_data = extract_article_data_from_html_content(html_content)
+        pprint(extracted_data)
+        
+        #title, content, category, date, title, links = extracted_data
+        #article_data = ArticleData(full_url, title, date, content, links, category)        
+        #pprint(article_data)
         print "-" * 80
 
 
