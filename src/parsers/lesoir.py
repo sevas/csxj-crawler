@@ -16,7 +16,7 @@ locale.setlocale(locale.LC_TIME, "fr_be")
 
 
 class ArticleData(object):
-    def __init__(self, url, title, date, content, links, category, author):
+    def __init__(self, url, title, date, content, links, category, author, intro):
         self.url = url
         self.title = title
         self.date = date
@@ -24,6 +24,7 @@ class ArticleData(object):
         self.links = links
         self.category = category
         self.author = author
+        self.intro = intro
 
 
 
@@ -131,12 +132,24 @@ def extract_date(story):
     
 
 
+def extract_intro(story):
+    header = story.find("div", {'id':"story_head"})
+    intro = header.find("h4", {'class':"chapeau"})
+    # so yeah, sometimes the intro paragraph contains some <span> tags with things
+    # we don't really care about. Filtering that out.
+    text_fragments = [fragment for fragment in intro.contents if not isinstance(fragment, Tag)]
+
+    return "".join(text_fragments) 
+
+
+    
 def extract_category(story):
     breadcrumbs = story.find("div", {'id':'fil_ariane'})
     category_stages = [a.contents[0] for a in breadcrumbs.findAll("a") ]
     return category_stages
 
 
+    
 
 
 def make_soup_from_html_content(html_content):    
@@ -154,13 +167,15 @@ def extract_article_data_from_html_content(html_content):
 
     content = extract_content(story)
     category = extract_category(story)
-    date = extract_date(story)
     title = extract_title(story)
+    
+    date = extract_date(story)    
     author = extract_author_name(story)
+    intro = extract_intro(story)
     
     links = extract_links(soup)
 
-    return title, content, category, date, links, author
+    return title, content, category, date, links, author, intro
 
 
 
@@ -301,9 +316,9 @@ if __name__ == '__main__':
         html_content = fetch_html_content(full_url)
         extracted_data = extract_article_data_from_html_content(html_content)
         
-        title, content, category, date, links, author = extracted_data
+        title, content, category, date, links, author, intro = extracted_data
 
-        article_data = ArticleData(full_url, title, date, content, links, category, author)
+        article_data = ArticleData(full_url, title, date, content, links, category, author, intro)
         
         print "title = ", article_data.title
         print "url = http://www.lesoir.be%s" % article_data.url
@@ -312,6 +327,8 @@ if __name__ == '__main__':
         print "category = ", "/".join(article_data.category)
         print "author = ", article_data.author
         print "n words = ", count_words(article_data.content)
+        print article_data.intro
+        print
         print article_data.content
         
         print "-" * 80
