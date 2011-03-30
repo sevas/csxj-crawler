@@ -4,7 +4,7 @@ import urllib
 import locale
 from datetime import datetime
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
-from utils import fetch_html_content, fetch_rss_content
+from utils import fetch_html_content, fetch_rss_content, count_words
 
 # for datetime conversions
 locale.setlocale(locale.LC_TIME, "fr_be")
@@ -289,12 +289,6 @@ def parse_sample_data():
 
 def is_external_blog(url):
     return not url.startswith("/")
-
-
-
-def count_words(some_text):
-    words = some_text.split(" ")
-    return len(words)
 
 
 

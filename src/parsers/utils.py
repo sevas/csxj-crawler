@@ -18,3 +18,8 @@ def fetch_rss_content(url):
     return fetch_content_from_url(url)
 
 
+def count_words(some_text):
+    words = some_text.split(" ")
+    return len(words)
+
+
