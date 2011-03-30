@@ -41,23 +41,33 @@ def extract_content(story):
 
 def extract_to_read_links_from_sidebar(sidebar):
     to_read_links_container = sidebar.find("div", {"id":"lire_aussi"})
-    return [(link.get("href"), link.get("title")) for link in to_read_links_container.findAll("a")]
 
+    #sometimes, it does not exist at all
+    if to_read_links_container:
+        return [(link.get("href"), link.get("title")) for link in to_read_links_container.findAll("a")]
+    else:
+        return []
 
 
 def extract_external_links_from_sidebar(sidebar):
     external_links_container = sidebar.find("div", {"id":"external"})
 
     #warning : weird javascript clickthru crap to process first
-    return [(link.get("onclick"), link.get("title")) for link in external_links_container.findAll("a")]
+    if external_links_container:
+        return [(link.get("onclick"), link.get("title")) for link in external_links_container.findAll("a")]
+    else:
+        return []
 
 
 
 def extract_recent_links_from_soup(soup):
     #todo : check if those links are actually associated to the article
     recent_links_container = soup.find("div", {"id":"les_plus_recents"})
-    return [(link.get("href"), link.contents[0]) for link in recent_links_container.findAll("a") ]
 
+    if recent_links_container:
+        return [(link.get("href"), link.contents[0]) for link in recent_links_container.findAll("a") ]
+    else:
+        return []
 
 
 def extract_links(soup):
@@ -197,5 +207,5 @@ def parse_sample_data():
     
 if __name__ == '__main__':
     #parse_sample_data()
-    #get_frontpage_articles()
-    get_rss_articles()
+    get_frontpage_articles()
+    #get_rss_articles()
