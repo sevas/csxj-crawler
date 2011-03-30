@@ -6,7 +6,7 @@ import urllib
 from pprint import pprint
 import locale
 from datetime import datetime
-from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit
+from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
 from utils import fetch_html_content, fetch_rss_content
 
 import chardet
@@ -30,26 +30,31 @@ class ArticleData(object):
         pass
 
 
-def to_unicode_or_bust(obj, encoding='utf-8'):
-    if isinstance(obj, basestring):
-        if not isinstance(obj, unicode):
-            obj = unicode(obj, encoding)
-    return obj
+
+
+def sanitize_fragment(fragment):
+    if isinstance(fragment, Tag):
+        return fragment.contents[0]
+    else:
+        return fragment
 
     
-def sanitize_content():
-    "removes image links, removes paragraphs, formatting"
-    pass
-    
+def sanitize_paragraph(paragraph):
+    """removes image links, removes paragraphs, formatting"""
+    return "".join([sanitize_fragment(fragment) for fragment in paragraph.contents])
+
+
 
 
 def extract_content(story):
     header = story.find("div", {"id":"story_head"})
     story = story.find("div", {"id":"story_body"})
-    #paragraphs = story.findAll("p", recursive=False) 
 
-    #return "".join([p.contents[0] for p in paragraphs])
-    return ""
+    paragraphs = story.findAll("p", recursive=False) 
+
+    clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
+    
+    return "".join(clean_paragraphs)
     
 
 def extract_to_read_links_from_sidebar(sidebar):
@@ -125,12 +130,11 @@ def extract_category(story):
 
 
 
-
-
 def make_soup_from_html_content(html_content):    
     soup = BeautifulSoup(html_content, convertEntities=BeautifulSoup.HTML_ENTITIES)
 
     return soup
+
 
 
 
@@ -149,6 +153,7 @@ def extract_article_data_from_html_content(html_content):
 
 
 
+
 def get_two_columns_stories(element):
     """
     Returns the two <li> with two 'two columns' stories.
@@ -159,12 +164,14 @@ def get_two_columns_stories(element):
     return two_columns_stories_list.findAll("li", recursive=False)
 
 
+
 def element_has_two_columns_stories(element):
     """
     Checks whether or not a frontpage entry is a stand alone news item, or a container
     for two 'two columns' items.
     """
     return len(element.findAll("ul", {'class':"two_cols"}, recursive=False)) == 1
+
 
 
 def get_frontpage_articles():
@@ -214,6 +221,7 @@ def get_frontpage_articles():
 
     return frontpage_links
 
+
             
 
 def get_rss_articles():
@@ -237,6 +245,7 @@ def get_rss_articles():
 
     print articles
 
+    
 
     
 def parse_sample_data():
@@ -262,6 +271,11 @@ def is_external_blog(url):
 
 
 
+def count_words(some_text):
+    words = some_text.split(" ")
+    return len(words)
+
+
 
 if __name__ == '__main__':
 
@@ -284,6 +298,7 @@ if __name__ == '__main__':
         print "date = ", article_data.date
         print "n links = ", sum([len(link_list) for link_list in article_data.links.values()])
         print "category = ", article_data.category
+        print "n words = ", count_words(article_data.content)
         
         print "-" * 80
 
