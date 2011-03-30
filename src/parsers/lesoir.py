@@ -238,20 +238,24 @@ def parse_sample_data():
     sys.path.append(data_directory)
     from dataset import dataset
 
-    url = dataset['le soir']['URL']
-    filename = dataset['le soir']['file']
-    filepath = "%s/%s" % (data_directory, filename)
+
+    for entry in dataset['le soir']:
+        url = entry['URL']
+        filename = entry['file']
+        filepath = "%s/%s" % (data_directory, filename)
     
-    with open(filepath) as f:
-        html_content = f.read()
-        extract_article_data_from_html_content(html_content)
+        with open(filepath) as f:
+            html_content = f.read()
+            extract_article_data_from_html_content(html_content)
     
 
 
 def is_external_blog(url):
     return not url.startswith("/")
-        
-    
+
+
+
+
 if __name__ == '__main__':
 
     frontpage_links = [(title, url)
