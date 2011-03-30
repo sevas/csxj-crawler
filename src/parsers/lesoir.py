@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+import sys
 import copy, re
 import urllib
 from pprint import pprint
 import locale
 from datetime import datetime
-from BeautifulSoup import BeautifulSoup,  BeautifulStoneSoup 
+from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit
 from utils import fetch_html_content, fetch_rss_content
 
 
@@ -25,16 +26,24 @@ class ArticleData(object):
 
     def __repr__(self):
         #fixme
-        return """ArticleData(%s, date=%s, n_links=%d, wordcount=%d, category=%s """ % (self.title,
-                                                                                        self.date,
-                                                                                        sum(len(links) for links in self.links.values()),
-                                                                                        len(self.content),
-                                                                                        self.category)
+        return u"""ArticleData(%s, date=%s, n_links=%d, wordcount=%d, category=%s """ % (self.title,
+                                                                                         self.date,
+                                                                                         sum(len(links) for links in self.links.values()),
+                                                                                         len(self.content),
+                                                                                         self.category)
+
+        
     def to_json(self):
         pass
 
 
+def to_unicode_or_bust(obj, encoding='utf-8'):
+    if isinstance(obj, basestring):
+        if not isinstance(obj, unicode):
+            obj = unicode(obj, encoding)
+    return obj
 
+    
 def sanitize_content():
     "removes image links, removes paragraphs, formatting"
     pass
@@ -101,8 +110,9 @@ def extract_links(soup):
 def extract_title(story):
     header = story.find("div", {'id':"story_head"})
     title = header.h1.contents[0]
-    return title
 
+    #return title
+    return unicode(title)
     
 
 def extract_date(story):
@@ -125,14 +135,15 @@ def extract_category(story):
 
 
 def make_soup_from_html_content(html_content):
-    hexentityMassage = copy.copy(BeautifulSoup.MARKUP_MASSAGE)
-    hexentityMassage = [(re.compile('&#x([^;]+);'), 
-                         lambda m: '&#%d' % int(m.group(1), 16))]
-    
-    soup = BeautifulSoup(html_content,
-                         convertEntities=BeautifulSoup.HTML_ENTITIES,
-                         markupMassage=hexentityMassage)
+    #hexentityMassage = copy.copy(BeautifulSoup.MARKUP_MASSAGE)
+    #hexentityMassage = [(re.compile('&#x([^;]+);'), 
+    #                     lambda m: '&#%d' % int(m.group(1), 16))]
+    # 
+    #soup = BeautifulSoup(html_content,
+    #                     convertEntities=BeautifulSoup.HTML_ENTITIES,
+    #                     markupMassage=hexentityMassage)
 
+    soup = BeautifulSoup(html_content)
     return soup
 
 
@@ -277,12 +288,15 @@ if __name__ == '__main__':
         print "fetching data for article : %s" % title
 
         html_content = fetch_html_content(full_url)
+
+
         extracted_data = extract_article_data_from_html_content(html_content)
-        pprint(extracted_data)
+        #pprint(extracted_data)
         
-        #title, content, category, date, title, links = extracted_data
-        #article_data = ArticleData(full_url, title, date, content, links, category)        
-        #pprint(article_data)
+        title, content, category, date, title, links = extracted_data
+
+        article_data = ArticleData(full_url, title, date, content, links, category)        
+        pprint(article_data)
         print "-" * 80
 
 
