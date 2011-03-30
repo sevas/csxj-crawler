@@ -294,10 +294,11 @@ if __name__ == '__main__':
 
         article_data = ArticleData(full_url, title, date, content, links, category)        
 
-        print article_data.title
+        print "title = ", article_data.title
+        print "url = http://www.lesoir.be%s" % article_data.url
         print "date = ", article_data.date
         print "n links = ", sum([len(link_list) for link_list in article_data.links.values()])
-        print "category = ", article_data.category
+        print "category = ", "/".join(article_data.category)
         print "n words = ", count_words(article_data.content)
         
         print "-" * 80
