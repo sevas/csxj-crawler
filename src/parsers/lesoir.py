@@ -177,10 +177,10 @@ def get_frontpage_articles():
     frontpage_links = []
 
     for container in stories_containers:
+        all_stories = set(container.findAll("li", recursive=False))
         main_stories = set(container.findAll("li", {"class":"stories_main clearfix"}, recursive=False))
-        other_stories = set(container.findAll("li", recursive=False))
 
-        other_stories = other_stories - main_stories
+        other_stories = all_stories - main_stories
 
         
         # So, in _some_ lists of stories, the first one ('main story') has its title in an <h1>
