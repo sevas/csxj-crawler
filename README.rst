@@ -26,13 +26,13 @@ Parsers
 Equivalent of lesoir.py for the following sites:
 
 - started 
- - lalibre.be
+   - lalibre.be
 - todo
- - dhnet.be
- - lavenir.net
- - sudpresse.be
+   - dhnet.be
+   - lavenir.net
+   - sudpresse.be
 - maybe 
- - lecho.be
+   - lecho.be
 
 
 
