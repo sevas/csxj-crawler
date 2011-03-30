@@ -133,10 +133,28 @@ def extract_article_data_from_html_content(html_content):
 
 
 
+def get_two_columns_stories(element):
+    """
+    Returns the two <li> with two 'two columns' stories.
+    This function assumes we already checked that the element actually has
+    two sub stories
+    """
+    two_columns_stories_list = element.findAll("ul", {'class':"two_cols"}, recursive=False)[0]
+    return two_columns_stories_list.findAll("li", recursive=False)
+
+
+def element_has_two_columns_stories(element):
+    """
+    Checks whether or not a frontpage entry is a stand alone news item, or a container
+    for two 'two columns' items.
+    """
+    return len(element.findAll("ul", {'class':"two_cols"}, recursive=False)) == 1
+
+
 def get_frontpage_articles():
     """
-    This function is completly broken due to many edge cases in that stupid html.
-    Use the rss version for now.
+    Fetch links to articles listed on the 'Le Soir' front page.
+    For each of them, extract the relevant data.
     """
     url = "http://www.lesoir.be"
     html_content = fetch_html_content(url)
@@ -155,13 +173,20 @@ def get_frontpage_articles():
         
         # So, in _some_ lists of stories, the first one has its title in an <h1>
         # and the rest in an <h2>
+        # Also, some have two columns stories.
         # Beautiful soup indeed.
-
-        #TODO : see about the two columns thingy
         for item in main_stories:
             print item.h1.a.get("title")
         for item in other_stories:
-            print item.h2.a.get("title")
+            if element_has_two_columns_stories(item):
+                first, second = get_two_columns_stories(item)
+                # For some reason, those links don't have a 'title' attribute.
+                # Love this.
+                print first.h2.a.contents[0]
+                print second.h2.a.contents[0]
+            else:
+                print item.h2.a.get("title")
+        print "-" * 20
 
             
 
