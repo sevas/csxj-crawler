@@ -2,6 +2,7 @@
 
 import copy, re
 import urllib
+from pprint import pprint
 from BeautifulSoup import BeautifulSoup,  BeautifulStoneSoup 
 from utils import fetch_html_content, fetch_rss_content
 
@@ -172,28 +173,38 @@ def get_frontpage_articles():
     # need some filtering
     stories_containers = soup.findAll("ul", {"class":"stories_list grid_6"})
 
+
+    frontpage_links = []
+
     for container in stories_containers:
         main_stories = set(container.findAll("li", {"class":"stories_main clearfix"}, recursive=False))
         other_stories = set(container.findAll("li", recursive=False))
 
         other_stories = other_stories - main_stories
+
         
-        # So, in _some_ lists of stories, the first one has its title in an <h1>
+        # So, in _some_ lists of stories, the first one ('main story') has its title in an <h1>
         # and the rest in an <h2>
         # Also, some have two columns stories.
         # Beautiful soup indeed.
         for item in main_stories:
-            print item.h1.a.get("title")
+            frontpage_links.append((item.h1.a.get("title"), item.h1.a.get("href")))
+
         for item in other_stories:
             if element_has_two_columns_stories(item):
                 first, second = get_two_columns_stories(item)
                 # For some reason, those links don't have a 'title' attribute.
                 # Love this.
-                print first.h2.a.contents[0]
-                print second.h2.a.contents[0]
+                def extract_title_and_link(item):
+                    return (item.h2.a.contents[0], item.h2.a.get("href"))
+                frontpage_links.append(extract_title_and_link(first))
+                frontpage_links.append(extract_title_and_link(second))
+
             else:
-                print item.h2.a.get("title")
-        print "-" * 20
+                frontpage_links.append((item.h2.a.get("title"), item.h2.a.get("href")))
+
+
+    return frontpage_links
 
             
 
@@ -236,8 +247,22 @@ def parse_sample_data():
     
 
 
+def is_external_blog(url):
+    return not url.startswith("/")
+        
     
 if __name__ == '__main__':
-    #parse_sample_data()
-    get_frontpage_articles()
-    #get_rss_articles()
+
+    frontpage_links = [(title, url) for (title, url) in  get_frontpage_articles() if not is_external_blog(url)]
+
+    for (title, url) in frontpage_links:
+        full_url = "http://www.lesoir.be%s" % url
+        print "fetching data for article : %s (%s)" % (title, full_url)
+
+        html_content = fetch_html_content(full_url)
+        article_data = extract_article_data_from_html_content(html_content)
+
+        print article_data
+
+
+        
