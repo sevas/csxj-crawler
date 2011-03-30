@@ -16,13 +16,14 @@ locale.setlocale(locale.LC_TIME, "fr_be")
 
 
 class ArticleData(object):
-    def __init__(self, url, title, date, content, links, category):
+    def __init__(self, url, title, date, content, links, category, author):
         self.url = url
         self.title = title
         self.date = date
         self.content = content
         self.links = links
         self.category = category
+        self.author = author
 
 
 
@@ -113,6 +114,14 @@ def extract_title(story):
     return unicode(title)
     
 
+def extract_author_name(story):
+    header = story.find("div", {'id':"story_head"})
+    author_name = header.find("p", {'class':"info st_signature"})
+
+    return author_name.contents[0]
+
+
+
 def extract_date(story):
     header = story.find("div", {'id':"story_head"})
     date = header.find("p", {'class':"info st_date"})
@@ -142,14 +151,16 @@ def extract_article_data_from_html_content(html_content):
     soup = make_soup_from_html_content(html_content)
     
     story = soup.find("div", {'id':'story'})
+
     content = extract_content(story)
     category = extract_category(story)
     date = extract_date(story)
     title = extract_title(story)
+    author = extract_author_name(story)
     
     links = extract_links(soup)
 
-    return title, content, category, date,  links
+    return title, content, category, date, links, author
 
 
 
@@ -238,9 +249,9 @@ def get_rss_articles():
         # fixme : urls sometimes point to an external blog article, with a different DOM
         # todo : catch the redirect and look at the url, or something
         print url
-        title, content, category, date, title, links = extract_article_data_from_html_content(html_content)
+        title, content, category, date, title, links, author = extract_article_data_from_html_content(html_content)
 
-        new_article_data = ArticleData(url, title, date, content, links, category)
+        new_article_data = ArticleData(url, title, date, content, links, category, author)
         articles.append(new_article_data)
 
     print articles
@@ -290,16 +301,18 @@ if __name__ == '__main__':
         html_content = fetch_html_content(full_url)
         extracted_data = extract_article_data_from_html_content(html_content)
         
-        title, content, category, date, links = extracted_data
+        title, content, category, date, links, author = extracted_data
 
-        article_data = ArticleData(full_url, title, date, content, links, category)        
-
+        article_data = ArticleData(full_url, title, date, content, links, category, author)
+        
         print "title = ", article_data.title
         print "url = http://www.lesoir.be%s" % article_data.url
         print "date = ", article_data.date
         print "n links = ", sum([len(link_list) for link_list in article_data.links.values()])
         print "category = ", "/".join(article_data.category)
+        print "author = ", article_data.author
         print "n words = ", count_words(article_data.content)
+        print article_data.content
         
         print "-" * 80
 
