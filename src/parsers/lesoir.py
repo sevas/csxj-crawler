@@ -9,6 +9,7 @@ from datetime import datetime
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit
 from utils import fetch_html_content, fetch_rss_content
 
+import chardet
 
 # for datetime conversions
 locale.setlocale(locale.LC_TIME, "fr_be")
@@ -24,15 +25,7 @@ class ArticleData(object):
         self.category = category
 
 
-    def __repr__(self):
-        #fixme
-        return u"""ArticleData(%s, date=%s, n_links=%d, wordcount=%d, category=%s """ % (self.title,
-                                                                                         self.date,
-                                                                                         sum(len(links) for links in self.links.values()),
-                                                                                         len(self.content),
-                                                                                         self.category)
 
-        
     def to_json(self):
         pass
 
@@ -134,16 +127,9 @@ def extract_category(story):
 
 
 
-def make_soup_from_html_content(html_content):
-    #hexentityMassage = copy.copy(BeautifulSoup.MARKUP_MASSAGE)
-    #hexentityMassage = [(re.compile('&#x([^;]+);'), 
-    #                     lambda m: '&#%d' % int(m.group(1), 16))]
-    # 
-    #soup = BeautifulSoup(html_content,
-    #                     convertEntities=BeautifulSoup.HTML_ENTITIES,
-    #                     markupMassage=hexentityMassage)
+def make_soup_from_html_content(html_content):    
+    soup = BeautifulSoup(html_content, convertEntities=BeautifulSoup.HTML_ENTITIES)
 
-    soup = BeautifulSoup(html_content)
     return soup
 
 
@@ -159,7 +145,7 @@ def extract_article_data_from_html_content(html_content):
     
     links = extract_links(soup)
 
-    return title, content, category, date, title, links
+    return title, content, category, date,  links
 
 
 
@@ -285,18 +271,20 @@ if __name__ == '__main__':
 
     for (title, url) in frontpage_links:
         full_url = "http://www.lesoir.be%s" % url
-        print "fetching data for article : %s" % title
+        print "fetching data for article :",  title
 
         html_content = fetch_html_content(full_url)
-
-
         extracted_data = extract_article_data_from_html_content(html_content)
-        #pprint(extracted_data)
         
-        title, content, category, date, title, links = extracted_data
+        title, content, category, date, links = extracted_data
 
         article_data = ArticleData(full_url, title, date, content, links, category)        
-        pprint(article_data)
+
+        print article_data.title
+        print "date = ", article_data.date
+        print "n links = ", sum([len(link_list) for link_list in article_data.links.values()])
+        print "category = ", article_data.category
+        
         print "-" * 80
 
 
