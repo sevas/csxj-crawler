@@ -23,6 +23,7 @@ class ArticleData(object):
         pass
 
 
+    
 def extract_date(main_content):
     publication_date = main_content.find("p", {'id':"publicationDate"}).contents[0]
     date_string = publication_date.replace("Mis en ligne le ", "").rstrip().lstrip()
@@ -33,13 +34,12 @@ def extract_date(main_content):
 
 
 def sanitize_fragment(fragment):
-    
     if isinstance(fragment, Tag):
         # sometimes, we just get <p></p>
         if fragment.contents:
-            return fragment.contents[0]
+            return "".join(sanitize_fragment(f) for f in fragment.contents)
         else:
-            return ''
+            return ""
     else:
         return fragment
 
@@ -51,10 +51,11 @@ def sanitize_paragraph(paragraph):
     def extract_keyword_and_link(keyword_link):
         return keyword_link.contents[0], keyword_link.get('href')
         
-    keyword_links = [extract_keyword_and_link(link) for link in paragraph.findAll("a")]
+    keyword_links = [extract_keyword_and_link(link) for link in paragraph.findAll("a", recursive=True)]
     sanitized_paragraph = [sanitize_fragment(fragment) for fragment in paragraph.contents]            
 
-    return "".join(sanitized_paragraph), keyword_links
+
+    return "".join(sanitized_paragraph), [(keyword, "http://www.lalibre.be%s" % url) for (keyword, url) in keyword_links]
 
 
 
@@ -69,6 +70,7 @@ def extract_text_content_and_links(main_content):
         fragments, links = sanitize_paragraph(paragraph)
         all_links.extend(links)
         all_fragments.append(fragments)
+        all_fragments.append("\n")
 
     text_content = "".join(all_fragments)
     return text_content, all_links
@@ -93,7 +95,7 @@ def extract_links(main_content):
             url = entry.a.contents[0]
             links.append((title, url))
 
-        return links
+        return ["http://www.lalibre.be%s" % link for link in links]
     else:
         return []
         
@@ -154,10 +156,33 @@ def get_frontpage_articles():
 
 
 
-if __name__ == '__main__':
+def test_sample_data():
+    with open("../../sample_data/la_libre_recursive_cleanup.html", "r") as f:
+        html_content = f.read()
+
+        extracted_data = extract_article_data_from_html_content(html_content)
+        category, author, title, date, intro, content, links = extracted_data
+        url = "foo"
+        article_data = ArticleData(url, title, date, content, links, category, author, intro)
+        
+        print "title = ", article_data.title
+        print "url = http://www.lalibre.be%s" % article_data.url
+        print "date = ", article_data.date
+        print "n links = ", len(article_data.links)
+        print "category = ", "/".join(article_data.category)
+        print "author = ", article_data.author
+        print "n words = ", count_words(article_data.content)
+        print article_data.intro
+        print
+        print article_data.content
+        print article_data.links
+                
+
+
+
+def list_frontpage_articles():
     frontpage_items = get_frontpage_articles()
     print len(frontpage_items)
-    #print "\n".join([url for (title, url) in frontpage_items])
 
     for (title, url) in frontpage_items:
         full_url = "http://www.lalibre.be%s" % url
@@ -183,3 +208,9 @@ if __name__ == '__main__':
         print article_data.content
         
         print "-" * 80
+
+
+
+if __name__ == '__main__':
+    list_frontpage_articles()
+    #test_sample_data()
