@@ -294,14 +294,25 @@ def is_external_blog(url):
     return not url.startswith("/")
 
 
+def separate_articles_from_blogposts(frontpage_links):
+    articles = []
+    blogposts = []
+    for (title, url) in frontpage_links:
+        if is_external_blog(url):
+            blogposts.append((title, url))
+        else:
+            articles.append((title, url))
+
+    return articles, blogposts
+
+
 
 if __name__ == '__main__':
 
-    frontpage_links = [(title, url)
-                       for (title, url) in  get_frontpage_articles()
-                       if not is_external_blog(url)]
-
-    for (title, url) in frontpage_links:
+    frontpage_links = get_frontpage_articles()
+    article_links, blogpost_links = separate_articles_from_blogposts(frontpage_links)
+    
+    for (title, url) in article_links:
         full_url = "http://www.lesoir.be%s" % url
         print "fetching data for article :",  title
 
@@ -313,7 +324,7 @@ if __name__ == '__main__':
         article_data = ArticleData(full_url, title, date, content, links, category, author, intro)
         
         print "title = ", article_data.title
-        print "url = http://www.lesoir.be%s" % article_data.url
+        print "url = ",  article_data.url
         print "date = ", article_data.date
         print "n links = ", sum([len(link_list) for link_list in article_data.links.values()])
         print "category = ", "/".join(article_data.category)
@@ -325,5 +336,8 @@ if __name__ == '__main__':
         
         print "-" * 80
 
+
+    print "blogposts : "
+    print "\n".join(["%s (%s)" % (title, url) for (title, url) in blogpost_links])
 
         
