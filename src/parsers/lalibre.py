@@ -3,7 +3,7 @@
 import urllib
 from datetime import datetime
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
-from utils import fetch_html_content, count_words
+from utils import fetch_html_content, count_words, make_soup_from_html_content
 
 
 class ArticleData(object):
@@ -16,7 +16,6 @@ class ArticleData(object):
         self.category = category
         self.author = author
         self.intro = intro
-
 
 
     def to_json(self):
@@ -132,11 +131,6 @@ def extract_article_data_from_html_content(html_content):
     
     return category, author, title, date, intro, content, links
     
-
-def make_soup_from_html_content(html_content):    
-    soup = BeautifulSoup(html_content, convertEntities=BeautifulSoup.HTML_ENTITIES)
-    return soup
-
 
 
 def get_frontpage_articles():

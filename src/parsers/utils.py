@@ -1,5 +1,5 @@
 import urllib
-
+from BeautifulSoup import BeautifulSoup
 
 def fetch_content_from_url(url):
     response = urllib.urlopen(url)
@@ -23,3 +23,8 @@ def count_words(some_text):
     return len(words)
 
 
+def make_soup_from_html_content(html_content, convert_entities=True):
+    if convert_entities:
+        return BeautifulSoup(html_content, convertEntities=BeautifulSoup.HTML_ENTITIES)
+    else:
+        return BeautifulSoup(html_content)

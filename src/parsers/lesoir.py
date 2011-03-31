@@ -5,7 +5,7 @@ import urllib
 import locale
 from datetime import datetime
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
-from utils import fetch_html_content, fetch_rss_content, count_words
+from utils import fetch_html_content, fetch_rss_content, count_words, make_soup_from_html_content
 
 
 # for datetime conversions
@@ -145,17 +145,6 @@ def extract_category(story):
     breadcrumbs = story.find("div", {'id':'fil_ariane'})
     category_stages = [a.contents[0] for a in breadcrumbs.findAll("a") ]
     return category_stages
-
-
-    
-
-
-def make_soup_from_html_content(html_content):    
-    soup = BeautifulSoup(html_content, convertEntities=BeautifulSoup.HTML_ENTITIES)
-
-    return soup
-
-
 
 
 def extract_article_data_from_html_content(html_content):
