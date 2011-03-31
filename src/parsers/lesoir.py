@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
+import sys
 import urllib
 import locale
 from datetime import datetime
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
 from utils import fetch_html_content, fetch_rss_content, count_words
 
+
 # for datetime conversions
-locale.setlocale(locale.LC_TIME, "fr_be")
+if sys.platform in ['linux2', 'darwin', 'cygwin']:
+    locale.setlocale(locale.LC_TIME, "fr_FR")
 
 
 class ArticleData(object):
