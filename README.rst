@@ -25,10 +25,12 @@ Parsers
 
 Equivalent of lesoir.py for the following sites:
 
-- started 
+- done 
+   - lesoir.be
    - lalibre.be
-- todo
+- started 
    - dhnet.be
+- todo
    - lavenir.net
    - sudpresse.be
 - maybe 
