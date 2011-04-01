@@ -80,7 +80,7 @@ def extract_text_content_and_links_from_articletext(article_text):
         keyword_links.extend(links)
         text.append(text_paragraph)
 
-    return ''.join(text), keyword_links
+    return text, keyword_links
 
 
 
