@@ -18,8 +18,6 @@ class ArticleData(object):
         self.author = author
         self.intro = intro
 
-
-
     def to_json(self):
         pass
 
@@ -69,19 +67,42 @@ def extract_sanitized_paragraph_and_links(paragraph):
     
 
 
+def cleanup_text_fragment(text_fragment):    
+    if isinstance(text_fragment, Tag):
+        return ''.join([cleanup_text_fragment(f) for f in text_fragment.contents])
+    else:
+        return text_fragment
 
+
+    
 def extract_text_content_and_links_from_articletext(article_text):
-    text_paragraphs = article_text.findAll("p", recursive=False)[1:]
+    def extract_title_and_link(link):
+        return link.contents[0], link.get('href')
+    keyword_links = [extract_title_and_link(link) for link in article_text.findAll("a", recursive=True)]
 
-    keyword_links = []
-    text = []
-    for p in text_paragraphs:
-        text_paragraph, links = extract_sanitized_paragraph_and_links(p)
-        keyword_links.extend(links)
-        text.append(text_paragraph)
+    
+    # first child is the intro paragraph
+    children = article_text.contents[1:]
 
-    return text, keyword_links
 
+    TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',  ]    
+    # the rest might be a list of paragraphs, but might also just be the text, sometimes with
+    # formatting.
+
+    cleaned_up_text_fragments = []
+    
+    for child in children:
+        if isinstance(child, Tag):
+            if child.name in TEXT_MARKUP_TAGS:
+                cleaned_up_text_fragments.append([cleanup_text_fragment(f) for f in child.contents])
+            elif child.name == 'p':
+                cleaned_up_text_fragments.append([cleanup_text_fragment(f) for f in child.contents])
+            else:
+                print "discarded tag : %s" % child.name
+        else:
+            cleaned_up_text_fragments.append(child)
+
+    return cleaned_up_text_fragments, keyword_links
 
 
 
@@ -166,6 +187,18 @@ def extract_title_and_link_from_anounce_group(announce_group):
 
 
 
+def get_first_story_title_and_url(main_content):
+    """
+    Extract the title and url of the main frontpage story
+    """
+    first_announce = main_content.find("div", {'id':"firstAnnounce"})
+    first_title = first_announce.h2.a.get("title")
+    first_url = first_announce.h2.a.get("href")
+
+    return first_title, first_url
+
+
+
 def get_frontpage_articles():
     url = "http://www.dhnet.be"
     html_content = fetch_html_content(url)
@@ -173,26 +206,22 @@ def get_frontpage_articles():
 
     main_content = soup.find("div", {'id':"maincontent"})
 
+    all_titles_and_urls = []
+
     # so, the list here is a combination of several subcontainer types.
     # processing every type separetely
-    first_announce = main_content.find("div", {'id':"firstAnnounce"})
-
-    # this will pick up the containers with same type in the 'regions' div
+    first_title, first_url = get_first_story_title_and_url(main_content)
+    all_titles_and_urls.append((first_title, first_url))
+    
+    # this will pick up the 'annouceGroup' containers with same type in the 'regions' div
     first_announce_groups = main_content.findAll("div",
                                                  {'class':"announceGroupFirst announceGroup"},
-                                                 recursive=True)
-    
+                                                 recursive=True)    
     announce_groups = main_content.findAll("div",
                                            {'class':"announceGroup"},
                                            recursive=True)
 
-    first_title = first_announce.h2.a.get("title")
-    first_url = first_announce.h2.a.get("href")
-
-
-    
-    all_titles_and_urls = [(first_title, first_url)]
-
+    # all those containers have two sub stories
     for announce_group in chain(first_announce_groups, announce_groups):
         titles_and_urls = extract_title_and_link_from_anounce_group(announce_group)
         all_titles_and_urls.extend(titles_and_urls)
@@ -200,8 +229,36 @@ def get_frontpage_articles():
     return [(title, "http://www.dhnet.be%s" % url) for (title, url) in  all_titles_and_urls]
 
 
-        
-if __name__ == '__main__':
+
+def print_report(extracted_data):
+    title, date, category, associated_links, intro, kw_links, kw_links2, text = extracted_data
+
+    print text
+    
+    print """
+    title: %s
+    date: %s
+    category: %s
+    n links: %d
+    n keyword links: %s
+    intro: %s
+    n words: %d
+    """ % (title, date, category,
+           len(associated_links), len(kw_links)+len(kw_links2),
+           intro, sum(count_words(p) for p in text))
+
+
+
+def test_sample_data():
+    filename = "../../sample_data/dhnet_no_paragraphs.html"
+    with open(filename, "r") as f:
+        html_content = f.read()
+        extracted_data = extract_article_data_from_html_content(html_content)
+        print_report(extracted_data)
+
+
+
+def show_frontpage_articles():
     frontpage_items = get_frontpage_articles()
 
     print "%s items on frontpage" % len(frontpage_items)
@@ -211,6 +268,10 @@ if __name__ == '__main__':
         html_content = fetch_html_content(url)
         extracted_data = extract_article_data_from_html_content(html_content)
 
-        print extracted_data
-        
+        print_report(extracted_data)
         print "-" * 20
+    
+        
+if __name__ == '__main__':
+    #show_frontpage_articles()
+    test_sample_data()
