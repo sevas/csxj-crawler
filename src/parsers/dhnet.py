@@ -31,7 +31,11 @@ class ArticleData(object):
 
 
 
-def cleanup_text_fragment(text_fragment):    
+def cleanup_text_fragment(text_fragment):
+    """
+    Recursively cleans up a text fragment (e.g. nested tags).
+    Returns a plain text string with no formatting info whatsoever.
+    """
     if isinstance(text_fragment, Tag):
         return ''.join([cleanup_text_fragment(f) for f in text_fragment.contents])
     else:
@@ -39,7 +43,12 @@ def cleanup_text_fragment(text_fragment):
 
 
 
+
 def filter_out_useless_fragments(text_fragments):
+    """
+    Removes all <br /> tags and '\n' string from a list of text fragments
+    extracted from an article.
+    """
     def is_linebreak(text_fragment):
         if isinstance(text_fragment, Tag):
             return text_fragment.name == "br"
@@ -52,6 +61,13 @@ def filter_out_useless_fragments(text_fragments):
 
     
 def extract_text_content_and_links_from_articletext(article_text):
+    """
+    Finds the article text, Returns a list of string (one item per paragraph) and a
+    list of '(keyword, url)' tuples.
+
+    Note: sometimes paragraphs are clearly marked with nice <p> tags. When it's not
+    the case, we consider linebreaks to be paragraph separators. 
+    """
     def extract_title_and_link(link):
         return link.contents[0], link.get('href')
     keyword_links = [extract_title_and_link(link) for link in article_text.findAll("a", recursive=True)]
@@ -82,28 +98,44 @@ def extract_text_content_and_links_from_articletext(article_text):
 
 
 def extract_intro_and_links_from_articletext(article_text):
+    """
+    Finds the introuction paragraph, returns a string with the text and a
+    list of '(keyword, url)' tuples. 
+    """
+    # intro text seems to always be in the first paragraph.
     intro_paragraph = article_text.p
     def extract_title_and_link(link):
         return link.contents[0], link.get('href')
-    keyword_links = [extract_title_and_link(link) for link in article_text.findAll("a", recursive=True)]
 
+    keyword_links = [extract_title_and_link(link) for link in article_text.findAll("a", recursive=True)]
     intro_text = ''.join([cleanup_text_fragment(f) for f in intro_paragraph.contents])
+
     return intro_text, keyword_links
 
 
 
+
 def extract_author_name_from_maincontent(main_content):
+    """
+    Finds the <p> element with author info, if available.
+    Returns a string if found, 'None' if not.
+    """
     signature = main_content.find("p", {'id':"articleSign"})
     if signature:
+        # the actual author name is often lost in a puddle of \n and \t
+        # cleaning it up.
         return signature.contents[0].lstrip().rstrip()
     else:
-        return "N/A"
+        return None
     
 
 
 def extract_category_from_maincontent(main_content):
+    """
+    Finds the breadcrumbs list. Returns a list of strings,
+    one per item in the trail. The '\t\n' soup around each entry is cleaned up.
+    """
     breadcrumbs = main_content.find("p", {'id':"breadcrumbs"})
-
     links = breadcrumbs.findAll("a", recursive=False)
 
     return [link.contents[0].rstrip().lstrip() for link in links]
@@ -112,6 +144,9 @@ def extract_category_from_maincontent(main_content):
 
 
 def extract_associated_links_from_maincontent(main_content):
+    """
+    Finds the list of associated links. Returns a list of (title, url) tuples.
+    """
     container = main_content.find("ul", {'class':"articleLinks"}, recursive=False)
 
     # sometimes there are no links
@@ -123,21 +158,25 @@ def extract_associated_links_from_maincontent(main_content):
     else:
         return []
 
+    
 
     
-date_matcher = re.compile("\(\d\d/\d\d/\d\d\d\d\)")
+DATE_MATCHER = re.compile("\(\d\d/\d\d/\d\d\d\d\)")
 def was_publish_date_updated(date_string):
     """
     In case of live events (soccer, fuck yeah), the article gets updated.
     Hour of last update is appended to the publish date.
     """
     # we try to match a non-updated date, and check that it failed.<
-    match = date_matcher.match(date_string)
+    match = DATE_MATCHER.match(date_string)
     return match is None
 
 
     
 def extract_date_from_maincontent(main_content):
+    """
+    Finds the publication date string, returns a datetime object
+    """
     date_string = main_content.find("p", {'id':"articleDate"}).contents[0]
 
     if was_publish_date_updated(date_string):
@@ -149,8 +188,9 @@ def extract_date_from_maincontent(main_content):
 
 
 
-
 def extract_article_data_from_html_content(html_content):
+    """
+    """
     soup = make_soup_from_html_content(html_content)
 
     main_content = soup.find("div", {'id':"maincontent"})
@@ -164,7 +204,6 @@ def extract_article_data_from_html_content(html_content):
     article_text = main_content.find("div", {'id':"articleText"})
     intro, kw_links = extract_intro_and_links_from_articletext(article_text)
     text, kw_links2 = extract_text_content_and_links_from_articletext(article_text)
-
 
     return title, date, category, author_name, associated_links, intro, kw_links, kw_links2, text
 
@@ -237,6 +276,12 @@ def get_frontpage_articles():
         all_titles_and_urls.extend(titles_and_urls)
 
     return [(title, "http://www.dhnet.be%s" % url) for (title, url) in  all_titles_and_urls]
+
+
+
+
+
+
 
 
 
