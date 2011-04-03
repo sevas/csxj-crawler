@@ -73,8 +73,6 @@ def extract_text_content_and_links_from_articletext(article_text):
             elif child.name == 'p':
                 cleaned_up_text_fragments.append(''.join([cleanup_text_fragment(f)
                                                           for f in child.contents]))
-            else:
-                print "discarded tag : %s" % child.name
         else:
             cleaned_up_text_fragments.append(child)
 
@@ -93,6 +91,14 @@ def extract_intro_and_links_from_articletext(article_text):
     return intro_text, keyword_links
 
 
+
+def extract_author_name_from_maincontent(main_content):
+    signature = main_content.find("p", {'id':"articleSign"})
+    if signature:
+        return signature.contents[0].lstrip().rstrip()
+    else:
+        return "N/A"
+    
 
 
 def extract_category_from_maincontent(main_content):
@@ -153,12 +159,14 @@ def extract_article_data_from_html_content(html_content):
     date = extract_date_from_maincontent(main_content)
     associated_links = extract_associated_links_from_maincontent(main_content)
     category = extract_category_from_maincontent(main_content)
-
+    author_name = extract_author_name_from_maincontent(main_content)
+    
     article_text = main_content.find("div", {'id':"articleText"})
     intro, kw_links = extract_intro_and_links_from_articletext(article_text)
     text, kw_links2 = extract_text_content_and_links_from_articletext(article_text)
 
-    return title, date, category, associated_links, intro, kw_links, kw_links2, text
+
+    return title, date, category, author_name, associated_links, intro, kw_links, kw_links2, text
 
 
 
@@ -233,19 +241,18 @@ def get_frontpage_articles():
 
 
 def print_report(extracted_data):
-    title, date, category, associated_links, intro, kw_links, kw_links2, text = extracted_data
-
-    print text
+    title, date, category, author_name, associated_links, intro, kw_links, kw_links2, text = extracted_data
     
     print """
     title: %s
     date: %s
     category: %s
+    author: %s
     n links: %d
     n keyword links: %s
     intro: %s
     n words: %d
-    """ % (title, date, category,
+    """ % (title, date, category, author_name,
            len(associated_links), len(kw_links)+len(kw_links2),
            intro, sum(count_words(p) for p in text))
 
