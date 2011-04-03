@@ -25,7 +25,6 @@ class ArticleData(object):
         self.intro = intro
 
 
-
     def to_json(self):
         pass
 
@@ -38,6 +37,7 @@ def sanitize_fragment(fragment):
     else:
         return fragment
 
+    
     
 def sanitize_paragraph(paragraph):
     """removes image links, removes paragraphs, formatting"""
@@ -57,6 +57,7 @@ def extract_content(story):
     return "".join(clean_paragraphs)
     
 
+
 def extract_to_read_links_from_sidebar(sidebar):
     to_read_links_container = sidebar.find("div", {"id":"lire_aussi"})
 
@@ -67,6 +68,7 @@ def extract_to_read_links_from_sidebar(sidebar):
     else:
         return []
 
+    
 
 def extract_external_links_from_sidebar(sidebar):
     external_links_container = sidebar.find("div", {"id":"external"})
@@ -80,6 +82,7 @@ def extract_external_links_from_sidebar(sidebar):
 
 
 
+
 def extract_recent_links_from_soup(soup):
     #todo : check if those links are actually associated to the article
     recent_links_container = soup.find("div", {"id":"les_plus_recents"})
@@ -89,6 +92,7 @@ def extract_recent_links_from_soup(soup):
     else:
         return []
 
+    
 
 def extract_links(soup):
     """
