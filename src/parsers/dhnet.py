@@ -1,10 +1,18 @@
 #!/usr/bin/env python
 
+import sys
+import locale
 import urllib
 from datetime import datetime
 from itertools import chain
+import re
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
 from utils import fetch_html_content, count_words, make_soup_from_html_content
+
+
+# for datetime conversions
+if sys.platform in ['linux2', 'darwin', 'cygwin']:
+    locale.setlocale(locale.LC_TIME, "fr_FR")
 
 
 class ArticleData(object):
@@ -23,50 +31,6 @@ class ArticleData(object):
 
 
 
-
-def sanitize_fragment(fragment):
-    """
-    An html framgent is whether a tag (<i>, <a>, <b>, <span>, etc) or a string.
-    If it's a tag, recursively convert it to the plaintext version.
-    """
-    if isinstance(fragment, Tag):
-        # sometimes, we just get <p></p>
-        if fragment.contents:
-            return "".join(sanitize_fragment(f) for f in fragment.contents)
-        else:
-            return ""
-    else:
-        return fragment
-
-
-    
-def sanitize_paragraph(paragraph):
-    """Extracts embedded links. Returns plain text article and the extracted links"""
-
-    def extract_keyword_and_link(keyword_link):
-        return keyword_link.contents[0], keyword_link.get('href')
-        
-    keyword_links = [extract_keyword_and_link(link) for link in paragraph.findAll("a", recursive=True)]
-    sanitized_paragraph = [sanitize_fragment(fragment) for fragment in paragraph.contents]            
-
-    return "".join(sanitized_paragraph), [(keyword, "http://www.dhnet.be%s" % url)
-                                          for (keyword, url) in keyword_links]
-
-    
-
-
-def extract_sanitized_paragraph_and_links(paragraph):
-    """
-    Takes an html paragraph (soup of plain text, <i>, <b>, <em>, and <a> elements)
-    Extracts the text content and a list of (keyword, link) tuples 
-    """
-    fragments, links = sanitize_paragraph(paragraph)
-
-    intro_text = ''.join(fragments)
-    return intro_text, links
-    
-
-
 def cleanup_text_fragment(text_fragment):    
     if isinstance(text_fragment, Tag):
         return ''.join([cleanup_text_fragment(f) for f in text_fragment.contents])
@@ -74,29 +38,41 @@ def cleanup_text_fragment(text_fragment):
         return text_fragment
 
 
+
+def filter_out_useless_fragments(text_fragments):
+    def is_linebreak(text_fragment):
+        if isinstance(text_fragment, Tag):
+            return text_fragment.name == "br"
+        else:
+            return len(text_fragment.strip()) == 0
+    
+    return [fragment for fragment in text_fragments if not is_linebreak(fragment)]
+
+
+
     
 def extract_text_content_and_links_from_articletext(article_text):
     def extract_title_and_link(link):
         return link.contents[0], link.get('href')
     keyword_links = [extract_title_and_link(link) for link in article_text.findAll("a", recursive=True)]
-
     
-    # first child is the intro paragraph
-    children = article_text.contents[1:]
-
-
-    TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',  ]    
+    children = filter_out_useless_fragments(article_text.contents)
+    # first child is the intro paragraph, discard it
+    children = children[1:]
+    
     # the rest might be a list of paragraphs, but might also just be the text, sometimes with
     # formatting.
-
+    TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',  ]    
     cleaned_up_text_fragments = []
     
     for child in children:
         if isinstance(child, Tag):
             if child.name in TEXT_MARKUP_TAGS:
-                cleaned_up_text_fragments.append([cleanup_text_fragment(f) for f in child.contents])
+                cleaned_up_text_fragments.append(''.join([cleanup_text_fragment(f)
+                                                          for f in child.contents]))
             elif child.name == 'p':
-                cleaned_up_text_fragments.append([cleanup_text_fragment(f) for f in child.contents])
+                cleaned_up_text_fragments.append(''.join([cleanup_text_fragment(f)
+                                                          for f in child.contents]))
             else:
                 print "discarded tag : %s" % child.name
         else:
@@ -106,9 +82,17 @@ def extract_text_content_and_links_from_articletext(article_text):
 
 
 
+
 def extract_intro_and_links_from_articletext(article_text):
     intro_paragraph = article_text.p
-    return extract_sanitized_paragraph_and_links(intro_paragraph)
+    def extract_title_and_link(link):
+        return link.contents[0], link.get('href')
+    keyword_links = [extract_title_and_link(link) for link in article_text.findAll("a", recursive=True)]
+
+    intro_text = ''.join([cleanup_text_fragment(f) for f in intro_paragraph.contents])
+    return intro_text, keyword_links
+
+
 
 
 def extract_category_from_maincontent(main_content):
@@ -134,11 +118,29 @@ def extract_associated_links_from_maincontent(main_content):
         return []
 
 
+    
+date_matcher = re.compile("\(\d\d/\d\d/\d\d\d\d\)")
+def was_publish_date_updated(date_string):
+    """
+    In case of live events (soccer, fuck yeah), the article gets updated.
+    Hour of last update is appended to the publish date.
+    """
+    # we try to match a non-updated date, and check that it failed.<
+    match = date_matcher.match(date_string)
+    return match is None
 
+
+    
 def extract_date_from_maincontent(main_content):
     date_string = main_content.find("p", {'id':"articleDate"}).contents[0]
+
+    if was_publish_date_updated(date_string):
+        # remove the update time, make the date look like '(dd/mm/yyyy)'
+        date_string = "%s)" % date_string.split(',')[0]
+
     date = datetime.strptime(date_string, "(%d/%m/%Y)")
     return date
+
 
 
 
@@ -250,7 +252,8 @@ def print_report(extracted_data):
 
 
 def test_sample_data():
-    filename = "../../sample_data/dhnet_no_paragraphs.html"
+    #filename = "../../sample_data/dhnet_no_paragraphs.html"
+    filename = "../../sample_data/dhnet_updated_date.html"
     with open(filename, "r") as f:
         html_content = f.read()
         extracted_data = extract_article_data_from_html_content(html_content)
@@ -261,7 +264,7 @@ def test_sample_data():
 def show_frontpage_articles():
     frontpage_items = get_frontpage_articles()
 
-    print "%s items on frontpage" % len(frontpage_items)
+    print "%d items on frontpage" % len(frontpage_items)
     for title, url in frontpage_items:
         print "Fetching data for : %s (%s)" % (title, url)
 
@@ -273,5 +276,5 @@ def show_frontpage_articles():
     
         
 if __name__ == '__main__':
-    #show_frontpage_articles()
-    test_sample_data()
+    show_frontpage_articles()
+    #test_sample_data()
