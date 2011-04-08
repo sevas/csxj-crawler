@@ -71,7 +71,8 @@ def extract_text_content_and_links_from_articletext(article_text):
     """
     def extract_title_and_link(link):
         return link.contents[0], link.get('href')
-    keyword_links = [extract_title_and_link(link) for link in article_text.findAll("a", recursive=True)]
+    keyword_links = [extract_title_and_link(link)
+                     for link in article_text.findAll("a", recursive=True)]
     
     children = filter_out_useless_fragments(article_text.contents)
     # first child is the intro paragraph, discard it
