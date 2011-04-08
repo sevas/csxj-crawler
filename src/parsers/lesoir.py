@@ -31,11 +31,14 @@ class ArticleData(object):
         pass
 
 
-
+TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',  ]    
 
 def sanitize_fragment(fragment):
     if isinstance(fragment, Tag):
-        return fragment.contents[0]
+        if fragment.name in TEXT_MARKUP_TAGS:
+            return fragment.contents[0]
+        else:
+            return ''
     else:
         return fragment
 
@@ -302,10 +305,11 @@ def separate_articles_from_blogposts(frontpage_links):
 
 
 
-if __name__ == '__main__':
-
+def get_frontpage_articles_data():
     frontpage_links = get_frontpage_articles()
     article_links, blogpost_links = separate_articles_from_blogposts(frontpage_links)
+
+    articles = []
     
     for (title, url) in article_links:
         full_url = "http://www.lesoir.be%s" % url
@@ -315,9 +319,21 @@ if __name__ == '__main__':
         extracted_data = extract_article_data_from_html_content(html_content)
         
         title, content, category, date, links, author, intro = extracted_data
-
         article_data = ArticleData(full_url, title, date, content, links, category, author, intro)
-        
+
+        articles.append(article_data)
+
+    return articles, blogpost_links
+
+
+    
+
+
+
+if __name__ == '__main__':
+    articles, blogpost_links = get_frontpage_articles_data()
+
+    for article_data in articles:
         print "title = ", article_data.title
         print "url = ",  article_data.url
         print "date = ", article_data.date
@@ -329,10 +345,11 @@ if __name__ == '__main__':
         print
         print article_data.content
         
-        print "-" * 80
-
+    print "-" * 80
 
     print "blogposts : "
     print "\n".join(["%s (%s)" % (title, url) for (title, url) in blogpost_links])
+
+
 
         
