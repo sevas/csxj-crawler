@@ -252,20 +252,9 @@ def get_rss_articles():
     xml_content = fetch_rss_content(rss_url)
     stonesoup = BeautifulStoneSoup(xml_content)
 
-    articles = []
-    
-    for item in stonesoup.findAll("item"):
-        url = item.link.contents[0]
-        html_content = fetch_html_content(url)
-        # fixme : urls sometimes point to an external blog article, with a different DOM
-        # todo : catch the redirect and look at the url, or something
-        print url
-        title, content, category, date, title, links, author = extract_article_data_from_html_content(html_content)
-
-        new_article_data = ArticleData(url, title, date, content, links, category, author)
-        articles.append(new_article_data)
-
-    print articles
+    titles_in_rss = [item.title.contents[0] for item in stonesoup.findAll("item")]
+        
+    return titles_in_rss
 
     
 
@@ -313,7 +302,6 @@ def get_frontpage_articles_data():
     
     for (title, url) in article_links:
         full_url = "http://www.lesoir.be%s" % url
-        print "fetching data for article :",  title
 
         html_content = fetch_html_content(full_url)
         extracted_data = extract_article_data_from_html_content(html_content)
