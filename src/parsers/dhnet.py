@@ -9,9 +9,10 @@ import re
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
 from utils import fetch_html_content, count_words, make_soup_from_html_content
 
-
 # for datetime conversions
-if sys.platform in ['linux2', 'darwin', 'cygwin']:
+if sys.platform in ['linux2', 'cygwin']:
+    locale.setlocale(locale.LC_TIME, "fr_FR.UTF8")
+elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, "fr_FR")
 
 

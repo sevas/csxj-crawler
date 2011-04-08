@@ -9,7 +9,9 @@ from utils import fetch_html_content, fetch_rss_content, count_words, make_soup_
 
 
 # for datetime conversions
-if sys.platform in ['linux2', 'darwin', 'cygwin']:
+if sys.platform in ['linux2', 'cygwin']:
+    locale.setlocale(locale.LC_TIME, "fr_FR.UTF8")
+elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, "fr_FR")
 
 
