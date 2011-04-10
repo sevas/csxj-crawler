@@ -8,7 +8,7 @@ from parsers import lesoir
 
 def filter_only_new_stories(frontpage_titles, outdir):
     if not os.path.exists("%s/last_frontpage_list.txt" % (outdir)):
-        
+        pass
 
 
 

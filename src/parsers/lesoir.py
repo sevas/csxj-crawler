@@ -3,9 +3,16 @@
 import sys
 import urllib
 import locale
+import os.path
 from datetime import datetime
+from collections import namedtuple
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
 from utils import fetch_html_content, fetch_rss_content, count_words, make_soup_from_html_content
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 
 # for datetime conversions
@@ -28,7 +35,20 @@ class ArticleData(object):
 
 
     def to_json(self):
-        pass
+        d = dict(self.__dict__)
+        
+        date = d['date']
+        d['date'] = date.strftime('%Y-%m-%dT%H:%M:%S')
+        return json.dumps(d)
+
+
+    @classmethod
+    def from_json(kls, json_string):
+        d = json.loads(json_string)
+        date_string = d['date']
+        d['date'] = datetime.strptime('%Y-%m-%dT%H:%M:%S')
+        return kls(**d)
+
 
 
 TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',  ]    
@@ -317,10 +337,24 @@ def get_frontpage_articles_data():
     
 
 
+def make_json_filename(prefix):
+    date = datetime.now().strftime('%Y%m%d-%H%M')
+    return "{0}-{1}.json".format(prefix, date)
+
+
+def save_to_json_file(json_entries, outfilename, outdir):
+
+    outpath = os.path.join(outdir, outfilename)
+    with open(outpath, 'w') as f:
+        json.dump(json_entries, f)
+
+
 
 if __name__ == '__main__':
     articles, blogpost_links = get_frontpage_articles_data()
 
+    json_entries = []
+    
     for article_data in articles:
         print "title = ", article_data.title
         print "url = ",  article_data.url
@@ -332,12 +366,19 @@ if __name__ == '__main__':
         print article_data.intro
         print
         print article_data.content
-        
-    print "-" * 80
 
+        json_entries.append(article_data.to_json())
+        
+        print "-" * 80
+
+    
+        
     print "blogposts : "
     print "\n".join(["%s (%s)" % (title, url) for (title, url) in blogpost_links])
 
+    result = {'articles':json_entries, 'blogposts':blogpost_links}
 
+    filename = make_json_filename('lesoir')
+    save_to_json_file(result, filename, "../../out")
 
         
