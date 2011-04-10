@@ -51,14 +51,23 @@ class ArticleData(object):
 
 
 
-TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',  ]    
+TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span' ]    
+
 
 def sanitize_fragment(fragment):
+    """
+    """
+    
+    # A text fragment is either an HTML tag (with its own child text fragments)
+    # or just a plain string. 
     if isinstance(fragment, Tag):
+        # If it's the former, we remove the tag and clean up all its children
         if fragment.name in TEXT_MARKUP_TAGS:
-            return fragment.contents[0]
+            return "".join([sanitize_fragment(f) for f in fragment.contents])
+        # sometimes we get embedded <objects>, just ignore it
         else:
             return ''
+    # If it's a plain string, there is nothing else to do
     else:
         return fragment
 
@@ -72,15 +81,19 @@ def sanitize_paragraph(paragraph):
 
 
 def extract_content(story):
-    header = story.find("div", {"id":"story_head"})
+    """
+    Finds the story's body, cleans up the text to remove all html formatting.
+    Returns a list of strings, one per found paragraph.
+    """
     story = story.find("div", {"id":"story_body"})
 
     paragraphs = story.findAll("p", recursive=False) 
 
     clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
     
-    return "".join(clean_paragraphs)
+    return clean_paragraphs
     
+
 
 
 def extract_to_read_links_from_sidebar(sidebar):
@@ -362,7 +375,7 @@ if __name__ == '__main__':
         print "n links = ", sum([len(link_list) for link_list in article_data.links.values()])
         print "category = ", "/".join(article_data.category)
         print "author = ", article_data.author
-        print "n words = ", count_words(article_data.content)
+        print "n words = ", count_words("".join(article_data.content))
         print article_data.intro
         print
         print article_data.content
