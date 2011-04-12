@@ -22,13 +22,22 @@ elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, "fr_FR")
 
 
+    
+TaggedURL = namedtuple('TaggedURL', 'URL title tags')
+
+
+def tag_URL((url, title), tags):
+    return TaggedURL(URL=url, title=title, tags=tags)
+
+    
 class ArticleData(object):
-    def __init__(self, url, title, date, content, links, category, author, intro):
+    def __init__(self, url, title, date, content, external_links, internal_links, category, author, intro):
         self.url = url
         self.title = title
         self.date = date
         self.content = content
-        self.links = links
+        self.internal_links = internal_links
+        self.external_links = external_links
         self.category = category
         self.author = author
         self.intro = intro
@@ -102,7 +111,7 @@ def extract_to_read_links_from_sidebar(sidebar):
     #sometimes, it does not exist at all
     if to_read_links_container:
         return [(link.get("href"), link.get("title"))
-                for link in to_read_links_container.findAll("a")]
+                for link in to_read_links_container.findAll("a", recursive=False)]
     else:
         return []
 
@@ -111,10 +120,9 @@ def extract_to_read_links_from_sidebar(sidebar):
 def extract_external_links_from_sidebar(sidebar):
     external_links_container = sidebar.find("div", {"id":"external"})
 
-    #warning : weird javascript clickthru crap to process first
     if external_links_container:
-        return [(link.get("onclick"), link.get("title"))
-                for link in external_links_container.findAll("a")]
+        return [(link.get("href"), link.get("title"))
+                for link in external_links_container.findAll("a", recursive=False)]
     else:
         return []
 
@@ -138,12 +146,12 @@ def extract_links(soup):
     'Le Soir' has 3 kinds of links, but they're not all always there.
     """
     sidebar = soup.find("div", {'id':"st_top_center"})
+
+    external_links = [tag_URL(i, []) for i in extract_external_links_from_sidebar(sidebar)]
+    associated_links = [tag_URL(i, ['to read']) for i in extract_to_read_links_from_sidebar(sidebar)]
+    associated_links.extend([tag_URL(i, ['recent']) for i in extract_recent_links_from_soup(soup)])
     
-    all_links = {"to_read":extract_to_read_links_from_sidebar(sidebar),
-                 "external":extract_external_links_from_sidebar(sidebar),
-                 "recent":extract_recent_links_from_soup(soup)}
-    
-    return all_links
+    return external_links, associated_links
 
     
 
@@ -202,9 +210,9 @@ def extract_article_data_from_html_content(html_content):
     author = extract_author_name(story)
     intro = extract_intro(story)
     
-    links = extract_links(soup)
+    external_links, internal_links = extract_links(soup)
 
-    return title, content, category, date, links, author, intro
+    return title, content, category, date, external_links, internal_links, author, intro
 
 
 
@@ -339,8 +347,8 @@ def get_frontpage_articles_data():
         html_content = fetch_html_content(full_url)
         extracted_data = extract_article_data_from_html_content(html_content)
         
-        title, content, category, date, links, author, intro = extracted_data
-        article_data = ArticleData(full_url, title, date, content, links, category, author, intro)
+        title, content, category, date, external_links, internal_links, author, intro = extracted_data
+        article_data = ArticleData(full_url, title, date, content, external_links, internal_links, category, author, intro)
 
         articles.append(article_data)
 
@@ -372,7 +380,8 @@ if __name__ == '__main__':
         print "title = ", article_data.title
         print "url = ",  article_data.url
         print "date = ", article_data.date
-        print "n links = ", sum([len(link_list) for link_list in article_data.links.values()])
+        print "n external links = ", len(article_data.external_links)
+        print "n internal links = ", len(article_data.internal_links)
         print "category = ", "/".join(article_data.category)
         print "author = ", article_data.author
         print "n words = ", count_words("".join(article_data.content))
