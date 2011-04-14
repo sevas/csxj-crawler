@@ -27,14 +27,32 @@ def are_stories_missing_from_frontpage(frontpage_titles, rss_titles):
     return list(only_in_rss)
 
 
+
+def extract_data(url):
+    pass
+
+
+
 if __name__ == '__main__':
-    titles_and_urls = lesoir.get_frontpage_articles()
+    titles_and_urls = lesoir.get_fronpage_articles()
     rss_titles = lesoir.get_rss_articles()
 
     frontpage_titles = [t for (t, u) in titles_and_urls]
-    print are_stories_missing_from_frontpage(frontpage_titles, rss_titles)
 
-    print len(frontpage_titles), len(rss_titles)
-    
-    for (front, rss) in izip_longest(frontpage_titles, rss_titles, fillvalue='***'):
-        print "%s \t\t\t\t\t\t\t\t %s" % (front, rss)
+
+    if are_stories_missing_from_frontpage(frontpage_titles, rss_titles):
+
+        print len(frontpage_titles), len(rss_titles)
+        for (front, rss) in izip_longest(frontpage_titles, rss_titles, fillvalue='***'):
+            print "%s \t\t\t\t\t\t\t\t %s" % (front, rss)
+
+
+    errors = []
+    articles = []
+            
+    for (title, url) in titles_and_urls:
+        try:
+            pass
+        except:
+            pass
+        
