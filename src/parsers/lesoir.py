@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
 import sys
-import urllib
 import locale
 import os.path
-from datetime import datetime
+from datetime import datetime, date, time
 from collections import namedtuple
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
 from utils import fetch_html_content, fetch_rss_content, count_words, make_soup_from_html_content
@@ -90,7 +89,7 @@ class ArticleData(object):
         d = json.loads(json_string)
 
         date_string = d['fetched_datetime']
-        d['fetched_datetime'] = datetime.strptime('%Y-%m-%dT%H:%M:%S')
+        d['fetched_datetime'] = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S')
 
         pub_date, pub_time = d['pub_date'],  d['pub_time']
         year, month, day = [int(i) for i in pub_date.split('-')]
@@ -257,7 +256,6 @@ def extract_article_data_from_url(url):
     category = extract_category(story)
     title = extract_title(story)    
     pub_date, pub_time = extract_date(story)
-    fetched_datetime = datetime.today()
     author = extract_author_name(story)
     external_links, internal_links = extract_links(soup)
 
@@ -330,7 +328,7 @@ def get_frontpage_articles():
                 # For some reason, those links don't have a 'title' attribute.
                 # Love this.
                 def extract_title_and_link(item):
-                    return (item.h2.a.contents[0], item.h2.a.get("href"))
+                    return item.h2.a.contents[0], item.h2.a.get("href")
                 frontpage_links.append(extract_title_and_link(first))
                 frontpage_links.append(extract_title_and_link(second))
 
