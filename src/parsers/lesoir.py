@@ -459,8 +459,8 @@ if __name__ == '__main__':
     result = {'articles':json_entries, 'blogposts':blogpost_links, 'errors':errors}
 
 
-    print errors
+    print 'articles : {0} \t blogposts : {1} \t errors : {2}'.format(len(json_entries), len(blogposts_links), len(errors))
     filename = make_json_filename('lesoir')
-    save_to_json_file(result, filename, "../../out")
+    #save_to_json_file(result, filename, "../../out")
 
         
