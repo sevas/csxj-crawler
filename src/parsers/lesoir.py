@@ -2,7 +2,6 @@
 
 import sys
 import locale
-import os.path
 from datetime import datetime, date, time
 from collections import namedtuple
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
@@ -415,26 +414,10 @@ def get_frontpage_articles_data():
     return articles, blogpost_links, errors
 
 
-    
-
-
-def make_json_filename(prefix):
-    date = datetime.now().strftime('%Y%m%d-%H%M')
-    return '{0}-{1}.json'.format(prefix, date)
-
-
-def save_to_json_file(json_entries, outfilename, outdir):
-
-    outpath = os.path.join(outdir, outfilename)
-    with open(outpath, 'w') as f:
-        json.dump(json_entries, f)
-
 
 
 if __name__ == '__main__':
     articles, blogpost_links, errors = get_frontpage_articles_data()
-
-    json_entries = []
     
     for article_data in articles:
         print 'title = ', article_data.title
@@ -449,16 +432,14 @@ if __name__ == '__main__':
         print
         print article_data.content
 
-        json_entries.append(article_data.to_json())
-        
         print '-' * 80
         
-    print 'blogposts : '
+    print 'blogposts: '
+    print '\n'.join([title for (title, url) in blogpost_links])
 
+    if errors:
+        print 'errors: '
+        print '\n'.join(errors)
+    
 
-    result = {'articles':json_entries, 'blogposts':blogpost_links, 'errors':errors}
-
-
-    print 'articles : {0} \t blogposts : {1} \t errors : {2}'.format(len(json_entries), len(blogpost_links), len(errors))
-    filename = make_json_filename('lesoir')
-    #save_to_json_file(result, filename, '../../out')
+    print '\n articles : {0} \t blogposts : {1} \t errors : {2}'.format(len(articles), len(blogpost_links), len(errors))
