@@ -30,19 +30,19 @@ def tag_URL((url, title), tags):
 
     
 class ArticleData(object):
-    '''
+    """
     A glorified dict to keep the extracted metadata and content of one article.
     Has utility methods for json (de)serialization.
-    '''
+    """
     
     def __init__(self, url, title,
                  pub_date, pub_time, fetched_datetime,
                  external_links, internal_links,
                  category, author,
                  intro, content):
-        '''
+        """
         Boring init func.
-        '''
+        """
         self.url = url
         self.title = title
         self.pub_date = pub_date
@@ -61,10 +61,10 @@ class ArticleData(object):
 
         
     def to_json(self):
-        '''
+        """
         Converts all attributes in self.__dict__ into a json string.
         Takes care of non natively serializable objects (such as datetime).
-        '''
+        """
         d = dict(self.__dict__)
         # datetime, date and time objects are not json-serializable
 
@@ -82,10 +82,10 @@ class ArticleData(object):
     
     @classmethod
     def from_json(kls, json_string):
-        '''
+        """
         Class method to rebuild an ArticleData object from a json string.
         Takes care of non natively deserializable objects (such as datetime).        
-        '''
+        """
         d = json.loads(json_string)
 
         date_string = d['fetched_datetime']
@@ -107,10 +107,10 @@ TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',
 
 
 def sanitize_fragment(fragment):
-    '''
+    """
     Returns the plain text version of a chunk of text formatted with HTML tags.
     Unsupported tags are ignored.
-    '''
+    """
     
     # A text fragment is either an HTML tag (with its own child text fragments)
     # or just a plain string. 
@@ -128,19 +128,19 @@ def sanitize_fragment(fragment):
     
     
 def sanitize_paragraph(paragraph):
-    '''
+    """
     Removes image links, removes paragraphs, formatting
-    '''
+    """
     return ''.join([sanitize_fragment(fragment) for fragment in paragraph.contents])
 
 
 
 
 def extract_content(story):
-    '''
+    """
     Finds the story's body, cleans up the text to remove all html formatting.
     Returns a list of strings, one per found paragraph.
-    '''
+    """
     story = story.find('div', {'id':'story_body'})
 
     paragraphs = story.findAll('p', recursive=False)
@@ -188,10 +188,10 @@ def extract_recent_links_from_soup(soup):
     
 
 def extract_links(soup):
-    '''
+    """
     Get the link lists for one news item, from the parsed html content.
     'Le Soir' has 3 kinds of links, but they're not all always there.
-    '''
+    """
     sidebar = soup.find('div', {'id':'st_top_center'})
 
     external_links = [tag_URL(i, []) for i in extract_external_links_from_sidebar(sidebar)]
@@ -272,30 +272,30 @@ def extract_article_data_from_url(url):
 
 
 def get_two_columns_stories(element):
-    '''
+    """
     Returns the two <li> with two 'two columns' stories.
     This function assumes we already checked that the element actually has
     two sub stories
-    '''
+    """
     two_columns_stories_list = element.findAll('ul', {'class':'two_cols'}, recursive=False)[0]
     return two_columns_stories_list.findAll('li', recursive=False)
 
 
 
 def element_has_two_columns_stories(element):
-    '''
+    """
     Checks whether or not a frontpage entry is a stand alone news item, or a container
     for two 'two columns' items.
-    '''
+    """
     return len(element.findAll('ul', {'class':'two_cols'}, recursive=False)) == 1
 
 
 
 def get_frontpage_articles():
-    '''
+    """
     Fetch links to articles listed on the 'Le Soir' front page.
     For each of them, extract the relevant data.
-    '''
+    """
     url = 'http://www.lesoir.be'
     html_content = fetch_html_content(url)
 

@@ -45,7 +45,7 @@ def sanitize_fragment(fragment):
 
     
 def sanitize_paragraph(paragraph):
-    '''Extracts embedded links. Returns plain text article and the extracted links'''
+    """Extracts embedded links. Returns plain text article and the extracted links"""
 
     def extract_keyword_and_link(keyword_link):
         return keyword_link.contents[0], keyword_link.get('href')

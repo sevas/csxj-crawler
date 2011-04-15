@@ -15,8 +15,8 @@ from utils import fetch_html_content, count_words, make_soup_from_html_content
 
 
 def extract_titles_and_links_from_third_column(third_column):
-    '''
-    '''
+    """
+    """
     items = third_column.findAll('div', {'class':'gen_imgbox'}, recursive=False)
    
     def extract_title_and_link(imgbox):
