@@ -47,10 +47,6 @@ class ArticleData(object):
         self.content = content
 
 
-    def __repr__(self):
-        pass
-
-
     def print_summary(self):
         print 'title:', self.title
         print 'url:', self.url
