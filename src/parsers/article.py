@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 __author__ = 'sevas'
 
 from collections import namedtuple
+from utils import count_words
 
 try:
     import json
@@ -44,6 +46,21 @@ class ArticleData(object):
         self.intro = intro
         self.content = content
 
+
+    def __repr__(self):
+        pass
+
+
+    def print_summary(self):
+        print 'title = ', self.title
+        print 'url = ',  self.url
+        print 'date = ', self.pub_date
+        print 'n external links = ', len(self.external_links)
+        print 'n internal links = ', len(self.internal_links)
+        print 'category = ', '/'.join(self.category)
+        print 'author = ', self.author
+        print 'n words = ', count_words(''.join(self.content))
+        print 'intro', self.intro
 
 
     def to_json(self):
