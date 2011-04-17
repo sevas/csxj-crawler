@@ -1,4 +1,5 @@
 syntax: glob
 *.pyc
 build/
-out/.idea/
+out/
+.idea/
