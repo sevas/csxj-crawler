@@ -1,9 +1,9 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import sys
 import locale
 from datetime import datetime, date, time
-from collections import namedtuple
 from BeautifulSoup import  BeautifulStoneSoup,  Tag
 from utils import fetch_html_content, fetch_rss_content, count_words, make_soup_from_html_content
 from article import ArticleData, tag_URL
@@ -165,14 +165,17 @@ def extract_category(story):
     return category_stages
 
 
-def extract_article_data_from_url(url):
+def extract_article_data(source):
     """
+    source is either a file-like object, or a url.
     """
-    html_content = fetch_html_content(url)
-    soup = make_soup_from_html_content(html_content)
-    
-    story = soup.find('div', {'id':'story'})
+    if hasattr(source, 'read'):
+        html_content = source.read()
+    else:
+        html_content = fetch_html_content(source)
 
+    soup = make_soup_from_html_content(html_content)
+    story = soup.find('div', {'id':'story'})
 
     category = extract_category(story)
     title = extract_title(story)    
@@ -185,7 +188,7 @@ def extract_article_data_from_url(url):
 
     fetched_datetime = datetime.today()
 
-    return ArticleData(url, title, pub_date, pub_time, fetched_datetime,
+    return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                               external_links, internal_links,
                               category, author,
                               intro, content)
@@ -273,22 +276,20 @@ def get_rss_articles():
     
 
     
-#def parse_sample_data():
-#    import sys
-#    data_directory = '../../sample_data'
-#    sys.path.append(data_directory)
-#    from dataset import dataset
-# 
-# 
-#    for entry in dataset['le soir']:
-#        url = entry['URL']
-#        filename = entry['file']
-#        filepath = '%s/%s' % (data_directory, filename)
-#    
-#        with open(filepath) as f:
-#            html_content = f.read()
-#            extract_article_data_from_html_content(html_content)
-    
+def parse_sample_data():
+    import sys
+    data_directory = '../../sample_data'
+    sys.path.append(data_directory)
+    from dataset import dataset
+
+    for entry in dataset['le soir']:
+        url = entry['URL']
+        filename = entry['file']
+        filepath = '%s/%s' % (data_directory, filename)
+
+        with open(filepath) as f:
+            extract_article_data(f)
+
 
 
 def is_external_blog(url):
@@ -320,7 +321,7 @@ def get_frontpage_articles_data():
         full_url = 'http://www.lesoir.be%s' % url
 
         try:
-            article_data = extract_article_data_from_url(url)
+            article_data = extract_article_data(full_url)
             articles.append(article_data)
 
         except AttributeError as e:
@@ -328,10 +329,6 @@ def get_frontpage_articles_data():
             new_error = make_errorlog_entry(full_url, stacktrace, '../out')
             errors.append(new_error)
             
-        except Exception as e:
-            print e.message
-
-     
     return articles, blogpost_links, errors
 
 
@@ -341,17 +338,7 @@ if __name__ == '__main__':
     articles, blogpost_links, errors = get_frontpage_articles_data()
     
     for article_data in articles:
-        print 'title = ', article_data.title
-        print 'url = ',  article_data.url
-        print 'date = ', article_data.pub_date
-        print 'n external links = ', len(article_data.external_links)
-        print 'n internal links = ', len(article_data.internal_links)
-        print 'category = ', '/'.join(article_data.category)
-        print 'author = ', article_data.author
-        print 'n words = ', count_words(''.join(article_data.content))
-        print article_data.intro
-        print
-        print article_data.content
+        article_data.print_summary()
 
         print '-' * 80
         
