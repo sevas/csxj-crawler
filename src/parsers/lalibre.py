@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 
 import urllib
 from datetime import datetime
@@ -75,7 +77,7 @@ def extract_category(main_content):
 def extract_links(main_content):
     link_list = main_content.find('ul', {'class':'articleLinks'})
 
-    # somtimes there are no links, and thus no placeholder
+    # sometimes there are no links, and thus no placeholder
     if link_list:
         links = []
         for entry in link_list.findAll('li', {'class':'picoType1'}, recursive=False):
@@ -98,7 +100,14 @@ def extract_author_name(main_content):
 
     
 
-def extract_article_data_from_html_content(html_content):
+def extract_article_data(source):
+    """
+    """
+    if hasattr(source, 'read'):
+        html_content = source.read()
+    else:
+        html_content = fetch_html_content(source)
+
     soup = make_soup_from_html_content(html_content)
 
     main_content = soup.find('div', {'id':'mainContent'})
@@ -119,10 +128,11 @@ def extract_article_data_from_html_content(html_content):
 
     fetched_datetime = datetime.today()
 
-    new_article = ArticleData(url, title, pub_date, "N/A", fetched_datetime,
+    new_article = ArticleData(url, title, pub_date, None, fetched_datetime,
                               external_links, internal_links, category, author,
                               intro, content)
     return new_article
+
 
 
 def get_frontpage_articles():
@@ -182,18 +192,6 @@ def list_frontpage_articles():
         article_data = ArticleData(url, title, date, content, links, category, author, intro)
 
 
-        print 'title = ', article_data.title
-        print 'url = http://www.lalibre.be%s' % article_data.url
-        print 'date = ', article_data.date
-        print 'n links = ', len(article_data.links)
-        print 'category = ', '/'.join(article_data.category)
-        print 'author = ', article_data.author
-        print 'n words = ', count_words(article_data.content)
-        print article_data.intro
-        print
-        print article_data.content
-        
-        print '-' * 80
 
 
 
