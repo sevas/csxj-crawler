@@ -2,33 +2,18 @@
 
 import sys
 import locale
-import urllib
-from datetime import datetime
+from datetime import datetime, date, time
 from itertools import chain
 import re
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
 from utils import fetch_html_content, count_words, make_soup_from_html_content
+from article import ArticleData, tag_URL
 
 # for datetime conversions
 if sys.platform in ['linux2', 'cygwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
 elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR')
-
-
-class ArticleData(object):
-    def __init__(self, url, title, date, content, links, category, author, intro):
-        self.url = url
-        self.title = title
-        self.date = date
-        self.content = content
-        self.links = links
-        self.category = category
-        self.author = author
-        self.intro = intro
-
-    def to_json(self):
-        pass
 
 
 
@@ -171,7 +156,16 @@ def was_publish_date_updated(date_string):
     """
     # we try to match a non-updated date, and check that it failed.<
     match = DATE_MATCHER.match(date_string)
-    return match is None
+    return not match
+
+
+
+def make_time_from_string(time_string):
+    """
+    Takes a HH:MM string, returns a time object
+    """
+    h, m = [int(i) for i in time_string.split(':')]
+    return time(h, m)
 
 
     
@@ -182,11 +176,16 @@ def extract_date_from_maincontent(main_content):
     date_string = main_content.find('p', {'id':'articleDate'}).contents[0]
 
     if was_publish_date_updated(date_string):
-        # remove the update time, make the date look like '(dd/mm/yyyy)'
-        date_string = '%s)' % date_string.split(',')[0]
+        # extract the update time, make the date look like '(dd/mm/yyyy)'
+        date_string, time_string = date_string.split(',')
+        date_string = '{0})'.format(date_string)
+        pub_time = make_time_from_string(time_string)
+    else:
+        pub_time = None
 
-    date = datetime.strptime(date_string, '(%d/%m/%Y)')
-    return date
+    pub_date = date.strptime(date_string, '(%d/%m/%Y)')
+
+    return pub_date, pub_time
 
 
 
@@ -198,7 +197,7 @@ def extract_article_data_from_html_content(html_content):
     main_content = soup.find('div', {'id':'maincontent'})
 
     title = main_content.h1.contents[0]
-    date = extract_date_from_maincontent(main_content)
+    pub_date, pub_time = extract_date_from_maincontent(main_content)
     associated_links = extract_associated_links_from_maincontent(main_content)
     category = extract_category_from_maincontent(main_content)
     author_name = extract_author_name_from_maincontent(main_content)
@@ -207,8 +206,13 @@ def extract_article_data_from_html_content(html_content):
     intro, kw_links = extract_intro_and_links_from_articletext(article_text)
     text, kw_links2 = extract_text_content_and_links_from_articletext(article_text)
 
-    return title, date, category, author_name, associated_links, intro, kw_links, kw_links2, text
+    external_links = [tag_URL(i, ['to read']) for i in associated_links]
+    internal_links = [tag_URL(i, ['keyword']) for i in chain(kw_links, kw_links2)]
 
+    fetched_datetime = datetime.today()
+    new_article = ArticleData(url, title, pub_date, pub_time, fetched_datetime, external_links, internal_links,
+                              category, author_name, intro, text)
+    return new_article
 
 
 

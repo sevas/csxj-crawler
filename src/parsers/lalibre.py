@@ -4,23 +4,12 @@ import urllib
 from datetime import datetime
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
 from utils import fetch_html_content, count_words, make_soup_from_html_content
+from article import ArticleData, tag_URL
 
-
-class ArticleData(object):
-    def __init__(self, url, title, date, content, links, category, author, intro):
-        self.url = url
-        self.title = title
-        self.date = date
-        self.content = content
-        self.links = links
-        self.category = category
-        self.author = author
-        self.intro = intro
-
-
-    def to_json(self):
-        pass
-
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
     
 def extract_date(main_content):
@@ -117,7 +106,7 @@ def extract_article_data_from_html_content(html_content):
     category = extract_category(main_content)
     author = extract_author_name(main_content)
     title = main_content.h1.contents[0].rstrip().lstrip()
-    date = extract_date(main_content)
+    pub_date = extract_date(main_content)
     
     intro = main_content.find('div', {'id':'articleHat'}).contents[0].rstrip().lstrip()
 
@@ -125,12 +114,15 @@ def extract_article_data_from_html_content(html_content):
 
     article_links = extract_links(main_content)
 
-    links = {'to_read':article_links,
-             'keyword':keyword_links}
-    
-    
-    return category, author, title, date, intro, content, links
-    
+    external_links = [tag_URL(i, ['to read']) for i in article_links]
+    internal_links = [tag_URL(i, ['keyword']) for i in keyword_links]
+
+    fetched_datetime = datetime.today()
+
+    new_article = ArticleData(url, title, pub_date, "N/A", fetched_datetime,
+                              external_links, internal_links, category, author,
+                              intro, content)
+    return new_article
 
 
 def get_frontpage_articles():
@@ -150,26 +142,26 @@ def get_frontpage_articles():
 
 
 
-def test_sample_data():
-    with open('../../sample_data/la_libre_recursive_cleanup.html', 'r') as f:
-        html_content = f.read()
-
-        extracted_data = extract_article_data_from_html_content(html_content)
-        category, author, title, date, intro, content, links = extracted_data
-        url = 'foo'
-        article_data = ArticleData(url, title, date, content, links, category, author, intro)
-        
-        print 'title = ', article_data.title
-        print 'url = http://www.lalibre.be%s' % article_data.url
-        print 'date = ', article_data.date
-        print 'n links = ', len(article_data.links)
-        print 'category = ', '/'.join(article_data.category)
-        print 'author = ', article_data.author
-        print 'n words = ', count_words(article_data.content)
-        print article_data.intro
-        print
-        print article_data.content
-        print article_data.links
+#def test_sample_data():
+#    with open('../../sample_data/la_libre_recursive_cleanup.html', 'r') as f:
+#        html_content = f.read()
+#
+#        extracted_data = extract_article_data_from_html_content(html_content)
+#        category, author, title, date, intro, content, links = extracted_data
+#        url = 'foo'
+#        article_data = ArticleData(url, title, date, content, links, category, author, intro)
+#
+#        print 'title = ', article_data.title
+#        print 'url = http://www.lalibre.be%s' % article_data.url
+#        print 'date = ', article_data.date
+#        print 'n links = ', len(article_data.links)
+#        print 'category = ', '/'.join(article_data.category)
+#        print 'author = ', article_data.author
+#        print 'n words = ', count_words(article_data.content)
+#        print article_data.intro
+#        print
+#        print article_data.content
+#        print article_data.links
                 
 
 

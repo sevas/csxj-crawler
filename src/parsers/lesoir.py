@@ -6,6 +6,7 @@ from datetime import datetime, date, time
 from collections import namedtuple
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
 from utils import fetch_html_content, fetch_rss_content, count_words, make_soup_from_html_content
+from article import ArticleData, tag_URL
 
 try:
     import json
@@ -18,87 +19,6 @@ if sys.platform in ['linux2', 'cygwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
 elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR')
-
-
-    
-TaggedURL = namedtuple('TaggedURL', 'URL title tags')
-
-
-def tag_URL((url, title), tags):
-    return TaggedURL(URL=url, title=title, tags=tags)
-
-    
-class ArticleData(object):
-    """
-    A glorified dict to keep the extracted metadata and content of one article.
-    Has utility methods for json (de)serialization.
-    """
-    
-    def __init__(self, url, title,
-                 pub_date, pub_time, fetched_datetime,
-                 external_links, internal_links,
-                 category, author,
-                 intro, content):
-        """
-        Boring init func.
-        """
-        self.url = url
-        self.title = title
-        self.pub_date = pub_date
-        self.pub_time = pub_time
-        self.fetched_datetime = fetched_datetime
-
-        self.external_links = external_links
-        self.internal_links = internal_links
-        
-        self.category = category
-        self.author = author
-        
-        self.intro = intro
-        self.content = content
-
-
-        
-    def to_json(self):
-        """
-        Converts all attributes in self.__dict__ into a json string.
-        Takes care of non natively serializable objects (such as datetime).
-        """
-        d = dict(self.__dict__)
-        # datetime, date and time objects are not json-serializable
-
-        date = d['fetched_datetime']
-        d['fetched_datetime'] = date.strftime('%Y-%m-%dT%H:%M:%S')
-
-        pub_date, pub_time = d['pub_date'], d['pub_time']
-
-        d['pub_date'] = pub_date.strftime('%Y-%m-%d')
-        d['pub_time'] = pub_time.strftime('%H:%S')
-        
-        return json.dumps(d)
-
-
-    
-    @classmethod
-    def from_json(kls, json_string):
-        """
-        Class method to rebuild an ArticleData object from a json string.
-        Takes care of non natively deserializable objects (such as datetime).        
-        """
-        d = json.loads(json_string)
-
-        date_string = d['fetched_datetime']
-        d['fetched_datetime'] = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S')
-
-        pub_date, pub_time = d['pub_date'],  d['pub_time']
-        year, month, day = [int(i) for i in pub_date.split('-')]
-        d['pub_date'] = date(year, month, day)
-
-        h, m = [int(i) for i in pub_time.split(':')]
-        d['pub_time'] = time(h, m)
-        
-        return kls(**d)
-
 
 
 
@@ -246,6 +166,8 @@ def extract_category(story):
 
 
 def extract_article_data_from_url(url):
+    """
+    """
     html_content = fetch_html_content(url)
     soup = make_soup_from_html_content(html_content)
     
@@ -312,7 +234,6 @@ def get_frontpage_articles():
         main_stories = set(container.findAll('li', {'class':'stories_main clearfix'}, recursive=False))
 
         other_stories = all_stories - main_stories
-
         
         # So, in _some_ lists of stories, the first one ('main story') has its title in an <h1>
         # and the rest in an <h2>
@@ -387,10 +308,6 @@ def separate_articles_from_blogposts(frontpage_links):
 
 
 
-
-ErrorLogEntry = namedtuple('ErrorLogEntry', 'url filename stacktrace')
-
-
 def get_frontpage_articles_data():
     import traceback
     frontpage_links = get_frontpage_articles()
@@ -400,16 +317,20 @@ def get_frontpage_articles_data():
     errors = []
 
     for (title, url) in article_links:
+        full_url = 'http://www.lesoir.be%s' % url
+
         try:
-            full_url = 'http://www.lesoir.be%s' % url
-            
-            article_data = extract_article_data_from_url(full_url)
+            article_data = extract_article_data_from_url(url)
             articles.append(article_data)
-        except AttributeError:
-            
+
+        except AttributeError as e:
             stacktrace = traceback.format_stack()
-            new_error = ErrorLogEntry(full_url, None, stacktrace)
+            new_error = make_errorlog_entry(full_url, stacktrace, '../out')
             errors.append(new_error)
+            
+        except Exception as e:
+            print e.message
+
      
     return articles, blogpost_links, errors
 
