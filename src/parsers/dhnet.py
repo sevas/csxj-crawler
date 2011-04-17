@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import sys
 import locale
@@ -179,19 +180,28 @@ def extract_date_from_maincontent(main_content):
         # extract the update time, make the date look like '(dd/mm/yyyy)'
         date_string, time_string = date_string.split(',')
         date_string = '{0})'.format(date_string)
-        pub_time = make_time_from_string(time_string)
+
+        # the time string looks like : 'mis à jour le hh:mm)'
+        time_string = time_string.split(' ')[-1]
+        pub_time = make_time_from_string(time_string.rstrip(')'))
     else:
         pub_time = None
 
-    pub_date = date.strptime(date_string, '(%d/%m/%Y)')
+
+    pub_date = datetime.strptime(date_string, '(%d/%m/%Y)').date()
 
     return pub_date, pub_time
 
 
 
-def extract_article_data_from_html_content(html_content):
+def extract_article_data(source):
     """
     """
+    if hasattr(source, 'read'):
+        html_content = source.read()
+    else:
+        html_content = fetch_html_content(source)
+
     soup = make_soup_from_html_content(html_content)
 
     main_content = soup.find('div', {'id':'maincontent'})
@@ -210,7 +220,7 @@ def extract_article_data_from_html_content(html_content):
     internal_links = [tag_URL(i, ['keyword']) for i in chain(kw_links, kw_links2)]
 
     fetched_datetime = datetime.today()
-    new_article = ArticleData(url, title, pub_date, pub_time, fetched_datetime, external_links, internal_links,
+    new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime, external_links, internal_links,
                               category, author_name, intro, text)
     return new_article
 
@@ -264,14 +274,14 @@ def get_frontpage_articles():
     all_titles_and_urls = []
 
     # so, the list here is a combination of several subcontainer types.
-    # processing every type separetely
+    # processing every type separately
     first_title, first_url = get_first_story_title_and_url(main_content)
     all_titles_and_urls.append((first_title, first_url))
-    
+
     # this will pick up the 'annouceGroup' containers with same type in the 'regions' div
     first_announce_groups = main_content.findAll('div',
                                                  {'class':'announceGroupFirst announceGroup'},
-                                                 recursive=True)    
+                                                 recursive=True)
     announce_groups = main_content.findAll('div',
                                            {'class':'announceGroup'},
                                            recursive=True)
@@ -282,30 +292,6 @@ def get_frontpage_articles():
         all_titles_and_urls.extend(titles_and_urls)
 
     return [(title, 'http://www.dhnet.be%s' % url) for (title, url) in  all_titles_and_urls]
-
-
-
-
-
-
-
-
-
-def print_report(extracted_data):
-    title, date, category, author_name, associated_links, intro, kw_links, kw_links2, text = extracted_data
-    
-    print """
-    title: %s
-    date: %s
-    category: %s
-    author: %s
-    n links: %d
-    n keyword links: %s
-    intro: %s
-    n words: %d
-    """ % (title, date, category, author_name,
-           len(associated_links), len(kw_links)+len(kw_links2),
-           intro, sum(count_words(p) for p in text))
 
 
 
@@ -326,12 +312,10 @@ def show_frontpage_articles():
     for title, url in frontpage_items:
         print 'Fetching data for : %s (%s)' % (title, url)
 
-        html_content = fetch_html_content(url)
-        extracted_data = extract_article_data_from_html_content(html_content)
-
-        print_report(extracted_data)
+        article_data = extract_article_data(url)
+        article_data.print_summary()
         print '-' * 20
-    
+
         
 if __name__ == '__main__':
     show_frontpage_articles()
