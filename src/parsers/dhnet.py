@@ -264,7 +264,7 @@ def get_first_story_title_and_url(main_content):
 
 
 
-def get_frontpage_articles():
+def get_frontpage_toc():
     url = 'http://www.dhnet.be'
     html_content = fetch_html_content(url)
     soup = make_soup_from_html_content(html_content)
@@ -306,7 +306,7 @@ def test_sample_data():
 
 
 def show_frontpage_articles():
-    frontpage_items = get_frontpage_articles()
+    frontpage_items = get_frontpage_toc()
 
     print '%d items on frontpage' % len(frontpage_items)
     for title, url in frontpage_items:
