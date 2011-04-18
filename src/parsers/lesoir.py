@@ -269,7 +269,7 @@ def get_rss_articles():
     xml_content = fetch_rss_content(rss_url)
     stonesoup = BeautifulStoneSoup(xml_content)
 
-    titles_in_rss = [item.title.contents[0] for item in stonesoup.findAll('item')]
+    titles_in_rss = [(item.title.contents[0], item.link.contents[0]) for item in stonesoup.findAll('item')]
         
     return titles_in_rss
 
