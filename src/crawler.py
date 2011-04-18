@@ -106,7 +106,7 @@ def fetch_articles_from_toc(toc,  provider):
 def fetch_lesoir_articles(outdir):
     """
     """
-    os.makedirs(os.path.join(outdir, 'lesoir')
+    os.makedirs(os.path.join(outdir, 'lesoir'))
     frontpage_toc = filter_only_new_stories(lesoir.get_frontpage_toc(),
                                               "{0}/lesoir/last_frontpage_list.json".format(outdir))
     rss_toc = filter_only_new_stories(lesoir.get_rss_toc(),
@@ -137,7 +137,7 @@ def fetch_lesoir_articles(outdir):
 
 
 def fetch_dhnet_articles(outdir):
-    os.makedirs(os.path.join(outdir, 'dhnet')
+    os.makedirs(os.path.join(outdir, 'dhnet'))
     frontpage_toc = filter_only_new_stories(dhnet.get_frontpage_toc(),
                                             "{0}/dhnet/last_frontpage_list.json".format(outdir))
 
