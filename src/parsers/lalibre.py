@@ -128,16 +128,16 @@ def extract_article_data(source):
 
     fetched_datetime = datetime.today()
 
-    new_article = ArticleData(url, title, pub_date, None, fetched_datetime,
+    new_article = ArticleData(source, title, pub_date, None, fetched_datetime,
                               external_links, internal_links, category, author,
                               intro, content)
     return new_article
 
 
 
-def get_frontpage_articles():
-    url = 'http://www.lalibre.be'
-    html_content = fetch_html_content(url)
+def get_frontpage_toc():
+    hostname_url = 'http://www.lalibre.be'
+    html_content = fetch_html_content(hostname_url)
 
     soup = make_soup_from_html_content(html_content)
 
@@ -145,7 +145,8 @@ def get_frontpage_articles():
     announces = article_list_container.findAll('div', {'class':'announce'}, recursive=False)
 
     def extract_title_and_link(announce):
-        return  announce.h1.a.contents[0], announce.h1.a.get('href')
+        title, url = announce.h1.a.contents[0], announce.h1.a.get('href')
+        return title, '{0}{1}'.format(hostname_url, url)
     
     return [extract_title_and_link(announce) for announce in announces]
 
@@ -177,20 +178,14 @@ def get_frontpage_articles():
 
 
 def list_frontpage_articles():
-    frontpage_items = get_frontpage_articles()
+    frontpage_items = get_frontpage_toc()
     print len(frontpage_items)
 
     for (title, url) in frontpage_items:
-        full_url = 'http://www.lalibre.be%s' % url
         print 'fetching data for article :',  title
 
-        html_content = fetch_html_content(full_url)
-        extracted_data = extract_article_data_from_html_content(html_content)
-
-        category, author, title, date, intro, content, links = extracted_data
-
-        article_data = ArticleData(url, title, date, content, links, category, author, intro)
-
+        article = extract_article_data(url)
+        article.print_summary()
 
 
 
