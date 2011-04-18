@@ -62,12 +62,12 @@ def make_outfile_prefix(source_name):
 def make_error_log_entry(url, stacktrace, outdir):
     """
     """
-    html_content = fetch_html_content(full_url)
-    outfile = '%s/' % outdir
-    with open(outfile, 'w') as f:
-        f.write(html_content)
+    html_content = fetch_html_content(url)
+    outfile = '%s/%s' % (outdir, url)
+    #with open(outfile, 'w') as f:
+    #    f.write(html_content)
 
-    return ErrorLogEntry(full_url, outfile, stacktrace)
+    return ErrorLogEntry(url, outfile, stacktrace)
 
 
 
@@ -76,7 +76,6 @@ def write_dict_to_file(d, outdir, source_name, outfile):
     """
     publication_outdir = os.path.join(outdir, make_outfile_prefix(source_name))
     if not os.path.exists(publication_outdir):
-        print 'creating directory:', publication_outdir
         os.makedirs(publication_outdir)
 
     filename = os.path.join(publication_outdir, outfile)
@@ -89,9 +88,9 @@ def fetch_lesoir_articles(outdir):
     """
     """
     frontpage_toc = filter_only_new_stories(lesoir.get_frontpage_toc(),
-                                              "{0}/last_frontpage_list.json".format(outdir))
+                                              "{0}/lesoir/last_frontpage_list.json".format(outdir))
     rss_toc = filter_only_new_stories(lesoir.get_rss_toc(),
-                                         "{0}/last_rss_list.json".format(outdir))
+                                         "{0}/lesoir/last_rss_list.json".format(outdir))
 
     article_links, blogpost_links = lesoir.separate_articles_from_blogposts(frontpage_toc)
 
@@ -111,6 +110,7 @@ def fetch_lesoir_articles(outdir):
             new_error = make_error_log_entry(full_url, stacktrace, outdir)
             errors.append(new_error)
 
+    print 'Summary for Le Soir:'
     print """
     articles : {0}
     blogposts : {1}
@@ -131,6 +131,37 @@ def fetch_lesoir_articles(outdir):
 
 
 
+def fetch_dhnet_articles(outdir):
+    frontpage_toc = filter_only_new_stories(dhnet.get_frontpage_toc(),
+                                            "{0}/dhnet/last_frontpage_list.json".format(outdir))
+
+    errors, articles = [], []
+
+    for (title, url) in frontpage_toc:
+        try:
+            article_data = dhnet.extract_article_data(url)
+            articles.append(article_data.to_json())
+        except AttributeError as e:
+            # this is for logging errors while parsing the dom. If it fails,
+            # we should get an AttributeError at some point. We'll keep
+            # that in a log, and save the html for future processing.
+            print traceback.print_stack()
+            print traceback.print_exc()
+            stacktrace = traceback.format_stack()
+            new_error = make_error_log_entry(url, stacktrace, outdir)
+            errors.append(new_error)
+
+    print 'Summary for DHNet:'
+    print """
+    articles : {0}
+    errors : {1}""".format(len(articles),
+                           len(errors))
+
+    all_data = {'articles':articles, 'errors':errors}
+    write_dict_to_file(all_data, outdir, 'dhnet', 'articles.json')
+    
+
+
 def main(outdir):
     if not os.path.exists(outdir):
         print 'creating output directory:', outdir
@@ -138,7 +169,7 @@ def main(outdir):
     print 'saving all data to:', outdir
 
     fetch_lesoir_articles(outdir)
-
+    fetch_dhnet_articles(outdir)
 
 
 if __name__ == '__main__':
