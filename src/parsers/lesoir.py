@@ -230,7 +230,7 @@ def get_frontpage_toc():
     stories_containers = soup.findAll('ul', {'class':'stories_list grid_6'})
 
 
-    frontpage_links = []
+    articles_toc, blogpost_toc = [], []
 
     for container in stories_containers:
         all_stories = set(container.findAll('li', recursive=False))
@@ -243,29 +243,39 @@ def get_frontpage_toc():
         # Also, some have two columns stories.
         # Beautiful soup indeed.
         for item in main_stories:
-            frontpage_links.append((item.h1.a.get('title'), item.h1.a.get('href')))
+            title, url = (item.h1.a.get('title'), item.h1.a.get('href'))
+            if is_external_blog(url):
+                blogpost_toc.append((title, url))
+            else:
+                articles_toc.append((title, url))
 
         for item in other_stories:
             if element_has_two_columns_stories(item):
-                first, second = get_two_columns_stories(item)
                 # For some reason, those links don't have a 'title' attribute.
                 # Love this.
                 def extract_title_and_link(item):
                     return item.h2.a.contents[0], item.h2.a.get('href')
-                frontpage_links.append(extract_title_and_link(first))
-                frontpage_links.append(extract_title_and_link(second))
 
+                for story in get_two_columns_stories(item):
+                    title, url = extract_title_and_link(story)
+                    if is_external_blog(url):
+                        blogpost_toc.append((title, url))
+                    else:
+                        articles_toc.append((title, url))
             else:
-                frontpage_links.append((item.h2.a.get('title'), item.h2.a.get('href')))
+                title, url = (item.h2.a.get('title'), item.h2.a.get('href'))
+                if is_external_blog(url):
+                    blogpost_toc.append((title, url))
+                else:
+                    articles_toc.append((title, url))
 
-    return [(t, 'http://www.lesoir.be'+url) for (t, url) in frontpage_links]
+    return [(title, 'http://www.lesoir.be{0}'.format(url)) for (title, url) in articles_toc], blogpost_toc
 
 
             
 
 def get_rss_toc():
     rss_url = 'http://www.lesoir.be/la_une/rss.xml'
-
     xml_content = fetch_rss_content(rss_url)
     stonesoup = BeautifulStoneSoup(xml_content)
 
@@ -273,7 +283,6 @@ def get_rss_toc():
         
     return titles_in_rss
 
-    
 
     
 def parse_sample_data():
@@ -296,40 +305,26 @@ def is_external_blog(url):
     return not url.startswith('/')
 
 
-def separate_articles_from_blogposts(frontpage_links):
-    articles = []
-    blogposts = []
-    for (title, url) in frontpage_links:
-        if is_external_blog(url):
-            blogposts.append((title, url))
-        else:
-            articles.append((title, url))
-
-    return articles, blogposts
-
-
 
 def get_frontpage_articles_data():
     import traceback
-    frontpage_links = get_frontpage_toc()
-    article_links, blogpost_links = separate_articles_from_blogposts(frontpage_links)
+
+    articles_toc, blogposts_toc = get_frontpage_toc()
 
     articles = []
     errors = []
 
-    for (title, url) in article_links:
-        full_url = 'http://www.lesoir.be%s' % url
-
+    for (title, url) in articles_toc:
         try:
-            article_data = extract_article_data(full_url)
+            article_data = extract_article_data(url)
             articles.append(article_data)
 
         except AttributeError as e:
             stacktrace = traceback.format_stack()
-            new_error = make_errorlog_entry(full_url, stacktrace, '../out')
+            new_error = make_errorlog_entry(url, stacktrace, '../out')
             errors.append(new_error)
             
-    return articles, blogpost_links, errors
+    return articles, blogposts_toc, errors
 
 
 
