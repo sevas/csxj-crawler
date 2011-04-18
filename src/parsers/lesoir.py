@@ -258,7 +258,7 @@ def get_frontpage_toc():
             else:
                 frontpage_links.append((item.h2.a.get('title'), item.h2.a.get('href')))
 
-    return frontpage_links
+    return [(t, 'http://www.lesoir.be'+url) for (t, url) in frontpage_links]
 
 
             
