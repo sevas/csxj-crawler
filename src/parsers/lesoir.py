@@ -215,7 +215,7 @@ def element_has_two_columns_stories(element):
 
 
 
-def get_frontpage_articles():
+def get_frontpage_toc():
     """
     Fetch links to articles listed on the 'Le Soir' front page.
     For each of them, extract the relevant data.
@@ -263,7 +263,7 @@ def get_frontpage_articles():
 
             
 
-def get_rss_articles():
+def get_rss_toc():
     rss_url = 'http://www.lesoir.be/la_une/rss.xml'
 
     xml_content = fetch_rss_content(rss_url)
@@ -311,7 +311,7 @@ def separate_articles_from_blogposts(frontpage_links):
 
 def get_frontpage_articles_data():
     import traceback
-    frontpage_links = get_frontpage_articles()
+    frontpage_links = get_frontpage_toc()
     article_links, blogpost_links = separate_articles_from_blogposts(frontpage_links)
 
     articles = []
