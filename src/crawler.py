@@ -110,31 +110,31 @@ def fetch_lesoir_articles(prefix):
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    frontpage_toc = filter_only_new_stories(lesoir.get_frontpage_toc(),
-                                            os.path.join(outdir, 'last_frontpage_list.json'))
+
+    articles_toc, blogposts_toc = lesoir.get_frontpage_toc()
+    new_articles_toc = filter_only_new_stories(articles_toc,
+                                               os.path.join(outdir, 'last_frontpage_list.json'))
 
     rss_toc = filter_only_new_stories(lesoir.get_rss_toc(),
                                       os.path.join(outdir, 'last_rss_list.json'))
 
 
-    article_links, blogpost_links = lesoir.separate_articles_from_blogposts(frontpage_toc)
-
-    articles, errors = fetch_articles_from_toc(article_links, lesoir)
+    articles, errors = fetch_articles_from_toc(articles_toc, lesoir)
 
     print 'Summary for Le Soir:'
     print """
     articles : {0}
     blogposts : {1}
     errors : {2}""".format(len(articles),
-                           len(blogpost_links),
+                           len(blogposts_toc),
                            len(errors))
     
-    all_data = {'articles':articles, 'blogposts':blogpost_links, 'errors':errors}
+    all_data = {'articles':articles, 'blogposts':blogposts_toc, 'errors':errors}
 
     write_dict_to_file(all_data, outdir, 'lesoir', 'articles.json') 
 
 
-    missing = find_stories_missing_from_frontpage(frontpage_toc, rss_toc)
+    missing = find_stories_missing_from_frontpage(articles_toc, rss_toc)
     if missing:
         missing_filename = os.path.join(outdir, make_outfile_prefix('lesoir'), 'missing.json')
         with open(missing_filename, 'w') as f:
