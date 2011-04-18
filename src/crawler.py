@@ -103,14 +103,19 @@ def fetch_articles_from_toc(toc,  provider):
 
 
 
-def fetch_lesoir_articles(outdir):
+def fetch_lesoir_articles(prefix):
     """
     """
-    os.makedirs(os.path.join(outdir, 'lesoir'))
+    outdir = os.path.join(prefix, 'lesoir')
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+
     frontpage_toc = filter_only_new_stories(lesoir.get_frontpage_toc(),
-                                              "{0}/lesoir/last_frontpage_list.json".format(outdir))
+                                            os.path.join(outdir, 'last_frontpage_list.json'))
+
     rss_toc = filter_only_new_stories(lesoir.get_rss_toc(),
-                                         "{0}/lesoir/last_rss_list.json".format(outdir))
+                                      os.path.join(outdir, 'last_rss_list.json'))
+
 
     article_links, blogpost_links = lesoir.separate_articles_from_blogposts(frontpage_toc)
 
@@ -136,10 +141,12 @@ def fetch_lesoir_articles(outdir):
             json.dump(missing, f)
 
 
-def fetch_dhnet_articles(outdir):
-    os.makedirs(os.path.join(outdir, 'dhnet'))
+def fetch_dhnet_articles(prefix):
+    outdir = os.path.join(prefix, 'dhnet')
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
     frontpage_toc = filter_only_new_stories(dhnet.get_frontpage_toc(),
-                                            "{0}/dhnet/last_frontpage_list.json".format(outdir))
+                                            os.path.join(outdir, 'last_frontpage_list.json'))
 
     articles, errors = fetch_articles_from_toc(frontpage_toc, dhnet)
     
