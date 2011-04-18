@@ -75,8 +75,11 @@ class ArticleData(object):
         pub_date, pub_time = d['pub_date'], d['pub_time']
 
         d['pub_date'] = pub_date.strftime('%Y-%m-%d')
-        d['pub_time'] = pub_time.strftime('%H:%S')
-
+        if pub_time:
+            d['pub_time'] = pub_time.strftime('%H:%S')
+        else:
+            d['pub_time'] = None
+            
         return json.dumps(d)
 
 
@@ -96,7 +99,10 @@ class ArticleData(object):
         year, month, day = [int(i) for i in pub_date.split('-')]
         d['pub_date'] = date(year, month, day)
 
-        h, m = [int(i) for i in pub_time.split(':')]
-        d['pub_time'] = time(h, m)
-
+        if pub_time:
+            h, m = [int(i) for i in pub_time.split(':')]
+            d['pub_time'] = time(h, m)
+        else:
+            d['pub_time'] = None
+            
         return kls(**d)
