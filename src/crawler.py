@@ -84,9 +84,29 @@ def write_dict_to_file(d, outdir, source_name, outfile):
 
 
 
+def fetch_articles_from_toc(toc,  provider):
+    articles, errors = [], []
+
+    for (title, url) in toc:
+        try:
+            article_data = provider.extract_article_data(url)
+            articles.append(article_data.to_json())
+        except AttributeError as e:
+            # this is for logging errors while parsing the dom. If it fails,
+            # we should get an AttributeError at some point. We'll keep
+            # that in a log, and save the html for future processing.
+            stacktrace = traceback.format_stack()
+            new_error = make_error_log_entry(url, stacktrace, outdir)
+            errors.append(new_error)
+
+    return articles, errors
+
+
+
 def fetch_lesoir_articles(outdir):
     """
     """
+    os.makedirs(os.path.join(outdir, 'lesoir')
     frontpage_toc = filter_only_new_stories(lesoir.get_frontpage_toc(),
                                               "{0}/lesoir/last_frontpage_list.json".format(outdir))
     rss_toc = filter_only_new_stories(lesoir.get_rss_toc(),
@@ -94,21 +114,7 @@ def fetch_lesoir_articles(outdir):
 
     article_links, blogpost_links = lesoir.separate_articles_from_blogposts(frontpage_toc)
 
-    errors = []
-    articles = []
-
-    for (title, url) in article_links:
-        full_url = 'http://www.lesoir.be%s' % url
-        try:
-            article_data = lesoir.extract_article_data(full_url)
-            articles.append(article_data.to_json())
-        except AttributeError as e:
-            # this is for logging errors while parsing the dom. If it fails,
-            # we should get an AttributeError at some point. We'll keep
-            # that in a log, and save the html for future processing.
-            stacktrace = traceback.format_stack()
-            new_error = make_error_log_entry(full_url, stacktrace, outdir)
-            errors.append(new_error)
+    articles, errors = fetch_articles_from_toc(article_links, lesoir)
 
     print 'Summary for Le Soir:'
     print """
@@ -120,7 +126,7 @@ def fetch_lesoir_articles(outdir):
     
     all_data = {'articles':articles, 'blogposts':blogpost_links, 'errors':errors}
 
-    write_dict_to_file(all_data, outdir, 'lesoir', 'articles.json')
+    write_dict_to_file(all_data, outdir, 'lesoir', 'articles.json') 
 
 
     missing = find_stories_missing_from_frontpage(frontpage_toc, rss_toc)
@@ -130,33 +136,18 @@ def fetch_lesoir_articles(outdir):
             json.dump(missing, f)
 
 
-
 def fetch_dhnet_articles(outdir):
+    os.makedirs(os.path.join(outdir, 'dhnet')
     frontpage_toc = filter_only_new_stories(dhnet.get_frontpage_toc(),
                                             "{0}/dhnet/last_frontpage_list.json".format(outdir))
 
-    errors, articles = [], []
-
-    for (title, url) in frontpage_toc:
-        try:
-            article_data = dhnet.extract_article_data(url)
-            articles.append(article_data.to_json())
-        except AttributeError as e:
-            # this is for logging errors while parsing the dom. If it fails,
-            # we should get an AttributeError at some point. We'll keep
-            # that in a log, and save the html for future processing.
-            print traceback.print_stack()
-            print traceback.print_exc()
-            stacktrace = traceback.format_stack()
-            new_error = make_error_log_entry(url, stacktrace, outdir)
-            errors.append(new_error)
-
+    articles, errors = fetch_articles_from_toc(frontpage_toc, dhnet)
+    
     print 'Summary for DHNet:'
     print """
     articles : {0}
     errors : {1}""".format(len(articles),
                            len(errors))
-
     all_data = {'articles':articles, 'errors':errors}
     write_dict_to_file(all_data, outdir, 'dhnet', 'articles.json')
     
