@@ -49,13 +49,13 @@ def find_stories_missing_from_frontpage(frontpage_toc, rss_toc):
 ErrorLogEntry = namedtuple('ErrorLogEntry', 'url filename stacktrace')
 
 
-def make_outfile_prefix(source_name):
+def make_outfile_prefix():
     """
     """
     now = datetime.today()
     date_string = now.strftime('%Y-%m-%d')
     hour_string = now.strftime('%H.%M.%S')
-    return os.path.join(source_name, date_string, hour_string)
+    return os.path.join(date_string, hour_string)
 
 
 
@@ -71,10 +71,10 @@ def make_error_log_entry(url, stacktrace, outdir):
 
 
 
-def write_dict_to_file(d, outdir, source_name, outfile):
+def write_dict_to_file(d, outdir, outfile):
     """
     """
-    publication_outdir = os.path.join(outdir, make_outfile_prefix(source_name))
+    publication_outdir = os.path.join(outdir, make_outfile_prefix())
     if not os.path.exists(publication_outdir):
         os.makedirs(publication_outdir)
 
@@ -119,7 +119,7 @@ def fetch_lesoir_articles(prefix):
                                       os.path.join(outdir, 'last_rss_list.json'))
 
 
-    articles, errors = fetch_articles_from_toc(articles_toc, lesoir)
+    articles, errors = fetch_articles_from_toc(new_articles_toc, lesoir)
 
     print 'Summary for Le Soir:'
     print """
@@ -131,7 +131,7 @@ def fetch_lesoir_articles(prefix):
     
     all_data = {'articles':articles, 'blogposts':blogposts_toc, 'errors':errors}
 
-    write_dict_to_file(all_data, outdir, 'lesoir', 'articles.json') 
+    write_dict_to_file(all_data, outdir, 'articles.json')
 
 
     missing = find_stories_missing_from_frontpage(articles_toc, rss_toc)
@@ -156,10 +156,29 @@ def fetch_dhnet_articles(prefix):
     errors : {1}""".format(len(articles),
                            len(errors))
     all_data = {'articles':articles, 'errors':errors}
-    write_dict_to_file(all_data, outdir, 'dhnet', 'articles.json')
+    write_dict_to_file(all_data, outdir, 'articles.json')
     
 
 
+def fetch_lalibre_articles(prefix):
+    outdir = os.path.join(prefix, 'lalibre')
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+
+    frontpage_toc = filter_only_new_stories(lalibre.get_frontpage_toc(),
+                                            os.path.join(outdir, 'last_frontpage_list.json'))
+
+    articles, errors = fetch_articles_from_toc(frontpage_toc, lalibre)
+
+    print 'Summary for La Libre:'
+    print """
+    articles : {0}
+    errors : {1}""".format(len(articles),
+                           len(errors))
+    all_data = {'articles':articles, 'errors':errors}
+    write_dict_to_file(all_data, outdir, 'articles.json')
+
+    
 def main(outdir):
     if not os.path.exists(outdir):
         print 'creating output directory:', outdir
@@ -168,6 +187,7 @@ def main(outdir):
 
     fetch_lesoir_articles(outdir)
     fetch_dhnet_articles(outdir)
+    fetch_lalibre_articles(outdir)
 
 
 if __name__ == '__main__':
