@@ -183,7 +183,10 @@ def main(outdir):
     if not os.path.exists(outdir):
         print 'creating output directory:', outdir
         os.mkdir(outdir)
-    print 'saving all data to:', outdir
+
+    print '-' * 30
+
+    print datetime.today().strftime('New articles saved on %d/%m/%Y at %H:%S')
 
     fetch_lesoir_articles(outdir)
     fetch_dhnet_articles(outdir)
