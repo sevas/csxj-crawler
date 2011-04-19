@@ -136,7 +136,7 @@ def fetch_lesoir_articles(prefix):
 
     missing = find_stories_missing_from_frontpage(articles_toc, rss_toc)
     if missing:
-        missing_filename = os.path.join(outdir, make_outfile_prefix('lesoir'), 'missing.json')
+        missing_filename = os.path.join(outdir, make_outfile_prefix(), 'missing.json')
         with open(missing_filename, 'w') as f:
             json.dump(missing, f)
 
