@@ -84,7 +84,7 @@ def write_dict_to_file(d, outdir, outfile):
 
 
 
-def fetch_articles_from_toc(toc,  provider):
+def fetch_articles_from_toc(toc,  provider, outdir):
     articles, errors = [], []
 
     for (title, url) in toc:
@@ -119,7 +119,7 @@ def fetch_lesoir_articles(prefix):
                                       os.path.join(outdir, 'last_rss_list.json'))
 
 
-    articles, errors = fetch_articles_from_toc(new_articles_toc, lesoir)
+    articles, errors = fetch_articles_from_toc(new_articles_toc, lesoir, outdir)
 
     print 'Summary for Le Soir:'
     print """
@@ -148,7 +148,7 @@ def fetch_dhnet_articles(prefix):
     frontpage_toc = filter_only_new_stories(dhnet.get_frontpage_toc(),
                                             os.path.join(outdir, 'last_frontpage_list.json'))
 
-    articles, errors = fetch_articles_from_toc(frontpage_toc, dhnet)
+    articles, errors = fetch_articles_from_toc(frontpage_toc, dhnet, outdir)
     
     print 'Summary for DHNet:'
     print """
@@ -168,7 +168,7 @@ def fetch_lalibre_articles(prefix):
     frontpage_toc = filter_only_new_stories(lalibre.get_frontpage_toc(),
                                             os.path.join(outdir, 'last_frontpage_list.json'))
 
-    articles, errors = fetch_articles_from_toc(frontpage_toc, lalibre)
+    articles, errors = fetch_articles_from_toc(frontpage_toc, lalibre, outdir)
 
     print 'Summary for La Libre:'
     print """
