@@ -77,7 +77,7 @@ def extract_to_read_links_from_sidebar(sidebar):
     #sometimes, it does not exist at all
     if to_read_links_container:
         return [(link.get('href'), link.get('title'))
-                for link in to_read_links_container.findAll('a', recursive=False)]
+                for link in to_read_links_container.findAll('a')]
     else:
         return []
 
@@ -88,7 +88,7 @@ def extract_external_links_from_sidebar(sidebar):
 
     if external_links_container:
         return [(link.get('href'), link.get('title'))
-                for link in external_links_container.findAll('a', recursive=False)]
+                for link in external_links_container.findAll('a')]
     else:
         return []
 
@@ -100,7 +100,7 @@ def extract_recent_links_from_soup(soup):
     recent_links_container = soup.find('div', {'id':'les_plus_recents'})
     if recent_links_container:
         return [(link.get('href'), link.contents[0])
-                for link in recent_links_container.findAll('a', recursive=False) ]
+                for link in recent_links_container.findAll('a') ]
     else:
         return []
 
@@ -332,7 +332,7 @@ def get_frontpage_articles_data():
 if __name__ == '__main__':
     articles, blogpost_links, errors = get_frontpage_articles_data()
     
-    for article_data in articles:
+    for article_data in articles[:2]:
         article_data.print_summary()
 
         print '-' * 80
