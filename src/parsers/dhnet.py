@@ -85,20 +85,18 @@ def extract_text_content_and_links_from_articletext(article_text):
 
 
 
-def extract_intro_and_links_from_articletext(article_text):
+def extract_intro_from_articletext(article_text):
     """
-    Finds the introuction paragraph, returns a string with the text and a
-    list of '(keyword, url)' tuples. 
+    Finds the introuction paragraph, returns a string with the text
     """
     # intro text seems to always be in the first paragraph.
     intro_paragraph = article_text.p
     def extract_title_and_link(link):
         return link.contents[0], link.get('href')
 
-    keyword_links = [extract_title_and_link(link) for link in article_text.findAll('a', recursive=True)]
     intro_text = ''.join([cleanup_text_fragment(f) for f in intro_paragraph.contents])
 
-    return intro_text, keyword_links
+    return intro_text
 
 
 
@@ -213,11 +211,14 @@ def extract_article_data(source):
     author_name = extract_author_name_from_maincontent(main_content)
     
     article_text = main_content.find('div', {'id':'articleText'})
-    intro, kw_links = extract_intro_and_links_from_articletext(article_text)
-    text, kw_links2 = extract_text_content_and_links_from_articletext(article_text)
+    intro = extract_intro_from_articletext(article_text)
+    text, kw_links = extract_text_content_and_links_from_articletext(article_text)
+
+    print kw_links
+    
 
     external_links = [tag_URL(i, ['to read']) for i in associated_links]
-    internal_links = [tag_URL(i, ['keyword']) for i in chain(kw_links, kw_links2)]
+    internal_links = [tag_URL(i, ['keyword']) for i in kw_links]
 
     fetched_datetime = datetime.today()
     new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime, external_links, internal_links,
@@ -299,9 +300,13 @@ def test_sample_data():
     #filename = '../../sample_data/dhnet_no_paragraphs.html'
     filename = '../../sample_data/dhnet_updated_date.html'
     with open(filename, 'r') as f:
-        html_content = f.read()
-        extracted_data = extract_article_data_from_html_content(html_content)
-        print_report(extracted_data)
+        article_data = extract_article_data(f)
+        article_data.print_summary()
+
+        for l in article_data.internal_links:
+            print l
+
+        print '-' * 20
 
 
 
@@ -314,6 +319,10 @@ def show_frontpage_articles():
 
         article_data = extract_article_data(url)
         article_data.print_summary()
+
+        for l in article_data.internal_links:
+            print l
+
         print '-' * 20
 
         
