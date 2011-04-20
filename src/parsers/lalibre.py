@@ -3,21 +3,36 @@
 
 
 import urllib
-from datetime import datetime
+from datetime import datetime, time
 from BeautifulSoup import Tag
 from utils import fetch_html_content, count_words, make_soup_from_html_content
 from article import ArticleData, tag_URL
+import re
 
 try:
     import json
 except ImportError:
     import simplejson as json
 
-    
+
+def was_story_updated(date_string):
+    return not date_string.startswith('Mis en ligne le')
+
 def extract_date(main_content):
     publication_date = main_content.find('p', {'id':'publicationDate'}).contents[0]
-    date_string = publication_date.replace('Mis en ligne le ', '').rstrip().lstrip()
-    
+    publication_date = publication_date.rstrip().lstrip()
+
+    if was_story_updated(publication_date):
+        fragments = publication_date.split(' ')
+        date_string = fragments[4]
+        print fragments
+        h, m = [int(i) for i in fragments[-1].split(':')]
+        pub_date = time(h, m)
+    else:
+        date_string = publication_date.replace('Mis en ligne le ', '')
+        pub_date = None
+
+    print date_string, pub_date
     date = datetime.strptime(date_string, '%d/%m/%Y')
     return date
 
