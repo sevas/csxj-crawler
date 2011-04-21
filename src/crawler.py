@@ -2,7 +2,6 @@
 
 import sys
 import os, os.path
-from itertools import izip_longest
 from collections import namedtuple
 import traceback
 from datetime import datetime
@@ -15,6 +14,7 @@ try:
 except ImportError:
     import simplejson as json
 
+DEBUG_MODE = True
 
 def filter_only_new_stories(frontpage_stories, filename):
     if os.path.exists(filename):
@@ -91,13 +91,23 @@ def fetch_articles_from_toc(toc,  provider, outdir):
         try:
             article_data = provider.extract_article_data(url)
             articles.append(article_data.to_json())
-        except AttributeError as e:
-            # this is for logging errors while parsing the dom. If it fails,
-            # we should get an AttributeError at some point. We'll keep
-            # that in a log, and save the html for future processing.
-            stacktrace = traceback.format_stack()
-            new_error = make_error_log_entry(url, stacktrace, outdir)
-            errors.append(new_error)
+        except Exception as e:
+            if e.__class__ in [AttributeError]:
+                # this is for logging errors while parsing the dom. If it fails,
+                # we should get an AttributeError at some point. We'll keep
+                # that in a log, and save the html for future processing.
+                stacktrace = traceback.format_stack()
+                new_error = make_error_log_entry(url, stacktrace, outdir)
+                errors.append(new_error)
+            else:
+                if DEBUG_MODE:
+                    # when developing, it's useful to not hide the exception
+                    raise e
+                else:
+                    # but in production, log everything
+                    stacktrace = traceback.format_stack()
+                    new_error = make_error_log_entry(url, stacktrace, outdir)
+                    errors.append(new_error)
 
     return articles, errors
 
@@ -194,7 +204,12 @@ def main(outdir):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        main(sys.argv[1])
-    else:
-        print 'usage : ./crawler.py <outdir>'
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Fetch pages from news sources, dumps interesting data')
+    parser.add_argument('--debug', dest='debug', action='store_true', help="run crawler in debug mode")
+    parser.add_argument('--outdir', type=str, dest='outdir', required=True, help='directory to dump the json db in')
+
+    args = parser.parse_args()
+    DEBUG_MODE = args.debug
+    main(args.outdir)
