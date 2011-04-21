@@ -17,6 +17,12 @@ def tag_URL((url, title), tags):
     return TaggedURL(URL=url, title=title, tags=tags)
 
 
+
+def make_dict_keys_str(a_dict):
+    items = [(str(k), v) for (k, v) in a_dict.items()]
+    return dict(items)
+
+
 class ArticleData(object):
     """
     A glorified dict to keep the extracted metadata and content of one article.
@@ -69,8 +75,8 @@ class ArticleData(object):
         d = dict(self.__dict__)
         # datetime, date and time objects are not json-serializable
 
-        date = d['fetched_datetime']
-        d['fetched_datetime'] = date.strftime('%Y-%m-%dT%H:%M:%S')
+        fetched_datetime = d['fetched_datetime']
+        d['fetched_datetime'] = fetched_datetime.strftime('%Y-%m-%dT%H:%M:%S')
 
         pub_date, pub_time = d['pub_date'], d['pub_time']
 
@@ -104,5 +110,6 @@ class ArticleData(object):
             d['pub_time'] = time(h, m)
         else:
             d['pub_time'] = None
-            
+
+        d = make_dict_keys_str(d)
         return kls(**d)
