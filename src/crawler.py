@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import sys
 import os, os.path
@@ -8,6 +9,7 @@ from datetime import datetime
 
 from parsers import lesoir, dhnet, lalibre
 from parsers.utils import fetch_html_content
+from providerstats import ProviderStats
 
 try:
     import json
@@ -15,6 +17,7 @@ except ImportError:
     import simplejson as json
 
 DEBUG_MODE = True
+
 
 def filter_only_new_stories(frontpage_stories, filename):
     if os.path.exists(filename):
@@ -90,7 +93,7 @@ def fetch_articles_from_toc(toc,  provider, outdir):
     for (title, url) in toc:
         try:
             article_data = provider.extract_article_data(url)
-            articles.append(article_data.to_json())
+            articles.append(article_data)
         except Exception as e:
             if e.__class__ in [AttributeError]:
                 # this is for logging errors while parsing the dom. If it fails,
@@ -113,6 +116,22 @@ def fetch_articles_from_toc(toc,  provider, outdir):
 
 
 
+def update_provider_stats(outdir, articles, errors):
+    stats_filename = os.path.join(outdir, 'stats.json')
+    if not os.path.exists(stats_filename):
+        print 'creating stats file:', stats_filename
+        init_stats = ProviderStats.make_init_instance()
+        init_stats.save_to_file(stats_filename)
+
+    current_stats = ProviderStats.load_from_file(stats_filename)
+    current_stats.n_articles += len(articles)
+    current_stats.n_errors += len(errors)
+    current_stats.n_dumps += 1
+    current_stats.end_date = datetime.today()
+    current_stats.n_links += sum([(len(art.external_links) + len(art.internal_links)) for art in articles])
+
+    current_stats.save_to_file(stats_filename)
+
 def fetch_lesoir_articles(prefix):
     """
     """
@@ -122,6 +141,10 @@ def fetch_lesoir_articles(prefix):
 
 
     articles_toc, blogposts_toc = lesoir.get_frontpage_toc()
+    blogposts_toc = list(filter_only_new_stories(blogposts_toc,
+                                            os.path.join(outdir, 'last_blogposts_list.json')))
+    
+
     new_articles_toc = filter_only_new_stories(articles_toc,
                                                os.path.join(outdir, 'last_frontpage_list.json'))
 
@@ -139,10 +162,12 @@ def fetch_lesoir_articles(prefix):
                            len(blogposts_toc),
                            len(errors))
     
-    all_data = {'articles':articles, 'blogposts':blogposts_toc, 'errors':errors}
+    all_data = {'articles':[art.to_json() for art in  articles],
+                'blogposts':blogposts_toc,
+                'errors':errors}
 
     write_dict_to_file(all_data, outdir, 'articles.json')
-
+    update_provider_stats(outdir, articles, errors)
 
     missing = find_stories_missing_from_frontpage(articles_toc, rss_toc)
     if missing:
@@ -165,9 +190,10 @@ def fetch_dhnet_articles(prefix):
     articles : {0}
     errors : {1}""".format(len(articles),
                            len(errors))
-    all_data = {'articles':articles, 'errors':errors}
+    all_data = {'articles':[art.to_json() for art in  articles],
+                'errors':errors}
     write_dict_to_file(all_data, outdir, 'articles.json')
-    
+    update_provider_stats(outdir, articles, errors)
 
 
 def fetch_lalibre_articles(prefix):
@@ -185,8 +211,10 @@ def fetch_lalibre_articles(prefix):
     articles : {0}
     errors : {1}""".format(len(articles),
                            len(errors))
-    all_data = {'articles':articles, 'errors':errors}
+    all_data = {'articles':[art.to_json() for art in  articles],
+                'errors':errors}
     write_dict_to_file(all_data, outdir, 'articles.json')
+    update_provider_stats(outdir, articles, errors)
 
     
 def main(outdir):
