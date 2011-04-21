@@ -214,9 +214,6 @@ def extract_article_data(source):
     intro = extract_intro_from_articletext(article_text)
     text, kw_links = extract_text_content_and_links_from_articletext(article_text)
 
-    print kw_links
-    
-
     external_links = [tag_URL(i, ['to read']) for i in associated_links]
     internal_links = [tag_URL(i, ['keyword']) for i in kw_links]
 
@@ -319,9 +316,6 @@ def show_frontpage_articles():
 
         article_data = extract_article_data(url)
         article_data.print_summary()
-
-        for l in article_data.internal_links:
-            print l
 
         print '-' * 20
 
