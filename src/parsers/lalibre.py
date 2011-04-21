@@ -25,7 +25,6 @@ def extract_date(main_content):
     if was_story_updated(publication_date):
         fragments = publication_date.split(' ')
         date_string = fragments[4]
-        print fragments
         h, m = [int(i) for i in fragments[-1].split(':')]
         pub_time = time(h, m)
     else:
