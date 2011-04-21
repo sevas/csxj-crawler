@@ -18,10 +18,6 @@ def fetch_rss_content(url):
     return fetch_content_from_url(url)
 
 
-def count_words(some_text):
-    words = some_text.split(' ')
-    return len(words)
-
 
 def make_soup_from_html_content(html_content, convert_entities=True):
     if convert_entities:

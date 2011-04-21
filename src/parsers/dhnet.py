@@ -7,7 +7,7 @@ from datetime import datetime, date, time
 from itertools import chain
 import re
 from BeautifulSoup import Tag
-from utils import fetch_html_content, count_words, make_soup_from_html_content
+from utils import fetch_html_content, make_soup_from_html_content
 from article import ArticleData, tag_URL
 
 # for datetime conversions

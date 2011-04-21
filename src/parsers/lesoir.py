@@ -5,7 +5,7 @@ import sys
 import locale
 from datetime import datetime, date, time
 from BeautifulSoup import  BeautifulStoneSoup,  Tag
-from utils import fetch_html_content, fetch_rss_content, count_words, make_soup_from_html_content
+from utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
 from article import ArticleData, tag_URL
 
 try:

@@ -2,7 +2,7 @@
 __author__ = 'sevas'
 
 from collections import namedtuple
-from utils import count_words
+from datetime import datetime, date, time
 
 try:
     import json
@@ -16,6 +16,11 @@ TaggedURL = namedtuple('TaggedURL', 'URL title tags')
 def tag_URL((url, title), tags):
     return TaggedURL(URL=url, title=title, tags=tags)
 
+
+
+def count_words(some_text):
+    words = some_text.split(' ')
+    return len(words)
 
 
 def make_dict_keys_str(a_dict):
