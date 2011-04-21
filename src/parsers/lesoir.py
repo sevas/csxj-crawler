@@ -332,7 +332,7 @@ def get_frontpage_articles_data():
 if __name__ == '__main__':
     articles, blogpost_links, errors = get_frontpage_articles_data()
     
-    for article_data in articles[:2]:
+    for article_data in articles:
         article_data.print_summary()
 
         print '-' * 80
