@@ -1,22 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
-import urllib
 from datetime import datetime, time
 from BeautifulSoup import Tag
 from utils import fetch_html_content, make_soup_from_html_content
 from article import ArticleData, tag_URL
-import re
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 
 def was_story_updated(date_string):
     return not date_string.startswith('Mis en ligne le')
+
+
 
 def extract_date(main_content):
     publication_date = main_content.find('p', {'id':'publicationDate'}).contents[0]
@@ -47,36 +41,49 @@ def sanitize_fragment(fragment):
         return fragment
 
 
-    
-def sanitize_paragraph(paragraph):
-    """Extracts embedded links. Returns plain text article and the extracted links"""
-
+def extract_tagged_links_from_paragraph(paragraph):
+    """Extract and tag all the links found in a paragraph """
     def extract_keyword_and_link(keyword_link):
-        return keyword_link.contents[0], keyword_link.get('href')
-        
+         return  sanitize_fragment(keyword_link.contents[0]), keyword_link.get('href')
+
     keyword_links = [extract_keyword_and_link(link) for link in paragraph.findAll('a', recursive=True)]
-    sanitized_paragraph = [sanitize_fragment(fragment) for fragment in paragraph.contents]            
+    all_links = set(keyword_links)
+
+    internal_links = set([(t, url) for (t, url) in all_links if url.startswith('/')])
+    external_links = all_links - internal_links
+
+    tagged_keyword_links = [tag_URL((t, u), ['keyword']) for (t, u) in internal_links]
+    tagged_external_links  = [tag_URL((t, u), ['external']) for (t, u) in external_links]
+
+    return tagged_keyword_links, tagged_external_links
 
 
-    return ''.join(sanitized_paragraph), [(keyword, 'http://www.lalibre.be%s' % url) for (keyword, url) in keyword_links]
+
+def sanitize_paragraph(paragraph):
+    """Returns plain text article"""
+    sanitized_paragraph = [sanitize_fragment(fragment) for fragment in paragraph.contents]
+    return ''.join(sanitized_paragraph)
 
 
 
 def extract_text_content_and_links(main_content):
     article_text = main_content.find('div', {'id':'articleText'})
 
-    all_links = []
+    all_internal_links, all_external_links = [], []
     all_fragments = [] 
     paragraphs = article_text.findAll('p', recursive=False)
 
     for paragraph in paragraphs:
-        fragments, links = sanitize_paragraph(paragraph)
-        all_links.extend(links)
+        fragments = sanitize_paragraph(paragraph)
+        internal_links, external_links = extract_tagged_links_from_paragraph(paragraph)
+        all_internal_links.extend(internal_links)
+        all_external_links.extend(external_links)
+
         all_fragments.append(fragments)
         all_fragments.append('\n')
 
     text_content = ''.join(all_fragments)
-    return text_content, all_links
+    return text_content, all_internal_links, all_external_links
 
 
 
@@ -87,10 +94,9 @@ def extract_category(main_content):
     return [link.contents[0].rstrip().lstrip() for link in links]
 
 
-
 icon_type_to_tags = {
     'pictoType0':['internal', 'full url'],
-    'pictoType1':['internal' 'local url'],
+    'pictoType1':['internal', 'local url'],
     'pictoType2':['images'],
     'pictoType3':['video'],
     'pictoType4':['animation'],
@@ -128,8 +134,8 @@ def extract_and_tag_links(main_content):
             # sometimes list items are used to show things which aren't links
             # but more like unclickable ads
             if item.a:
-                title = item.a.get('href')
-                url = item.a.contents[0]
+                url = item.a.get('href')
+                title = sanitize_fragment(item.a.contents[0])
                 icon_type = item.get('class')
             
                 links.append(make_tagged_url(title, url, icon_type))
@@ -176,12 +182,12 @@ def extract_article_data(source):
     
     intro = extract_intro(main_content)
 
-    content, keyword_links = extract_text_content_and_links(main_content)
+    content, keyword_links, external_links_in_text = extract_text_content_and_links(main_content)
 
-    tagged_article_links = extract_and_tag_links(main_content)
+    tagged_associated_links = extract_and_tag_links(main_content)
 
-    external_links = tagged_article_links
-    internal_links = [tag_URL(i, ['keyword']) for i in keyword_links]
+    external_links = tagged_associated_links + external_links_in_text
+    internal_links = keyword_links
 
     fetched_datetime = datetime.today()
 
@@ -211,7 +217,7 @@ def get_frontpage_toc():
 
 
 def test_sample_data():
-    filename = '../../sample_data/lalibre_no_links2.html'
+    filename = '../../sample_data/lalibre_external_links_in_text.html'
     with open(filename, 'r') as f:
         article_data = extract_article_data(f)
         article_data.print_summary()
@@ -219,7 +225,11 @@ def test_sample_data():
         article_data.url =  filename
 
         print article_data.to_json()
+        for url in article_data.external_links:
+            print url
 
+
+        
 def list_frontpage_articles():
     frontpage_items = get_frontpage_toc()
     print len(frontpage_items)
@@ -234,9 +244,9 @@ def list_frontpage_articles():
         print
         print article.external_links
 
-
+        print article.to_json()
 
 
 if __name__ == '__main__':
-    list_frontpage_articles()
-    #test_sample_data()
+    #list_frontpage_articles()
+    test_sample_data()
