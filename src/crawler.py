@@ -10,11 +10,7 @@ from datetime import datetime
 from parsers import lesoir, dhnet, lalibre
 from parsers.utils import fetch_html_content
 from providerstats import ProviderStats
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
+import json
 
 DEBUG_MODE = True
 
@@ -241,3 +237,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     DEBUG_MODE = args.debug
     main(args.outdir)
+    
+

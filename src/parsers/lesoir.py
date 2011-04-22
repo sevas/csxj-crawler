@@ -3,15 +3,10 @@
 
 import sys
 import locale
-from datetime import datetime, date, time
+from datetime import datetime
 from BeautifulSoup import  BeautifulStoneSoup,  Tag
 from utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
 from article import ArticleData, tag_URL
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 
 # for datetime conversions

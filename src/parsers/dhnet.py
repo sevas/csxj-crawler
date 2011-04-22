@@ -3,7 +3,7 @@
 
 import sys
 import locale
-from datetime import datetime, date, time
+from datetime import datetime, time
 from itertools import chain
 import re
 from BeautifulSoup import Tag
