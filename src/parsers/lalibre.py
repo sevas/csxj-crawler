@@ -101,7 +101,7 @@ icon_type_to_tags = {
     'pictoType3':['video'],
     'pictoType4':['animation'],
     'pictoType5':['audio'],
-    'pictoType6':['image', 'gallery'],
+    'pictoType6':['images', 'gallery'],
     'pictoType9':['internal blog'],
     'pictoType12':['external']
 }
