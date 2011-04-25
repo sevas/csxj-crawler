@@ -91,11 +91,20 @@ def extract_external_links_from_sidebar(sidebar):
 
 
 def extract_recent_links_from_soup(soup):
+
+    def extract_url_and_title(item):
+        url = item.get('href')
+        if item.contents[0]:
+            title = item.contents[0]
+        else:
+            title = 'N/A'
+        return url, title
+    
     #todo : check if those links are actually associated to the article
     recent_links_container = soup.find('div', {'id':'les_plus_recents'})
     if recent_links_container:
-        return [(link.get('href'), link.contents[0])
-                for link in recent_links_container.findAll('a') ]
+        return [extract_url_and_title(item)
+                for item in recent_links_container.findAll('a') ]
     else:
         return []
 
