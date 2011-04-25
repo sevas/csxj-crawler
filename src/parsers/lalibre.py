@@ -44,16 +44,16 @@ def sanitize_fragment(fragment):
 def extract_tagged_links_from_paragraph(paragraph):
     """Extract and tag all the links found in a paragraph """
     def extract_keyword_and_link(keyword_link):
-         return  sanitize_fragment(keyword_link.contents[0]), keyword_link.get('href')
+         return   keyword_link.get('href'), sanitize_fragment(keyword_link.contents[0])
 
     keyword_links = [extract_keyword_and_link(link) for link in paragraph.findAll('a', recursive=True)]
     all_links = set(keyword_links)
 
-    internal_links = set([(t, url) for (t, url) in all_links if url.startswith('/')])
+    internal_links = set([(url, title) for (url, title) in all_links if url.startswith('/')])
     external_links = all_links - internal_links
 
-    tagged_keyword_links = [tag_URL((t, u), ['keyword']) for (t, u) in internal_links]
-    tagged_external_links  = [tag_URL((t, u), ['external']) for (t, u) in external_links]
+    tagged_keyword_links = [tag_URL((u, t), ['keyword']) for (u, t) in internal_links]
+    tagged_external_links  = [tag_URL((u, t), ['external']) for (u, t) in external_links]
 
     return tagged_keyword_links, tagged_external_links
 
@@ -82,7 +82,7 @@ def extract_text_content_and_links(main_content):
         all_fragments.append(fragments)
         all_fragments.append('\n')
 
-    text_content = ''.join(all_fragments)
+    text_content = all_fragments
     return text_content, all_internal_links, all_external_links
 
 
@@ -135,10 +135,10 @@ def extract_and_tag_links(main_content):
             # but more like unclickable ads
             if item.a:
                 url = item.a.get('href')
-                title = sanitize_fragment(item.a.contents[0])
+                title = sanitize_fragment(item.a.contents[0].rstrip().lstrip())
                 icon_type = item.get('class')
             
-                links.append(make_tagged_url(title, url, icon_type))
+                links.append(make_tagged_url(url, title, icon_type))
 
         return links
     else:
@@ -240,13 +240,16 @@ def list_frontpage_articles():
         article = extract_article_data(url)
         article.print_summary()
 
-        print article.internal_links
-        print
-        print article.external_links
+
+        for (title, url, tags) in article.external_links:
+            print u'{0} -> {1} {2}'.format(title, url, tags)
+
+        for (title, url, tags) in article.internal_links:
+            print u'{0} -> {1} {2}'.format(title, url, tags)
 
         print article.to_json()
 
 
 if __name__ == '__main__':
-    #list_frontpage_articles()
-    test_sample_data()
+    list_frontpage_articles()
+    #test_sample_data()

@@ -55,9 +55,9 @@ def extract_text_content_and_links_from_articletext(article_text):
     Note: sometimes paragraphs are clearly marked with nice <p> tags. When it's not
     the case, we consider linebreaks to be paragraph separators. 
     """
-    def extract_title_and_link(link):
-        return link.contents[0], link.get('href')
-    keyword_links = [extract_title_and_link(link)
+    def extract_link_and_title(link):
+        return link.get('href'),  link.contents[0]
+    keyword_links = [extract_link_and_title(link)
                      for link in article_text.findAll('a', recursive=True)]
     
     children = filter_out_useless_fragments(article_text.contents)
@@ -137,10 +137,10 @@ def extract_associated_links_from_maincontent(main_content):
 
     # sometimes there are no links
     if container:
-        def extract_title_and_link(list_item):
-            return list_item.a.contents[0], list_item.a.get('href')
+        def extract_link_and_title(list_item):
+            return  list_item.a.get('href'), list_item.a.contents[0]
         list_items = container.findAll('li', recursive=False)
-        return [extract_title_and_link(list_item) for list_item in list_items]
+        return [extract_link_and_title(list_item) for list_item in list_items]
     else:
         return []
 
@@ -316,6 +316,12 @@ def show_frontpage_articles():
 
         article_data = extract_article_data(url)
         article_data.print_summary()
+
+        for (title, url, tags) in article_data.external_links:
+            print u'{0} -> {1} {2}'.format(title, url, tags)
+
+        for (title, url, tags) in article_data.internal_links:
+            print u'{0} -> {1} {2}'.format(title, url, tags)
 
         print '-' * 20
 
