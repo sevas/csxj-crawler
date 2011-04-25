@@ -97,17 +97,18 @@ def extract_category(main_content):
 icon_type_to_tags = {
     'pictoType0':['internal', 'full url'],
     'pictoType1':['internal', 'local url'],
-    'pictoType2':['images'],
+    'pictoType2':['images', 'gallery'],
     'pictoType3':['video'],
     'pictoType4':['animation'],
     'pictoType5':['audio'],
+    'pictoType6':['image', 'gallery'],
     'pictoType9':['internal blog'],
     'pictoType12':['external']
 }
 
 
 
-def make_tagged_url(title, url, icon_type):
+def make_tagged_url(url, title, icon_type):
     """
     Attempts to tag a url using the icon used. Mapping is incomplete at the moment.
     Still keeps the icon type as part of the tags for future uses.
@@ -238,16 +239,15 @@ def list_frontpage_articles():
         print 'fetching data for article :',  title
 
         article = extract_article_data(url)
-        article.print_summary()
+        #article.print_summary()
+        print article.title
 
-
+        print article.external_links
         for (title, url, tags) in article.external_links:
-            print u'{0} -> {1} {2}'.format(title, url, tags)
+            print u'*** {0} -> {1} {2}'.format(title, url, tags)
 
-        for (title, url, tags) in article.internal_links:
-            print u'{0} -> {1} {2}'.format(title, url, tags)
-
-        print article.to_json()
+        print ##
+        #print article.to_json()
 
 
 if __name__ == '__main__':
