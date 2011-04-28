@@ -9,3 +9,8 @@ Uses python 2.6
 - `chardet <http://chardet.feedparser.org/>`_ : useful to fight encoding issues
 
 
+
+Licence
+-------
+
+Still thinking about it. Until then, this is not public domain and I retain full copyright.
