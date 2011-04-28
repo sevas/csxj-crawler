@@ -27,17 +27,17 @@ def make_soup_from_html_content(html_content, convert_entities=True):
         return BeautifulSoup(html_content)
 
 
-URL_MATCHER = re.compile('http://.*')
+URL_MATCHER = re.compile(r'\(?\bhttp://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]') #comes from http://www.codinghorror.com/blog/2008/10/the-problem-with-urls.html
 
-def strip_punctuation(text):
-    punctuation_symbols = ';:,.(){}[]\'\"|\\/!?'
-    return text.lstrip(punctuation_symbols).rstrip(punctuation_symbols)
+def strip_matching_parenthesis(text):
+    if text.startswith('(') and text.endswith(')'):
+        return text[1:-1]
+    return text
 
 def extract_plaintext_urls_from_text(some_text):
     """
     """
-    text_fragments = some_text.split(' ')
-    text_fragments = [strip_punctuation(f) for f in text_fragments]
-    urls = [f for f in text_fragments if URL_MATCHER.match(f)]
+    urls = URL_MATCHER.findall(some_text)
+    urls = [strip_matching_parenthesis(url) for url in urls]
     return urls
-    
+
