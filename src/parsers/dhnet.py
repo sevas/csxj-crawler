@@ -215,7 +215,7 @@ def extract_article_data(source):
     text, kw_links = extract_text_content_and_links_from_articletext(article_text)
 
     external_links = [tag_URL(i, ['to read']) for i in associated_links]
-    internal_links = [tag_URL(i, ['keyword']) for i in kw_links]
+    internal_links = [tag_URL(i, ['keyword', 'in text']) for i in kw_links]
 
     fetched_datetime = datetime.today()
     new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime, external_links, internal_links,

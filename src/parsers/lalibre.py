@@ -52,8 +52,8 @@ def extract_tagged_links_from_paragraph(paragraph):
     internal_links = set([(url, title) for (url, title) in all_links if url.startswith('/')])
     external_links = all_links - internal_links
 
-    tagged_keyword_links = [tag_URL((u, t), ['keyword']) for (u, t) in internal_links]
-    tagged_external_links  = [tag_URL((u, t), ['external']) for (u, t) in external_links]
+    tagged_keyword_links = [tag_URL((u, t), ['internal', 'keyword', 'in text']) for (u, t) in internal_links]
+    tagged_external_links  = [tag_URL((u, t), ['external', 'in text']) for (u, t) in external_links]
 
     return tagged_keyword_links, tagged_external_links
 
