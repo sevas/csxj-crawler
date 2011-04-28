@@ -6,8 +6,8 @@ import locale
 from datetime import datetime
 from BeautifulSoup import  BeautifulStoneSoup,  Tag
 from utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
-from article import ArticleData, tag_URL
-
+from article import ArticleData, classify_and_tag, make_tagged_url
+from utils import remove_text_formatting_markup, extract_plaintext_urls_from_text
 
 # for datetime conversions
 if sys.platform in ['linux2', 'cygwin']:
@@ -16,62 +16,65 @@ elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR')
 
 
+LESOIR_INTERNAL_BLOGS = {
+    'blog.lesoir.be':['internal blog', 'internal'],
+    'belgium-iphone.lesoir.be':['internal blog', 'internal'],
+    'archives.lesoir.be':['archives', 'internal']
+}
 
-TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span' ]
+LESOIR_NETLOC = 'www.lesoir.be'
 
 
-def sanitize_fragment(fragment):
-    """
-    Returns the plain text version of a chunk of text formatted with HTML tags.
-    Unsupported tags are ignored.
-    """
-    
-    # A text fragment is either an HTML tag (with its own child text fragments)
-    # or just a plain string. 
-    if isinstance(fragment, Tag):
-        # If it's the former, we remove the tag and clean up all its children
-        if fragment.name in TEXT_MARKUP_TAGS:
-            return ''.join([sanitize_fragment(f) for f in fragment.contents])
-        # sometimes we get embedded <objects>, just ignore it
-        else:
-            return ''
-    # If it's a plain string, there is nothing else to do
-    else:
-        return fragment
-
-    
 
 
 def sanitize_paragraph(paragraph):
     """
     Removes image links, removes paragraphs, formatting
     """
-    return ''.join([sanitize_fragment(fragment) for fragment in paragraph.contents])
+    return ''.join([remove_text_formatting_markup(fragment) for fragment in paragraph.contents])
 
 
 
+def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
+    """
+    Classify (with tags) every element in a list of (url, title) tuples
+    Returns a list of TaggedURLs
+    """
+    tagged_urls = []
+    for url, title in urls_and_titles:
+        tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+        tagged_urls.append(make_tagged_url(url, title, tags+additional_tags))
+    return tagged_urls
 
-def extract_content(story):
+
+def extract_text_content(story):
     """
     Finds the story's body, cleans up the text to remove all html formatting.
-    Returns a list of strings, one per found paragraph.
+    Returns a list of strings, one per found paragraph, and all the plaintext urls, as TaggedURLs
     """
     story = story.find('div', {'id':'story_body'})
     paragraphs = story.findAll('p', recursive=False)
     clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
-    
-    return clean_paragraphs
-    
 
+    all_plaintext_urls = []
+    for text in clean_paragraphs:
+        all_plaintext_urls.extend(extract_plaintext_urls_from_text(text))
+    # plaintext urls are their own title
+    urls_and_titles = zip(all_plaintext_urls, all_plaintext_urls)
+    tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=['plaintext'])
+
+    return clean_paragraphs, tagged_urls
+    
 
 
 def extract_to_read_links_from_sidebar(sidebar):
     to_read_links_container = sidebar.find('div', {'id':'lire_aussi'})
-
     #sometimes, it does not exist at all
     if to_read_links_container:
-        return [(link.get('href'), link.get('title'))
-                for link in to_read_links_container.findAll('a')]
+        urls_and_titles = [(link.get('href'), link.get('title'))
+                            for link in to_read_links_container.findAll('a')]
+        print urls_and_titles
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=['to read'])
     else:
         return []
 
@@ -81,8 +84,9 @@ def extract_external_links_from_sidebar(sidebar):
     external_links_container = sidebar.find('div', {'id':'external'})
 
     if external_links_container:
-        return [(link.get('href'), link.get('title'))
-                for link in external_links_container.findAll('a')]
+        urls_and_titles = [(link.get('href'), link.get('title'))
+                            for link in external_links_container.findAll('a')]
+        return classify_and_make_tagged_url(urls_and_titles)
     else:
         return []
 
@@ -90,20 +94,21 @@ def extract_external_links_from_sidebar(sidebar):
 
 
 def extract_recent_links_from_soup(soup):
-
     def extract_url_and_title(item):
         url = item.get('href')
         if item.contents[0]:
             title = item.contents[0]
         else:
-            title = 'N/A'
+            # yes, this happens
+            title = 'No Title found'
         return url, title
-    
+
     #todo : check if those links are actually associated to the article
     recent_links_container = soup.find('div', {'id':'les_plus_recents'})
     if recent_links_container:
-        return [extract_url_and_title(item)
-                for item in recent_links_container.findAll('a') ]
+        urls_and_titles = [extract_url_and_title(item)
+                           for item in recent_links_container.findAll('a')]
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=['recent'])
     else:
         return []
 
@@ -116,40 +121,46 @@ def extract_links(soup):
     """
     sidebar = soup.find('div', {'id':'st_top_center'})
 
-    external_links = [tag_URL(i, []) for i in extract_external_links_from_sidebar(sidebar)]
-    associated_links = [tag_URL(i, ['to read']) for i in extract_to_read_links_from_sidebar(sidebar)]
-    associated_links.extend([tag_URL(i, ['recent']) for i in extract_recent_links_from_soup(soup)])
+    all_tagged_urls = extract_external_links_from_sidebar(sidebar)
+    all_tagged_urls.extend(extract_to_read_links_from_sidebar(sidebar))
+    all_tagged_urls.extend(extract_recent_links_from_soup(soup))
     
-    return external_links, associated_links
+    return all_tagged_urls
 
     
 
 def extract_title(story):
     header = story.find('div', {'id':'story_head'})
     title = header.h1.contents[0]
-
-    #return title
-    return unicode(title)
-    
+    if title:
+        return unicode(title)
+    else:
+        return 'No title found'
 
 
 def extract_author_name(story):
     header = story.find('div', {'id':'story_head'})
     author_name = header.find('p', {'class':'info st_signature'})
 
-    return author_name.contents[0]
+    if author_name:
+        return author_name.contents[0]
+    else:
+        return 'No author found'
 
 
 
 def extract_date(story):
     header = story.find('div', {'id':'story_head'})
-    date = header.find('p', {'class':'info st_date'})
+    publication_date = header.find('p', {'class':'info st_date'})
 
-    date_string = date.contents[0]
-    datetime_published = datetime.strptime(date_string, '%A %d %B %Y, %H:%M')
+    if publication_date:
+        date_string = publication_date.contents[0]
+        datetime_published = datetime.strptime(date_string, '%A %d %B %Y, %H:%M')
 
-    return datetime_published.date(), datetime_published.time()
-    
+        return datetime_published.date(), datetime_published.time()
+    else:
+        return None, None
+
 
 
 def extract_intro(story):
@@ -162,11 +173,12 @@ def extract_intro(story):
     return ''.join(text_fragments)
 
 
-    
+
 def extract_category(story):
     breadcrumbs = story.find('div', {'id':'fil_ariane'})
     category_stages = [a.contents[0] for a in breadcrumbs.findAll('a') ]
     return category_stages
+
 
 
 def extract_article_data(source):
@@ -185,15 +197,18 @@ def extract_article_data(source):
     title = extract_title(story)    
     pub_date, pub_time = extract_date(story)
     author = extract_author_name(story)
-    external_links, internal_links = extract_links(soup)
+
+    sidebar_links = extract_links(soup)
 
     intro = extract_intro(story)
-    content = extract_content(story)
+    content, plaintext_links = extract_text_content(story)
 
     fetched_datetime = datetime.today()
 
+    all_links = sidebar_links + plaintext_links
+
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                              external_links, internal_links,
+                              all_links,
                               category, author,
                               intro, content)
     
@@ -319,14 +334,8 @@ def get_frontpage_articles_data():
     errors = []
 
     for (title, url) in articles_toc:
-        try:
-            article_data = extract_article_data(url)
-            articles.append(article_data)
-
-        except AttributeError as e:
-            stacktrace = traceback.format_stack()
-            new_error = make_errorlog_entry(url, stacktrace, '../out')
-            errors.append(new_error)
+        article_data = extract_article_data(url)
+        articles.append(article_data)
             
     return articles, blogposts_toc, errors
 
@@ -339,12 +348,11 @@ if __name__ == '__main__':
     for article_data in articles:
         article_data.print_summary()
 
-        for (title, url, tags) in article_data.internal_links:
-            print u'{0} -> {1} {2}'.format(title, url, tags)
+        for (url, title, tags) in article_data.internal_links:
+            print u'{0} -> {1} {2}'.format(url, title, tags)
 
-        for (title, url, tags) in article_data.external_links:
-            print u'{0} -> {1} {2}'.format(title, url, tags)
-
+        for (url, title, tags) in article_data.external_links:
+            print u'{0} -> {1} {2}'.format(url, title, tags)
 
         print '-' * 80
         
