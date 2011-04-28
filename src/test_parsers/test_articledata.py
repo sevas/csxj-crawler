@@ -69,11 +69,11 @@ class JSONSerializationTestCases(unittest.TestCase):
         self.pub_time = time(12, 23)
         self.fetched_datetime = datetime(2011, 04, 28, 13, 01)
 
-        self.external_links = [TaggedURL(URL='http://www.bar.org/story.php?id=876543', title='I, Anteater', tags=['external'])]
-        self.internal_links = [TaggedURL(URL='/news/cat/754365', title='Platypus considered harmful', tags=['internal']),
-                               TaggedURL(URL='/define/platypus', title='Definition: Platypus', tags=['internal', 'keyword'])]
+        self.links = [TaggedURL(URL='http://www.bar.org/story.php?id=876543', title='I, Anteater', tags=['external']),
+                     TaggedURL(URL='/news/cat/754365', title='Platypus considered harmful', tags=['internal']),
+                     TaggedURL(URL='/define/platypus', title='Definition: Platypus', tags=['internal', 'keyword'])]
 
-        self.category = ['main', 'branch']
+        self.category = ['maincat', 'subcat']
         self.author = 'Some Person'
 
         self.intro = 'So, that thing happenned'

@@ -10,6 +10,10 @@ import json
 TaggedURL = namedtuple('TaggedURL', 'URL title tags')
 
 
+def make_tagged_url(url, title, tags):
+    return TaggedURL(URL=url, title=title, tags=tags)
+
+
 def tag_URL((url, title), tags):
     return TaggedURL(URL=url, title=title, tags=tags)
 
@@ -82,7 +86,7 @@ class ArticleData(object):
 
     def __init__(self, url, title,
                  pub_date, pub_time, fetched_datetime,
-                 external_links, internal_links,
+                 links,
                  category, author,
                  intro, content):
         """
@@ -94,14 +98,23 @@ class ArticleData(object):
         self.pub_time = pub_time
         self.fetched_datetime = fetched_datetime
 
-        self.external_links = external_links
-        self.internal_links = internal_links
+        self.links = links
 
         self.category = category
         self.author = author
 
         self.intro = intro
         self.content = content
+
+        
+    @property
+    def external_links(self):
+        return [l for l in self.links if 'external' in l.tags]
+
+
+    @property
+    def internal_links(self):
+        return [l for l in self.links if 'internal' in l.tags]
 
 
     def print_summary(self):
@@ -152,5 +165,9 @@ class ArticleData(object):
         d['pub_date'] = datetime_from_string(pub_date)
         d['pub_time'] = time_from_string(pub_time)
 
+        links = d['links']
+        tagged_urls = [make_tagged_url(url, title, tags) for (url, title, tags) in links]
+        d['links'] = tagged_urls
+        
         d = make_dict_keys_str(d)
         return kls(**d)
