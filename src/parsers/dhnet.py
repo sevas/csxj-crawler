@@ -7,14 +7,34 @@ from datetime import datetime, time
 from itertools import chain
 import re
 from BeautifulSoup import Tag
-from utils import fetch_html_content, make_soup_from_html_content
-from article import ArticleData, tag_URL
+from utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup, extract_plaintext_urls_from_text
+from article import ArticleData, tag_URL, make_tagged_url, classify_and_tag
 
 # for datetime conversions
 if sys.platform in ['linux2', 'cygwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
 elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR')
+
+
+DHNET_INTERNAL_SITES = {
+    'tackleonweb.blogs.dhnet.be':['internal blog', 'internal', 'sports'],
+    'galeries.dhnet.be':['internal site', 'image gallery'],
+}
+
+DHNET_NETLOC = 'www.dhnet.be'
+
+
+def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
+    """
+    Classify (with tags) every element in a list of (url, title) tuples
+    Returns a list of TaggedURLs
+    """
+    tagged_urls = []
+    for url, title in urls_and_titles:
+        tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+        tagged_urls.append(make_tagged_url(url, title, tags+additional_tags))
+    return tagged_urls
 
 
 
@@ -46,24 +66,52 @@ def filter_out_useless_fragments(text_fragments):
 
 
 
-    
+def separate_keyword_links(all_links):
+    keyword_links = [l for l in all_links if l[0].startswith('/sujet')]
+    other_links = list(set(all_links) - set(keyword_links))
+    return keyword_links, other_links
+
+
+
+def extract_and_tag_in_text_links(article_text):
+    """
+    Finds the links tags in the html text content.
+    Detects which links are keyword and which aren't, sets the adequate tags.
+    Returns a list of TaggedURL objects.
+    """
+    def extract_link_and_title(link):
+            return link.get('href'),  link.contents[0]
+    links = [extract_link_and_title(link)
+             for link in article_text.findAll('a', recursive=True)]
+
+    keyword_links, other_links = separate_keyword_links(links)
+
+    tagged_urls = (classify_and_make_tagged_url(keyword_links, additional_tags=['keyword', 'in text']) +
+                   classify_and_make_tagged_url(other_links, additional_tags=['in text']))
+
+    return tagged_urls
+
+
+
 def extract_text_content_and_links_from_articletext(article_text):
     """
-    Finds the article text, Returns a list of string (one item per paragraph) and a
-    list of '(url, keyword)' tuples.
+    Cleans up the text from html tags, extracts and tags all
+    links (clickable _and_ plaintext).
+
+    Returns a list of string (one item per paragraph) and a
+    list of TaggedURL objects.
 
     Note: sometimes paragraphs are clearly marked with nice <p> tags. When it's not
     the case, we consider linebreaks to be paragraph separators. 
     """
-    def extract_link_and_title(link):
-        return link.get('href'),  link.contents[0]
-    keyword_links = [extract_link_and_title(link)
-                     for link in article_text.findAll('a', recursive=True)]
-    
+
+    in_text_tagged_urls = extract_and_tag_in_text_links(article_text)
+
+
     children = filter_out_useless_fragments(article_text.contents)
     # first child is the intro paragraph, discard it
     children = children[1:]
-    
+
     # the rest might be a list of paragraphs, but might also just be the text, sometimes with
     # formatting.
     TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',  ]
@@ -80,7 +128,15 @@ def extract_text_content_and_links_from_articletext(article_text):
         else:
             cleaned_up_text_fragments.append(child)
 
-    return cleaned_up_text_fragments, keyword_links
+
+    all_plaintext_urls = []
+    for text in cleaned_up_text_fragments:
+        all_plaintext_urls.extend(extract_plaintext_urls_from_text(text))
+    # plaintext urls are their own title
+    urls_and_titles = zip(all_plaintext_urls, all_plaintext_urls)
+    plaintext_tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=['plaintext url', 'in text'])
+
+    return cleaned_up_text_fragments, in_text_tagged_urls + plaintext_tagged_urls
 
 
 
@@ -116,6 +172,7 @@ def extract_author_name_from_maincontent(main_content):
     
 
 
+
 def extract_category_from_maincontent(main_content):
     """
     Finds the breadcrumbs list. Returns a list of strings,
@@ -140,7 +197,9 @@ def extract_associated_links_from_maincontent(main_content):
         def extract_link_and_title(list_item):
             return  list_item.a.get('href'), list_item.a.contents[0]
         list_items = container.findAll('li', recursive=False)
-        return [extract_link_and_title(list_item) for list_item in list_items]
+        urls_and_titles = [extract_link_and_title(list_item) for list_item in list_items]
+        print urls_and_titles
+        return classify_and_make_tagged_url(urls_and_titles)
     else:
         return []
 
@@ -150,7 +209,7 @@ def extract_associated_links_from_maincontent(main_content):
 DATE_MATCHER = re.compile('\(\d\d/\d\d/\d\d\d\d\)')
 def was_publish_date_updated(date_string):
     """
-    In case of live events (soccer, fuck yeah), the article gets updated.
+    In case of live events (soccer, the article gets updated.
     Hour of last update is appended to the publish date.
     """
     # we try to match a non-updated date, and check that it failed.<
@@ -206,19 +265,20 @@ def extract_article_data(source):
 
     title = main_content.h1.contents[0]
     pub_date, pub_time = extract_date_from_maincontent(main_content)
-    associated_links = extract_associated_links_from_maincontent(main_content)
     category = extract_category_from_maincontent(main_content)
     author_name = extract_author_name_from_maincontent(main_content)
-    
+
+
     article_text = main_content.find('div', {'id':'articleText'})
     intro = extract_intro_from_articletext(article_text)
-    text, kw_links = extract_text_content_and_links_from_articletext(article_text)
-
-    external_links = [tag_URL(i, ['to read']) for i in associated_links]
-    internal_links = [tag_URL(i, ['keyword', 'in text']) for i in kw_links]
+    text, in_text_urls = extract_text_content_and_links_from_articletext(article_text)
+    associated_urls = extract_associated_links_from_maincontent(main_content)
 
     fetched_datetime = datetime.today()
-    new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime, external_links, internal_links,
+
+
+    new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
+                              in_text_urls+associated_urls,
                               category, author_name, intro, text)
     return new_article
 
