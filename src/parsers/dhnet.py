@@ -50,7 +50,7 @@ def filter_out_useless_fragments(text_fragments):
 def extract_text_content_and_links_from_articletext(article_text):
     """
     Finds the article text, Returns a list of string (one item per paragraph) and a
-    list of '(keyword, url)' tuples.
+    list of '(url, keyword)' tuples.
 
     Note: sometimes paragraphs are clearly marked with nice <p> tags. When it's not
     the case, we consider linebreaks to be paragraph separators. 
@@ -66,7 +66,7 @@ def extract_text_content_and_links_from_articletext(article_text):
     
     # the rest might be a list of paragraphs, but might also just be the text, sometimes with
     # formatting.
-    TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',  ]    
+    TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',  ]
     cleaned_up_text_fragments = []
     
     for child in children:
@@ -87,7 +87,7 @@ def extract_text_content_and_links_from_articletext(article_text):
 
 def extract_intro_from_articletext(article_text):
     """
-    Finds the introuction paragraph, returns a string with the text
+    Finds the introduction paragraph, returns a string with the text
     """
     # intro text seems to always be in the first paragraph.
     intro_paragraph = article_text.p
