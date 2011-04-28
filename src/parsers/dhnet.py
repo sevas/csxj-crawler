@@ -198,7 +198,6 @@ def extract_associated_links_from_maincontent(main_content):
             return  list_item.a.get('href'), list_item.a.contents[0]
         list_items = container.findAll('li', recursive=False)
         urls_and_titles = [extract_link_and_title(list_item) for list_item in list_items]
-        print urls_and_titles
         return classify_and_make_tagged_url(urls_and_titles)
     else:
         return []
