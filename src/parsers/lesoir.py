@@ -17,7 +17,7 @@ elif sys.platform in [ 'darwin']:
 
 
 
-TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span' ]    
+TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span' ]
 
 
 def sanitize_fragment(fragment):
@@ -40,7 +40,8 @@ def sanitize_fragment(fragment):
         return fragment
 
     
-    
+
+
 def sanitize_paragraph(paragraph):
     """
     Removes image links, removes paragraphs, formatting
@@ -56,9 +57,7 @@ def extract_content(story):
     Returns a list of strings, one per found paragraph.
     """
     story = story.find('div', {'id':'story_body'})
-
     paragraphs = story.findAll('p', recursive=False)
-
     clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
     
     return clean_paragraphs
@@ -132,6 +131,7 @@ def extract_title(story):
     #return title
     return unicode(title)
     
+
 
 def extract_author_name(story):
     header = story.find('div', {'id':'story_head'})
