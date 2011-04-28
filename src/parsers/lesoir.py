@@ -61,7 +61,7 @@ def extract_text_content(story):
         all_plaintext_urls.extend(extract_plaintext_urls_from_text(text))
     # plaintext urls are their own title
     urls_and_titles = zip(all_plaintext_urls, all_plaintext_urls)
-    tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=['plaintext'])
+    tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=['plaintext url', 'in text'])
 
     return clean_paragraphs, tagged_urls
     
@@ -73,7 +73,6 @@ def extract_to_read_links_from_sidebar(sidebar):
     if to_read_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
                             for link in to_read_links_container.findAll('a')]
-        print urls_and_titles
         return classify_and_make_tagged_url(urls_and_titles, additional_tags=['to read'])
     else:
         return []
