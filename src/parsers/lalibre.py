@@ -3,8 +3,28 @@
 
 from datetime import datetime, time
 from BeautifulSoup import Tag
-from utils import fetch_html_content, make_soup_from_html_content
-from article import ArticleData, tag_URL
+from utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
+from article import ArticleData, tag_URL, classify_and_tag, make_tagged_url
+
+
+LALIBRE_ASSOCIATED_SITES = {
+
+}
+
+LALIBRE_NETLOC = 'www.lalibre.be'
+
+
+def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
+    """
+    Classify (with tags) every element in a list of (url, title) tuples
+    Returns a list of TaggedURLs
+    """
+    tagged_urls = []
+    for url, title in urls_and_titles:
+        tags = classify_and_tag(url, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+        tagged_urls.append(make_tagged_url(url, title, tags+additional_tags))
+    return tagged_urls
+
 
 
 def was_story_updated(date_string):
@@ -41,21 +61,30 @@ def sanitize_fragment(fragment):
         return fragment
 
 
-def extract_tagged_links_from_paragraph(paragraph):
-    """Extract and tag all the links found in a paragraph """
-    def extract_keyword_and_link(keyword_link):
-         return   keyword_link.get('href'), sanitize_fragment(keyword_link.contents[0])
+    
+def separate_keyword_links(all_links):
+    keyword_links = [l for l in all_links if l[0].startswith('/sujet')]
+    other_links = list(set(all_links) - set(keyword_links))
+    return keyword_links, other_links
 
-    keyword_links = [extract_keyword_and_link(link) for link in paragraph.findAll('a', recursive=True)]
-    all_links = set(keyword_links)
 
-    internal_links = set([(url, title) for (url, title) in all_links if url.startswith('/')])
-    external_links = all_links - internal_links
 
-    tagged_keyword_links = [tag_URL((u, t), ['internal', 'keyword', 'in text']) for (u, t) in internal_links]
-    tagged_external_links  = [tag_URL((u, t), ['external', 'in text']) for (u, t) in external_links]
+def extract_and_tag_in_text_links(article_text):
+    """
+    Finds the links tags in the html text content.
+    Detects which links are keyword and which aren't, sets the adequate tags.
+    Returns a list of TaggedURL objects.
+    """
+    def extract_link_and_title(link):
+            return link.get('href'),  sanitize_fragment(link.contents[0])
+    links = [extract_link_and_title(link)
+             for link in article_text.findAll('a', recursive=True)]
 
-    return tagged_keyword_links, tagged_external_links
+    keyword_links, other_links = separate_keyword_links(links)
+    tagged_urls = (classify_and_make_tagged_url(keyword_links, additional_tags=['keyword', 'in text']) +
+                   classify_and_make_tagged_url(other_links, additional_tags=['in text']))
+
+    return tagged_urls
 
 
 
@@ -69,21 +98,24 @@ def sanitize_paragraph(paragraph):
 def extract_text_content_and_links(main_content):
     article_text = main_content.find('div', {'id':'articleText'})
 
-    all_internal_links, all_external_links = [], []
-    all_fragments = [] 
+
+    in_text_tagged_urls = extract_and_tag_in_text_links(article_text)
+
+
+    all_fragments = []
+    all_plaintext_urls = []
     paragraphs = article_text.findAll('p', recursive=False)
 
     for paragraph in paragraphs:
         fragments = sanitize_paragraph(paragraph)
-        internal_links, external_links = extract_tagged_links_from_paragraph(paragraph)
-        all_internal_links.extend(internal_links)
-        all_external_links.extend(external_links)
-
         all_fragments.append(fragments)
         all_fragments.append('\n')
+        plaintext_links = extract_plaintext_urls_from_text(fragments)
+        urls_and_titles = zip(plaintext_links, plaintext_links)
+        all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=['plaintext']))
 
     text_content = all_fragments
-    return text_content, all_internal_links, all_external_links
+    return text_content, in_text_tagged_urls+all_plaintext_urls
 
 
 
@@ -108,7 +140,7 @@ icon_type_to_tags = {
 
 
 
-def make_tagged_url(url, title, icon_type):
+def make_tagged_url_from_pictotype(url, title, icon_type):
     """
     Attempts to tag a url using the icon used. Mapping is incomplete at the moment.
     Still keeps the icon type as part of the tags for future uses.
@@ -121,7 +153,7 @@ def make_tagged_url(url, title, icon_type):
 
 
 
-def extract_and_tag_links(main_content):
+def extract_and_tag_associated_links(main_content):
     """
     Extract the associated links. Uses the icon type to tag it.
     
@@ -138,8 +170,7 @@ def extract_and_tag_links(main_content):
                 url = item.a.get('href')
                 title = sanitize_fragment(item.a.contents[0].rstrip().lstrip())
                 icon_type = item.get('class')
-            
-                links.append(make_tagged_url(url, title, icon_type))
+                links.append(make_tagged_url_from_pictotype(url, title, icon_type))
 
         return links
     else:
@@ -155,6 +186,7 @@ def extract_author_name(main_content):
         return 'None'
 
 
+
 def extract_intro(main_content):
     hat = main_content.find('div', {'id':'articleHat'})
 
@@ -162,6 +194,7 @@ def extract_intro(main_content):
         return hat.contents[0].rstrip().lstrip()
     else:
         return ''
+
 
     
 def extract_article_data(source):
@@ -183,18 +216,15 @@ def extract_article_data(source):
     
     intro = extract_intro(main_content)
 
-    content, keyword_links, external_links_in_text = extract_text_content_and_links(main_content)
-
-    tagged_associated_links = extract_and_tag_links(main_content)
-
-    external_links = tagged_associated_links + external_links_in_text
-    internal_links = keyword_links
+    text_content, in_text_urls  = extract_text_content_and_links(main_content)
+    associated_tagged_urls = extract_and_tag_associated_links(main_content)
 
     fetched_datetime = datetime.today()
 
     new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                              external_links, internal_links, category, author,
-                              intro, content)
+                              in_text_urls + associated_tagged_urls,
+                              category, author,
+                              intro, text_content)
     return new_article
 
 
@@ -239,15 +269,16 @@ def list_frontpage_articles():
         print 'fetching data for article :',  title
 
         article = extract_article_data(url)
-        #article.print_summary()
-        print article.title
+        article.print_summary()
 
-        print article.external_links
-        for (title, url, tags) in article.external_links:
-            print u'*** {0} -> {1} {2}'.format(title, url, tags)
 
-        print ##
-        #print article.to_json()
+        for (url, title, tags) in article.internal_links:
+            print u'{0} -> {1} {2}'.format(url, title, tags)
+
+        for (url, title, tags) in article.external_links:
+            print u'{0} -> {1} {2}'.format(url, title, tags)
+            
+        print '-' * 80
 
 
 if __name__ == '__main__':
