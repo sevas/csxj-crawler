@@ -162,7 +162,7 @@ class ArticleData(object):
         d['fetched_datetime'] = datetime_from_string(date_string)
 
         pub_date, pub_time = d['pub_date'],  d['pub_time']
-        d['pub_date'] = datetime_from_string(pub_date)
+        d['pub_date'] = date_from_string(pub_date)
         d['pub_time'] = time_from_string(pub_time)
 
         links = d['links']
