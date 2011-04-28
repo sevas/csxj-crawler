@@ -1,5 +1,5 @@
 import urllib
-from BeautifulSoup import BeautifulSoup
+from BeautifulSoup import BeautifulSoup, Tag
 import re
 
 
@@ -41,3 +41,24 @@ def extract_plaintext_urls_from_text(some_text):
     urls = [strip_matching_parenthesis(url) for url in urls]
     return urls
 
+
+TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span' ]
+
+def remove_text_formatting_markup(formatted_text_fragment):
+    """
+    Returns the plain text version of a chunk of text formatted with HTML tags.
+    Unsupported tags are ignored.
+    """
+
+    # A text fragment is either an HTML tag (with its own child text fragments)
+    # or just a plain string.
+    if isinstance(formatted_text_fragment, Tag):
+        # If it's the former, we remove the tag and clean up all its children
+        if formatted_text_fragment.name in TEXT_MARKUP_TAGS:
+            return ''.join([remove_text_formatting_markup(f) for f in formatted_text_fragment.contents])
+        # sometimes we get embedded <objects>, just ignore it
+        else:
+            return ''
+    # If it's a plain string, there is nothing else to do
+    else:
+        return formatted_text_fragment
