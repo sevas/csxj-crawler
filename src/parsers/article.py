@@ -3,11 +3,8 @@ __author__ = 'sevas'
 
 from collections import namedtuple
 from datetime import datetime, date, time
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
+import urlparse
+import json
 
 
 TaggedURL = namedtuple('TaggedURL', 'URL title tags')
@@ -16,6 +13,26 @@ TaggedURL = namedtuple('TaggedURL', 'URL title tags')
 def tag_URL((url, title), tags):
     return TaggedURL(URL=url, title=title, tags=tags)
 
+
+
+def classify_and_tag(url, own_netlog, associated_sites):
+    """
+    """
+    tags = []
+    parsed = urlparse.urlparse(url)
+    scheme, netloc, path, params, query, fragment = parsed
+    if netloc:
+        if netloc == own_netlog:
+            tags = ['internal']
+        else:
+            if netloc in associated_sites:
+                tags = associated_sites[netloc]
+            else:
+                tags = ['external']
+    else:
+        tags = ['internal']
+
+    return tags
 
 
 def count_words(some_text):
@@ -78,8 +95,8 @@ class ArticleData(object):
         Takes care of non natively serializable objects (such as datetime).
         """
         d = dict(self.__dict__)
-        # datetime, date and time objects are not json-serializable
 
+        # datetime, date and time objects are not json-serializable
         fetched_datetime = d['fetched_datetime']
         d['fetched_datetime'] = fetched_datetime.strftime('%Y-%m-%dT%H:%M:%S')
 
