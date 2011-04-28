@@ -36,9 +36,17 @@ class PlainTextURLExtractorTestCases(unittest.TestCase):
         urls = extract_plaintext_urls_from_text(text_with_urls)
         self.assertEqual(urls, [self.simple_url, self.complex_url, self.complex_url, self.simple_url])
 
+
     def test_text_with_urls(self):
         urls = extract_plaintext_urls_from_text(self.text_with_urls)
         self.assertEqual(urls, ['http://www.example.com', 'http://en.wikipedia.org/wiki/PC_Tools_(Central_Point_Software)', 'http://msdn.microsoft.com/en-us/library/aa752574(VS.85).aspx', 'http://www.awesomeexample.com'])
+
+
+    def test_no_url(self):
+        text = self.text.format('not a url')
+        urls = extract_plaintext_urls_from_text(text)
+        self.assertEqual(urls, [])
+        
 
 if __name__ == '__main__':
     unittest.main()
