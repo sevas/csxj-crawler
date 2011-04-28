@@ -120,7 +120,7 @@ def plot_categories_by_links_article_ratio_in_subplot(ax, categorized_articles, 
     make_barchart_in_subplot(ax, x, source_name, labels)
 
 
-def plot_categories_by_links_article_ratio(categorized_articles):
+def plot_categories_by_links_article_ratio(name, categorized_articles):
     link_counters = sort_categories_by_links_article_ratio(categorized_articles)
 
     for counter in link_counters:
@@ -133,14 +133,14 @@ def plot_categories_by_links_article_ratio(categorized_articles):
                                                counter.total_articles,
                                                counter.total_links)
 
-
+    plt.clf()
     labels = [make_label(c) for c in link_counters]
-    make_barchart(x, 'Categories by article/links ratio', labels)
-    plt.show()
+    make_barchart(x, 'Categories by article/links ratio ({0})'.format(name), labels)
+    plt.savefig(name+'_article_link_ratio.png')
 
 
 
-def plot_categories_by_number_of_articles(categorized_articles):
+def plot_categories_by_number_of_articles(name, categorized_articles):
     article_counters = list()
     for (group, articles) in categorized_articles:
         article_counters.append((group, len(articles)))
@@ -154,13 +154,14 @@ def plot_categories_by_number_of_articles(categorized_articles):
     def make_label(article_counter):
         return u'{0}'.format(u'/'.join(article_counter[0]))
 
+    plt.clf()
     labels = [make_label(c) for c in article_counters]
-    make_barchart(x, '# Articles per category', labels)
-    plt.show()
+    make_barchart(x, '# Articles per category ({0})'.format(name), labels)
+    plt.savefig(name+'_articles_by_category.png')
 
 
 
-def plot_categories_by_number_of_links(categorized_articles):
+def plot_categories_by_number_of_links(name, categorized_articles):
 
     LinkCounter = namedtuple('LinkCounter', 'name total_ext_links total_int_links total_links')
 
@@ -186,19 +187,21 @@ def plot_categories_by_number_of_links(categorized_articles):
         return u'{0}'.format(u'/'.join(link_counter.name))
     labels = [make_label(c) for c in link_counters]
 
+    plt.clf()
     ind = np.arange(len(x1))
     p1 = plt.barh(ind, x1, color='#af8700')
     p2 = plt.barh(ind, x2, left=x1, color='#00afaf')
     plt.yticks(ind+0.35, labels, fontsize='small', fontname='sans')
-    plt.title('Number of links per category')
+    plt.title('Number of links per category ({0})'.format(name))
     plt.legend( (p1[0], p2[0]), ('External links', 'Internal links'), 'lower right' )
-    plt.show()
+    plt.savefig(name+'_number_of_links.png')
+
     
 
 if __name__=='__main__':
-    lesoir_articles = get_flat_article_list('../static_data/lesoir')
-    dhnet_articles =  get_flat_article_list('../static_data/dhnet')
-    lalibre_articles =  get_flat_article_list('../static_data/lalibre')
+    lesoir_articles = get_flat_article_list('../out_new/lesoir')
+    dhnet_articles =  get_flat_article_list('../out_new/dhnet')
+    lalibre_articles =  get_flat_article_list('../out_new/lalibre')
 
 
     all_articles = {
@@ -225,15 +228,16 @@ if __name__=='__main__':
 #
 #    plt.show()
 
-    categorized_articles = categorize_articles(lalibre_articles)
 
-    for (cat_name, articles) in categorized_articles:
-        print u'{0} : \t {1} articles'.format(u'/'.join(cat_name), len(articles))
+    for (name, articles) in all_articles.items():
+        categorized_articles = categorize_articles(lalibre_articles)
 
-    #plot_categories_by_links_article_ratio(categorized_articles)
-    plot_categories_by_number_of_articles(categorized_articles)
+        for (cat_name, articles) in categorized_articles:
+            print u'{0} : \t {1} articles'.format(u'/'.join(cat_name), len(articles))
 
-    #plot_categories_by_number_of_links(categorized_articles)
+        #plot_categories_by_links_article_ratio(name, categorized_articles)
+        #plot_categories_by_number_of_articles(name, categorized_articles)
+        plot_categories_by_number_of_links(name, categorized_articles)
 
 
 
