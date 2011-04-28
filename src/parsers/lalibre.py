@@ -3,6 +3,7 @@
 
 from datetime import datetime, time
 from BeautifulSoup import Tag
+import urlparse
 from utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
 from article import ArticleData, tag_URL, classify_and_tag, make_tagged_url
 
@@ -14,6 +15,17 @@ LALIBRE_ASSOCIATED_SITES = {
 LALIBRE_NETLOC = 'www.lalibre.be'
 
 
+def is_on_same_domain(url):
+    """
+    Until we get all the internal blogs/sites, we can still detect
+    if a page is hosted on the same domain.
+    """
+    scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+    if netloc not in LALIBRE_ASSOCIATED_SITES:
+        return netloc.endswith('lalibre.be')
+    return False
+
+
 def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
     """
     Classify (with tags) every element in a list of (url, title) tuples
@@ -22,6 +34,8 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
     tagged_urls = []
     for url, title in urls_and_titles:
         tags = classify_and_tag(url, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+        if is_on_same_domain(url):
+            tags.append('internal site')
         tagged_urls.append(make_tagged_url(url, title, tags+additional_tags))
     return tagged_urls
 

@@ -5,6 +5,7 @@ import sys
 import locale
 from datetime import datetime
 from BeautifulSoup import  BeautifulStoneSoup,  Tag
+import urlparse
 from utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
 from article import ArticleData, classify_and_tag, make_tagged_url
 from utils import remove_text_formatting_markup, extract_plaintext_urls_from_text
@@ -18,12 +19,23 @@ elif sys.platform in [ 'darwin']:
 
 LESOIR_INTERNAL_BLOGS = {
     'blog.lesoir.be':['internal blog', 'internal'],
-    'belgium-iphone.lesoir.be':['internal blog', 'internal'],
-    'archives.lesoir.be':['archives', 'internal']
+    'belgium-iphone.lesoir.be':['internal blog', 'internal', 'technology'],
+    'archives.lesoir.be':['archives', 'internal'],
+    'football.lesoir.be':['internal blog', 'internal', 'sports']
 }
 
 LESOIR_NETLOC = 'www.lesoir.be'
 
+
+def is_on_same_domain(url):
+    """
+    Until we get all the internal blogs/sites, we can still detect
+    if a page is hosted on the same domain.
+    """
+    scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+    if netloc not in LESOIR_INTERNAL_BLOGS:
+        return netloc.endswith('lesoir.be')
+    return False
 
 
 
@@ -43,6 +55,8 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
     tagged_urls = []
     for url, title in urls_and_titles:
         tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+        if is_on_same_domain(url):
+            tags.append('internal site')
         tagged_urls.append(make_tagged_url(url, title, tags+additional_tags))
     return tagged_urls
 
