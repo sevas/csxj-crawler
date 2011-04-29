@@ -128,9 +128,6 @@ def plot_categories_by_links_article_ratio_in_subplot(ax, categorized_articles, 
 def plot_categories_by_links_article_ratio(name, categorized_articles, outdir):
     link_counters = sort_categories_by_links_article_ratio(categorized_articles)
 
-    for counter in link_counters:
-        print counter
-
     x = np.array([c.link_article_ratio for c in link_counters])
 
     def make_label(counter):
@@ -178,12 +175,10 @@ def plot_categories_by_number_of_links(name, categorized_articles, outdir):
                                          total_int_links=n_int_links,
                                          total_links=n_ext_links+n_int_links))
 
-
     def keyfunc(counter):
         return counter.total_links
     link_counters.sort(key=keyfunc)
 
-    print link_counters
 
     x1 = np.array([counter.total_ext_links for counter in link_counters])
     x2 = np.array([counter.total_int_links for counter in link_counters])
@@ -212,8 +207,8 @@ def make_all_figures(db_root, outdir):
 
         categorized_articles = categorize_articles(articles)
 
-        for (cat_name, articles) in categorized_articles:
-            print u'{0} : \t {1} articles'.format(u'/'.join(cat_name), len(articles))
+        #for (cat_name, articles) in categorized_articles:
+        #    print u'{0} : \t {1} articles'.format(u'/'.join(cat_name), len(articles))
 
         plot_categories_by_links_article_ratio(source_dir, categorized_articles, outdir)
         plot_categories_by_number_of_articles(source_dir, categorized_articles, outdir)
