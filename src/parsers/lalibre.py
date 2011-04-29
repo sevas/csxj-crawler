@@ -239,7 +239,7 @@ def extract_article_data(source):
                               in_text_urls + associated_tagged_urls,
                               category, author,
                               intro, text_content)
-    return new_article
+    return new_article, html_content
 
 
 

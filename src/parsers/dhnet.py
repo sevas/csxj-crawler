@@ -294,7 +294,7 @@ def extract_article_data(source):
     new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                               in_text_urls+associated_urls,
                               category, author_name, intro, text)
-    return new_article
+    return new_article, html_content
 
 
 

@@ -223,7 +223,7 @@ def extract_article_data(source):
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                               all_links,
                               category, author,
-                              intro, content)
+                              intro, content), html_content
     
 
 
