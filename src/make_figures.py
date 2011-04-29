@@ -73,8 +73,9 @@ CategoryCounters = namedtuple('CategoryCounters', 'name total_links total_articl
 
 def make_barchart_in_subplot(ax, xs, title, labels):
     ind = np.arange(len(xs))
+    ind = np.arange(len(xs))
     ax.barh(ind, xs, color=LIGHT_COLOR)
-    ax.set_yticklabels(ind+0.35, labels, fontsize='small', fontname='sans')
+    ax.set_yticklabels(ind+0.35, labels, fontsize='small')
     ax.set_title(title)
 
 
@@ -196,7 +197,7 @@ def plot_categories_by_number_of_links(name, categorized_articles, outdir):
     ind = np.arange(len(x1))
     p1 = plt.barh(ind, x1, color=DARK_COLOR)
     p2 = plt.barh(ind, x2, left=x1, color=LIGHT_COLOR)
-    plt.yticks(ind+0.35, labels, fontsize='small', fontname='sans')
+    plt.yticks(ind+0.35, labels, fontsize='small')
     plt.title('Number of links per category ({0})'.format(name))
     plt.legend( (p1[0], p2[0]), ('External links', 'Internal links'), 'lower right' )
     plt.savefig(os.path.join(outdir, name+'_number_of_links.png'))
