@@ -73,7 +73,7 @@ def make_error_log_entry(url, stacktrace, outdir):
 def write_dict_to_file(d, outdir, outfile):
     """
     """
-    publication_outdir = os.path.join(outdir, make_outfile_prefix())
+    publication_outdir = outdir
     if not os.path.exists(publication_outdir):
         os.makedirs(publication_outdir)
 
@@ -84,12 +84,13 @@ def write_dict_to_file(d, outdir, outfile):
 
 
 def fetch_articles_from_toc(toc,  provider, outdir):
-    articles, errors = [], []
+    articles, errors, raw_data = [], [], []
 
     for (title, url) in toc:
         try:
-            article_data = provider.extract_article_data(url)
+            article_data, raw_html_content = provider.extract_article_data(url)
             articles.append(article_data)
+            raw_data.append((url, raw_html_content))
         except Exception as e:
             if e.__class__ in [AttributeError]:
                 # this is for logging errors while parsing the dom. If it fails,
@@ -108,7 +109,7 @@ def fetch_articles_from_toc(toc,  provider, outdir):
                     new_error = make_error_log_entry(url, stacktrace, outdir)
                     errors.append(new_error)
 
-    return articles, errors
+    return articles, errors, raw_data
 
 
 
@@ -127,6 +128,25 @@ def update_provider_stats(outdir, articles, errors):
     current_stats.n_links += sum([(len(art.external_links) + len(art.internal_links)) for art in articles])
 
     current_stats.save_to_file(stats_filename)
+
+
+
+def save_raw_data(raw_data, batch_outdir):
+    """
+    """
+    raw_data_dir = os.path.join(batch_outdir, 'raw_data')
+    os.mkdir(raw_data_dir)
+    references = []
+    for (i, (url, html_content)) in enumerate(raw_data):
+        outfilename = "{0}.html".format(i)
+        with open(os.path.join(raw_data_dir, outfilename), 'w') as f:
+            f.write(html_content)
+        references.append((url, outfilename))
+
+    with open(os.path.join(raw_data_dir, 'references.json'), 'w') as f:
+        json.dump(references, f)
+
+        
 
 def fetch_lesoir_articles(prefix):
     """
@@ -148,7 +168,7 @@ def fetch_lesoir_articles(prefix):
                                       os.path.join(outdir, 'last_rss_list.json'))
 
 
-    articles, errors = fetch_articles_from_toc(new_articles_toc, lesoir, outdir)
+    articles, errors, raw_data = fetch_articles_from_toc(new_articles_toc, lesoir, outdir)
 
     print 'Summary for Le Soir:'
     print """
@@ -162,14 +182,22 @@ def fetch_lesoir_articles(prefix):
                 'blogposts':blogposts_toc,
                 'errors':errors}
 
-    write_dict_to_file(all_data, outdir, 'articles.json')
+
+
+    batch_outdir = os.path.join(outdir, make_outfile_prefix())
+
+    write_dict_to_file(all_data, batch_outdir, 'articles.json')
     update_provider_stats(outdir, articles, errors)
 
     missing = find_stories_missing_from_frontpage(articles_toc, rss_toc)
     if missing:
-        missing_filename = os.path.join(outdir, make_outfile_prefix(), 'missing.json')
+        missing_filename = os.path.join(batch_outdir, 'missing.json')
         with open(missing_filename, 'w') as f:
             json.dump(missing, f)
+
+
+    save_raw_data(raw_data, batch_outdir)
+
 
 
 def fetch_dhnet_articles(prefix):
@@ -179,7 +207,7 @@ def fetch_dhnet_articles(prefix):
     frontpage_toc = filter_only_new_stories(dhnet.get_frontpage_toc(),
                                             os.path.join(outdir, 'last_frontpage_list.json'))
 
-    articles, errors = fetch_articles_from_toc(frontpage_toc, dhnet, outdir)
+    articles, errors, raw_data = fetch_articles_from_toc(frontpage_toc, dhnet, outdir)
     
     print 'Summary for DHNet:'
     print """
@@ -188,8 +216,11 @@ def fetch_dhnet_articles(prefix):
                            len(errors))
     all_data = {'articles':[art.to_json() for art in  articles],
                 'errors':errors}
-    write_dict_to_file(all_data, outdir, 'articles.json')
+
+    batch_outdir = os.path.join(outdir, make_outfile_prefix())
+    write_dict_to_file(all_data, batch_outdir, 'articles.json')
     update_provider_stats(outdir, articles, errors)
+    save_raw_data(raw_data, batch_outdir)
 
 
 def fetch_lalibre_articles(prefix):
@@ -200,7 +231,7 @@ def fetch_lalibre_articles(prefix):
     frontpage_toc = filter_only_new_stories(lalibre.get_frontpage_toc(),
                                             os.path.join(outdir, 'last_frontpage_list.json'))
 
-    articles, errors = fetch_articles_from_toc(frontpage_toc, lalibre, outdir)
+    articles, errors, raw_data = fetch_articles_from_toc(frontpage_toc, lalibre, outdir)
 
     print 'Summary for La Libre:'
     print """
@@ -209,8 +240,10 @@ def fetch_lalibre_articles(prefix):
                            len(errors))
     all_data = {'articles':[art.to_json() for art in  articles],
                 'errors':errors}
-    write_dict_to_file(all_data, outdir, 'articles.json')
+    batch_outdir = os.path.join(outdir, make_outfile_prefix())
+    write_dict_to_file(all_data, batch_outdir, 'articles.json')
     update_provider_stats(outdir, articles, errors)
+    save_raw_data(raw_data, batch_outdir)
 
     
 def main(outdir):
