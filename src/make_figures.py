@@ -12,6 +12,10 @@ from parsers.article import ArticleData
 
 
 
+BACKGROUND_COLOR = '#e3e1dd'
+LIGHT_COLOR = '#f0efed'
+DARK_COLOR =  '#4c4c4c'
+
 
 def get_subdirs(parent_path):
     return [d for d in os.listdir(parent_path) if os.path.isdir(os.path.join(parent_path, d))]
@@ -70,16 +74,17 @@ CategoryCounters = namedtuple('CategoryCounters', 'name total_links total_articl
 
 def make_barchart_in_subplot(ax, xs, title, labels):
     ind = np.arange(len(xs))
-    ax.barh(ind, xs, color='#00afaf')
+    ax.barh(ind, xs, color=LIGHT_COLOR)
     ax.set_yticklabels(ind+0.35, labels, fontsize='small', fontname='sans')
     ax.set_title(title)
 
 
 def make_barchart(xs, title, labels):
     ind = np.arange(len(xs))
-    plt.barh(ind, xs, color='#00afaf')
+    plt.barh(ind, xs, color=LIGHT_COLOR)
     plt.yticks(ind+0.35, labels, fontsize='small', fontname='sans')
     plt.title(title)
+
 
 
 def sort_categories_by_links_article_ratio(categorized_articles):
@@ -120,7 +125,7 @@ def plot_categories_by_links_article_ratio_in_subplot(ax, categorized_articles, 
     make_barchart_in_subplot(ax, x, source_name, labels)
 
 
-def plot_categories_by_links_article_ratio(name, categorized_articles):
+def plot_categories_by_links_article_ratio(name, categorized_articles, outdir):
     link_counters = sort_categories_by_links_article_ratio(categorized_articles)
 
     for counter in link_counters:
@@ -136,11 +141,11 @@ def plot_categories_by_links_article_ratio(name, categorized_articles):
     plt.clf()
     labels = [make_label(c) for c in link_counters]
     make_barchart(x, 'Categories by article/links ratio ({0})'.format(name), labels)
-    plt.savefig(name+'_article_link_ratio.png')
+    plt.savefig(os.path.join(outdir, name+'_article_link_ratio.png'))
 
 
 
-def plot_categories_by_number_of_articles(name, categorized_articles):
+def plot_categories_by_number_of_articles(name, categorized_articles, outdir):
     article_counters = list()
     for (group, articles) in categorized_articles:
         article_counters.append((group, len(articles)))
@@ -157,11 +162,11 @@ def plot_categories_by_number_of_articles(name, categorized_articles):
     plt.clf()
     labels = [make_label(c) for c in article_counters]
     make_barchart(x, '# Articles per category ({0})'.format(name), labels)
-    plt.savefig(name+'_articles_by_category.png')
+    plt.savefig(os.path.join(outdir, name+'_articles_by_category.png'))
 
 
 
-def plot_categories_by_number_of_links(name, categorized_articles):
+def plot_categories_by_number_of_links(name, categorized_articles, outdir):
 
     LinkCounter = namedtuple('LinkCounter', 'name total_ext_links total_int_links total_links')
 
@@ -188,56 +193,41 @@ def plot_categories_by_number_of_links(name, categorized_articles):
     labels = [make_label(c) for c in link_counters]
 
     plt.clf()
+    plt.autumn()
     ind = np.arange(len(x1))
-    p1 = plt.barh(ind, x1, color='#af8700')
-    p2 = plt.barh(ind, x2, left=x1, color='#00afaf')
+    p1 = plt.barh(ind, x1, color=DARK_COLOR)
+    p2 = plt.barh(ind, x2, left=x1, color=LIGHT_COLOR)
     plt.yticks(ind+0.35, labels, fontsize='small', fontname='sans')
     plt.title('Number of links per category ({0})'.format(name))
     plt.legend( (p1[0], p2[0]), ('External links', 'Internal links'), 'lower right' )
-    plt.savefig(name+'_number_of_links.png')
-
-    
-
-if __name__=='__main__':
-    lesoir_articles = get_flat_article_list('../out_new/lesoir')
-    dhnet_articles =  get_flat_article_list('../out_new/dhnet')
-    lalibre_articles =  get_flat_article_list('../out_new/lalibre')
+    plt.savefig(os.path.join(outdir, name+'_number_of_links.png'))
 
 
-    all_articles = {
-        'lesoir':lesoir_articles,
-        'dhnet':dhnet_articles,
-        'lalibre':lalibre_articles
-    }
+def make_all_figures(db_root, outdir):
+    if not os.path.exists(outdir):
+        os.mkdir(outdir)
 
-    for (name, articles) in all_articles.items():
-        print '{0}: {1} articles'.format(name, len(articles))
+    for source_dir in get_subdirs(db_root):
+        articles = get_flat_article_list(os.path.join(db_root, source_dir))
 
-
-
-#    master_plot = plt.figure()
-#    ax1 = master_plot.add_subplot(221)
-#    ax2 = master_plot.add_subplot(222)
-#    ax3 = master_plot.add_subplot(223)
-#
-#    for (source_name, articles), ax in zip(all_articles.items(), (ax1, ax2, ax3)):
-#        categorized_articles = categorize_articles(articles)
-#        for (group, articles) in categorized_articles:
-#            print group, len(articles), count_links(articles)
-#        plot_categories_by_links_article_ratio(ax, categorized_articles, source_name)
-#
-#    plt.show()
-
-
-    for (name, articles) in all_articles.items():
-        categorized_articles = categorize_articles(lalibre_articles)
+        categorized_articles = categorize_articles(articles)
 
         for (cat_name, articles) in categorized_articles:
             print u'{0} : \t {1} articles'.format(u'/'.join(cat_name), len(articles))
 
-        #plot_categories_by_links_article_ratio(name, categorized_articles)
-        #plot_categories_by_number_of_articles(name, categorized_articles)
-        plot_categories_by_number_of_links(name, categorized_articles)
+        plot_categories_by_links_article_ratio(source_dir, categorized_articles, outdir)
+        plot_categories_by_number_of_articles(source_dir, categorized_articles, outdir)
+        plot_categories_by_number_of_links(source_dir, categorized_articles, outdir)
+
+
+if __name__=='__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Make (hopefully) interesting figures from the json db')
+    parser.add_argument('--dir', type=str, dest='input_dir', required=True, help='json db directory')
+    parser.add_argument('--outdir', type=str, dest='output_dir', required=True, help='directory to dump the figures in')
+    args = parser.parse_args()
+    make_all_figures(args.input_dir, args.output_dir)
 
 
 
