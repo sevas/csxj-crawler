@@ -81,7 +81,7 @@ def make_barchart_in_subplot(ax, xs, title, labels):
 def make_barchart(xs, title, labels):
     ind = np.arange(len(xs))
     plt.barh(ind, xs, color=LIGHT_COLOR)
-    plt.yticks(ind+0.35, labels, fontsize='small', fontname='sans')
+    plt.yticks(ind+0.35, labels, fontsize='small')
     plt.title(title)
 
 
