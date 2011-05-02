@@ -1,7 +1,8 @@
 __author__ = 'sevas'
 
-from utils import make_soup_from_html_content, fetch_content_from_url
 from itertools import chain
+import urllib
+from utils import make_soup_from_html_content, fetch_content_from_url
 
 
 
@@ -83,9 +84,40 @@ def extract_headlines_from_column_3(column):
     return headlines
 
 
+def extract_headlines_for_one_region(region_container):
+    main_story = region_container.h3.a.contents[0], region_container.h3.a.get('href')
+
+    story_list = region_container.find('ul', {'class':'story_list'})
+    def extract_title_and_link(item):
+        return item.a.contents[0], item.a.get('href')
+
+    headlines = [main_story]
+    headlines.extend([extract_title_and_link(item) for item in story_list.findAll('li')])
+
+    #print headlines
+    return headlines
+
+
+
+def extract_regional_headlines(content):
+    region_containers = content.findAll('div', {'class':'story secondaire couleur_03'})
+
+    return list(chain(*[extract_headlines_for_one_region(c) for c in region_containers]))
+
+
 
 def get_regional_toc():
-    pass
+    url = 'http://sudpresse.be/regions'
+    html_content = fetch_content_from_url(url)
+    soup = make_soup_from_html_content(html_content)
+
+    return extract_regional_headlines(soup.find('div', {'id':'content_first'}))
+
+
+
+def make_full_url(prefix, titles_and_urls):
+    return [(title, urllib.basejoin(prefix, url)) for title, url in titles_and_urls]
+
 
 
 def get_frontpage_toc():
@@ -98,8 +130,11 @@ def get_frontpage_toc():
     column3  = soup.find('div', {'class':'column col-03'})
     headlines.extend(extract_headlines_from_column_3(column3))
 
-    print len(headlines)
-    return headlines
+
+    regional_headlines = make_full_url(url, get_regional_toc())
+    headlines.extend(regional_headlines)
+
+    return make_full_url(url, headlines)
 
 
 
@@ -108,5 +143,6 @@ def get_frontpage_toc():
 if __name__=='__main__':
     toc = get_frontpage_toc()
 
+    print len(toc)
     for title, url in toc:
         print title, url
