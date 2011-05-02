@@ -7,7 +7,7 @@ from collections import namedtuple
 import traceback
 from datetime import datetime
 
-from parsers import lesoir, dhnet, lalibre
+from parsers import lesoir, dhnet, lalibre, sudpresse
 from parsers.utils import fetch_html_content
 from providerstats import ProviderStats
 import json
@@ -200,20 +200,22 @@ def fetch_lesoir_articles(prefix):
 
 
 
-def fetch_dhnet_articles(prefix):
-    outdir = os.path.join(prefix, 'dhnet')
+def crawl_once(provider, provider_name, provider_title, prefix):
+    outdir = os.path.join(prefix, provider_name)
     if not os.path.exists(outdir):
         os.makedirs(outdir)
-    frontpage_toc = filter_only_new_stories(dhnet.get_frontpage_toc(),
+
+    frontpage_toc = filter_only_new_stories(provider.get_frontpage_toc(),
                                             os.path.join(outdir, 'last_frontpage_list.json'))
 
-    articles, errors, raw_data = fetch_articles_from_toc(frontpage_toc, dhnet, outdir)
-    
-    print 'Summary for DHNet:'
+    articles, errors, raw_data = fetch_articles_from_toc(frontpage_toc, provider, outdir)
+
+    print 'Summary for {0}:'.format(provider_title)
     print """
     articles : {0}
     errors : {1}""".format(len(articles),
                            len(errors))
+
     all_data = {'articles':[art.to_json() for art in  articles],
                 'errors':errors}
 
@@ -221,31 +223,21 @@ def fetch_dhnet_articles(prefix):
     write_dict_to_file(all_data, batch_outdir, 'articles.json')
     update_provider_stats(outdir, articles, errors)
     save_raw_data(raw_data, batch_outdir)
+
+
+
+def fetch_dhnet_articles(prefix):
+    crawl_once(dhnet, 'dhnet', 'DHNet', prefix)
 
 
 def fetch_lalibre_articles(prefix):
-    outdir = os.path.join(prefix, 'lalibre')
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
+    crawl_once(lalibre, 'lalibre', 'La Libre', prefix)
 
-    frontpage_toc = filter_only_new_stories(lalibre.get_frontpage_toc(),
-                                            os.path.join(outdir, 'last_frontpage_list.json'))
 
-    articles, errors, raw_data = fetch_articles_from_toc(frontpage_toc, lalibre, outdir)
+def fetch_sudpresse_articles(prefix):
+    crawl_once(sudpresse, 'sudpresse', 'Sud Presse', prefix)
 
-    print 'Summary for La Libre:'
-    print """
-    articles : {0}
-    errors : {1}""".format(len(articles),
-                           len(errors))
-    all_data = {'articles':[art.to_json() for art in  articles],
-                'errors':errors}
-    batch_outdir = os.path.join(outdir, make_outfile_prefix())
-    write_dict_to_file(all_data, batch_outdir, 'articles.json')
-    update_provider_stats(outdir, articles, errors)
-    save_raw_data(raw_data, batch_outdir)
 
-    
 def main(outdir):
     if not os.path.exists(outdir):
         print 'creating output directory:', outdir
@@ -258,7 +250,7 @@ def main(outdir):
     fetch_lesoir_articles(outdir)
     fetch_dhnet_articles(outdir)
     fetch_lalibre_articles(outdir)
-
+    fetch_sudpresse_articles(outdir)
 
 if __name__ == '__main__':
     import argparse
