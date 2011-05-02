@@ -118,7 +118,11 @@ def extract_associated_links(article):
 
 
         def extract_url_and_title(item):
-            return item.a.get('href'), item.a.contents[0].strip()
+            url = item.a.get('href')
+            title = item.a.contents[0].strip()
+            if not title:
+                title = u'No Title'
+            return url, title
 
         all_tagged_urls = list()
         for item in link_list.findAll('li'):
