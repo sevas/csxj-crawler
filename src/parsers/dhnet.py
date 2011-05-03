@@ -20,7 +20,7 @@ elif sys.platform in [ 'darwin']:
 
 DHNET_INTERNAL_SITES = {
     'tackleonweb.blogs.dhnet.be':['internal blog', 'internal', 'sports'],
-    'galeries.dhnet.be':['internal site', 'image gallery'],
+    'galeries.dhnet.be':['internal site', 'internal', 'image gallery'],
 }
 
 DHNET_NETLOC = 'www.dhnet.be'
@@ -47,7 +47,7 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
     for url, title in urls_and_titles:
         tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
         if is_on_same_domain(url):
-            tags.append('internal site')
+            tags.extend(['internal site', 'internal'])
         tagged_urls.append(make_tagged_url(url, title, tags+additional_tags))
     return tagged_urls
 
@@ -200,6 +200,30 @@ def extract_category_from_maincontent(main_content):
     
 
 
+icon_type_to_tags = {
+    'pictoType0':['internal', 'full url'],
+    'pictoType1':['internal', 'local url'],
+    'pictoType2':['images', 'gallery'],
+    'pictoType3':['video'],
+    'pictoType4':['animation'],
+    'pictoType5':['audio'],
+    'pictoType6':['images', 'gallery'],
+    'pictoType9':['internal blog'],
+    'pictoType12':['external']
+}
+
+
+def make_tagged_url_from_pictotype(url, title, icon_type):
+    """
+    Attempts to tag a url using the icon used. Mapping is incomplete at the moment.
+    Still keeps the icon type as part of the tags for future uses.
+    """
+    tags = [icon_type]
+    if icon_type in icon_type_to_tags:
+        tags.extend(icon_type_to_tags[icon_type])
+
+    return tag_URL((url, title), tags)
+
 
 def extract_associated_links_from_maincontent(main_content):
     """
@@ -210,10 +234,16 @@ def extract_associated_links_from_maincontent(main_content):
     # sometimes there are no links
     if container:
         def extract_link_and_title(list_item):
-            return  list_item.a.get('href'), list_item.a.contents[0]
-        list_items = container.findAll('li', recursive=False)
-        urls_and_titles = [extract_link_and_title(list_item) for list_item in list_items]
-        return classify_and_make_tagged_url(urls_and_titles)
+            return  list_item.a.get('href'), list_item.a.contents[0].strip()
+        tagged_urls = list()
+        for list_item in container.findAll('li', recursive=False):
+            url, title = extract_link_and_title(list_item)
+            pictotype = list_item.get('class')
+            tagged_url = make_tagged_url_from_pictotype(url, title, pictotype)
+            tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+            tagged_url.tags.extend(tags)
+            tagged_urls.append(tagged_url)
+        return tagged_urls
     else:
         return []
 
@@ -369,12 +399,16 @@ def get_frontpage_toc():
 
 def test_sample_data():
     #filename = '../../sample_data/dhnet_no_paragraphs.html'
-    filename = '../../sample_data/dhnet_updated_date.html'
+    filename = '../../sample_data/dhnet_missing_links.html'
     with open(filename, 'r') as f:
-        article_data = extract_article_data(f)
+        article_data, html_content = extract_article_data(f)
         article_data.print_summary()
 
         for l in article_data.internal_links:
+            if 'keyword' not in l.tags:
+                print l.title, l.tags
+
+        for l in article_data.external_links:
             print l
 
         print '-' * 20
@@ -401,5 +435,5 @@ def show_frontpage_articles():
 
         
 if __name__ == '__main__':
-    show_frontpage_articles()
-    #test_sample_data()
+    #show_frontpage_articles()
+    test_sample_data()
