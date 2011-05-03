@@ -5,9 +5,11 @@ from datetime import datetime, date, time
 import locale
 from itertools import chain
 import urllib
+from BeautifulSoup import Tag
 from utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
 from utils import extract_plaintext_urls_from_text, remove_text_formatting_markup
 from article import ArticleData, make_tagged_url, classify_and_tag
+
 
 # for datetime conversions
 if sys.platform in ['linux2', 'cygwin']:
@@ -59,14 +61,18 @@ def extract_author_name(article):
 
 def extract_text_and_links_from_paragraph(paragraph):
     def extract_url_and_title(link):
-        return link.get('href'), link.contents[0].strip()
+        if isinstance(link.contents[0], Tag) and link.contents[0].name == 'img':
+            img_target = link.contents[0].get('src')
+            return link.get('href'), '(img){0}'.format(img_target)
+        else:
+            return link.get('href'), link.contents[0].strip()
 
-    urls_and_titles = [extract_url_and_title(link) for link in paragraph.findAll('a')]
+    urls_and_titles = [extract_url_and_title(link) for link in paragraph.findAll('a', recursive=False)]
 
     tagged_urls = list()
     for url, title in urls_and_titles:
         tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
-        tags.append('in text')
+        tags.update(['in text'])
         tagged_urls.append(make_tagged_url(url, title, tags))
 
     text = ''.join(remove_text_formatting_markup(p) for p in paragraph.contents)
@@ -74,7 +80,7 @@ def extract_text_and_links_from_paragraph(paragraph):
     plaintext_urls = extract_plaintext_urls_from_text(text)
     for url in plaintext_urls:
         tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
-        tags.extend(['plaintext', 'in text'])
+        tags.update(['plaintext', 'in text'])
         tagged_urls.append(make_tagged_url(url, url, tags))
 
     return text, tagged_urls
@@ -131,7 +137,7 @@ def extract_associated_links(article):
 
             link_type = item.get('class')
             if  link_type in LINK_TYPE_TO_TAG:
-                tags.extend(LINK_TYPE_TO_TAG[link_type])
+                tags.update(LINK_TYPE_TO_TAG[link_type])
 
             all_tagged_urls.append(make_tagged_url(url, title, tags))
 
@@ -311,3 +317,4 @@ if __name__=='__main__':
         article_data, html_content = extract_article_data(url)
 
         article_data.print_summary()
+        print article_data.to_json()
