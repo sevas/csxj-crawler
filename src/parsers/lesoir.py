@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# 
+#
+#
+#
+
 import sys
 import locale
 from datetime import datetime
@@ -47,7 +52,7 @@ def sanitize_paragraph(paragraph):
 
 
 
-def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
+def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
     """
     Classify (with tags) every element in a list of (url, title) tuples
     Returns a list of TaggedURLs
@@ -56,8 +61,8 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
     for url, title in urls_and_titles:
         tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
         if is_on_same_domain(url):
-            tags.append('internal site')
-        tagged_urls.append(make_tagged_url(url, title, tags+additional_tags))
+            tags.update(['internal site'])
+        tagged_urls.append(make_tagged_url(url, title, tags|additional_tags))
     return tagged_urls
 
 
@@ -75,7 +80,7 @@ def extract_text_content(story):
         all_plaintext_urls.extend(extract_plaintext_urls_from_text(text))
     # plaintext urls are their own title
     urls_and_titles = zip(all_plaintext_urls, all_plaintext_urls)
-    tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=['plaintext url', 'in text'])
+    tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext url', 'in text']))
 
     return clean_paragraphs, tagged_urls
     
@@ -87,7 +92,7 @@ def extract_to_read_links_from_sidebar(sidebar):
     if to_read_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
                             for link in to_read_links_container.findAll('a')]
-        return classify_and_make_tagged_url(urls_and_titles, additional_tags=['to read'])
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['to read']))
     else:
         return []
 
@@ -121,7 +126,7 @@ def extract_recent_links_from_soup(soup):
     if recent_links_container:
         urls_and_titles = [extract_url_and_title(item)
                            for item in recent_links_container.findAll('a')]
-        return classify_and_make_tagged_url(urls_and_titles, additional_tags=['recent'])
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['recent']))
     else:
         return []
 
@@ -347,7 +352,7 @@ def get_frontpage_articles_data():
     errors = []
 
     for (title, url) in articles_toc:
-        article_data = extract_article_data(url)
+        article_data, html_content = extract_article_data(url)
         articles.append(article_data)
             
     return articles, blogposts_toc, errors
