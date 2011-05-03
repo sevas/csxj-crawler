@@ -38,7 +38,7 @@ def is_on_same_domain(url):
 
 
 
-def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
+def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
     """
     Classify (with tags) every element in a list of (url, title) tuples
     Returns a list of TaggedURLs
@@ -47,8 +47,9 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
     for url, title in urls_and_titles:
         tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
         if is_on_same_domain(url):
-            tags.extend(['internal site', 'internal'])
-        tagged_urls.append(make_tagged_url(url, title, tags+additional_tags))
+            tags.union(['internal site', 'internal'])
+        all_tags = tags.union(additional_tags)
+        tagged_urls.append(make_tagged_url(url, title, all_tags))
     return tagged_urls
 
 
@@ -101,8 +102,8 @@ def extract_and_tag_in_text_links(article_text):
 
     keyword_links, other_links = separate_keyword_links(links)
 
-    tagged_urls = (classify_and_make_tagged_url(keyword_links, additional_tags=['keyword', 'in text']) +
-                   classify_and_make_tagged_url(other_links, additional_tags=['in text']))
+    tagged_urls = (classify_and_make_tagged_url(keyword_links, additional_tags=set(['keyword', 'in text'])) +
+                   classify_and_make_tagged_url(other_links, additional_tags=set(['in text'])))
 
     return tagged_urls
 
@@ -149,7 +150,7 @@ def extract_text_content_and_links_from_articletext(article_text):
         all_plaintext_urls.extend(extract_plaintext_urls_from_text(text))
     # plaintext urls are their own title
     urls_and_titles = zip(all_plaintext_urls, all_plaintext_urls)
-    plaintext_tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=['plaintext url', 'in text'])
+    plaintext_tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext url', 'in text']))
 
     return cleaned_up_text_fragments, in_text_tagged_urls + plaintext_tagged_urls
 
@@ -218,11 +219,12 @@ def make_tagged_url_from_pictotype(url, title, icon_type):
     Attempts to tag a url using the icon used. Mapping is incomplete at the moment.
     Still keeps the icon type as part of the tags for future uses.
     """
-    tags = [icon_type]
+    tags = set([icon_type])
     if icon_type in icon_type_to_tags:
-        tags.extend(icon_type_to_tags[icon_type])
+        tags = tags.union(set(icon_type_to_tags[icon_type]))
 
-    return tag_URL((url, title), tags)
+    return make_tagged_url(url, title, tags)
+
 
 
 def extract_associated_links_from_maincontent(main_content):
@@ -241,7 +243,8 @@ def extract_associated_links_from_maincontent(main_content):
             pictotype = list_item.get('class')
             tagged_url = make_tagged_url_from_pictotype(url, title, pictotype)
             tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-            tagged_url.tags.extend(tags)
+
+            tagged_url.tags.update(set(tags))
             tagged_urls.append(tagged_url)
         return tagged_urls
     else:
@@ -422,7 +425,7 @@ def show_frontpage_articles():
     for title, url in frontpage_items:
         print 'Fetching data for : %s (%s)' % (title, url)
 
-        article_data = extract_article_data(url)
+        article_data, html_content = extract_article_data(url)
         article_data.print_summary()
 
         for (title, url, tags) in article_data.external_links:
@@ -435,5 +438,5 @@ def show_frontpage_articles():
 
         
 if __name__ == '__main__':
-    #show_frontpage_articles()
-    test_sample_data()
+    show_frontpage_articles()
+    #test_sample_data()
