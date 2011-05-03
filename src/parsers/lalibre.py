@@ -26,7 +26,7 @@ def is_on_same_domain(url):
     return False
 
 
-def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
+def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
     """
     Classify (with tags) every element in a list of (url, title) tuples
     Returns a list of TaggedURLs
@@ -35,8 +35,8 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=[]):
     for url, title in urls_and_titles:
         tags = classify_and_tag(url, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
         if is_on_same_domain(url):
-            tags.append('internal site')
-        tagged_urls.append(make_tagged_url(url, title, tags+additional_tags))
+            tags.update(['internal site'])
+        tagged_urls.append(make_tagged_url(url, title, tags|additional_tags))
     return tagged_urls
 
 
@@ -95,8 +95,8 @@ def extract_and_tag_in_text_links(article_text):
              for link in article_text.findAll('a', recursive=True)]
 
     keyword_links, other_links = separate_keyword_links(links)
-    tagged_urls = (classify_and_make_tagged_url(keyword_links, additional_tags=['keyword', 'in text']) +
-                   classify_and_make_tagged_url(other_links, additional_tags=['in text']))
+    tagged_urls = (classify_and_make_tagged_url(keyword_links, additional_tags=set(['keyword', 'in text'])) +
+                   classify_and_make_tagged_url(other_links, additional_tags=set(['in text'])))
 
     return tagged_urls
 
@@ -126,7 +126,7 @@ def extract_text_content_and_links(main_content):
         all_fragments.append('\n')
         plaintext_links = extract_plaintext_urls_from_text(fragments)
         urls_and_titles = zip(plaintext_links, plaintext_links)
-        all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=['plaintext']))
+        all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
 
     text_content = all_fragments
     return text_content, in_text_tagged_urls+all_plaintext_urls
@@ -138,6 +138,7 @@ def extract_category(main_content):
     links = breadcrumbs.findAll('a', recursive=False)
 
     return [link.contents[0].rstrip().lstrip() for link in links]
+
 
 
 icon_type_to_tags = {
@@ -153,15 +154,14 @@ icon_type_to_tags = {
 }
 
 
-
 def make_tagged_url_from_pictotype(url, title, icon_type):
     """
     Attempts to tag a url using the icon used. Mapping is incomplete at the moment.
     Still keeps the icon type as part of the tags for future uses.
     """
-    tags = [icon_type]
+    tags = set([icon_type])
     if icon_type in icon_type_to_tags:
-        tags.extend(icon_type_to_tags[icon_type])
+        tags.update(set(icon_type_to_tags[icon_type]))
 
     return tag_URL((url, title), tags)
 
@@ -184,7 +184,10 @@ def extract_and_tag_associated_links(main_content):
                 url = item.a.get('href')
                 title = sanitize_fragment(item.a.contents[0].rstrip().lstrip())
                 icon_type = item.get('class')
-                links.append(make_tagged_url_from_pictotype(url, title, icon_type))
+                tagged_url = make_tagged_url_from_pictotype(url, title, icon_type)
+                additional_tags = classify_and_tag(url, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+                tagged_url.tags.update(additional_tags)
+                links.append(tagged_url)
 
         return links
     else:
@@ -282,7 +285,7 @@ def list_frontpage_articles():
     for (title, url) in frontpage_items:
         print 'fetching data for article :',  title
 
-        article = extract_article_data(url)
+        article, html_content = extract_article_data(url)
         article.print_summary()
 
 
