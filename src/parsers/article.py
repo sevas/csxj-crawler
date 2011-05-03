@@ -35,7 +35,7 @@ def classify_and_tag(url, own_netlog, associated_sites):
     else:
         tags = ['internal']
 
-    return tags
+    return set(tags)
 
 
 def count_words(some_text):
@@ -78,6 +78,14 @@ def time_from_string(s):
     else:
         return None
 
+
+def make_serializable(tagged_url):
+    url, title, tags = tagged_url
+    return TaggedURL(url, title, list(tags))
+
+
+
+
 class ArticleData(object):
     """
     A glorified dict to keep the extracted metadata and content of one article.
@@ -106,7 +114,7 @@ class ArticleData(object):
         self.intro = intro
         self.content = content
 
-        
+
     @property
     def external_links(self):
         return [l for l in self.links if 'external' in l.tags]
@@ -145,7 +153,10 @@ class ArticleData(object):
         pub_date, pub_time = d['pub_date'], d['pub_time']
         d['pub_date'] = date_to_string(pub_date)
         d['pub_time'] = time_to_string(pub_time)
-            
+
+        links = d['links']
+        d['links'] = [make_serializable(tagged_url) for tagged_url in links]
+
         return json.dumps(d)
 
 
@@ -166,8 +177,8 @@ class ArticleData(object):
         d['pub_time'] = time_from_string(pub_time)
 
         links = d['links']
-        tagged_urls = [make_tagged_url(url, title, tags) for (url, title, tags) in links]
+        tagged_urls = [make_tagged_url(url, title, set(tags)) for (url, title, tags) in links]
         d['links'] = tagged_urls
-        
+
         d = make_dict_keys_str(d)
         return kls(**d)
