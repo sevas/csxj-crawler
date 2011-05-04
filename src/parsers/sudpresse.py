@@ -126,14 +126,16 @@ def extract_associated_links(article):
         def extract_url_and_title(item):
             url = item.a.get('href')
             title = item.a.contents[0].strip()
+            tags = set()
             if not title:
                 title = u'No Title'
-            return url, title
+                tags.add('ghost link')
+            return url, title, tags
 
         all_tagged_urls = list()
         for item in link_list.findAll('li'):
-            url, title = extract_url_and_title(item)
-            tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
+            url, title, tags = extract_url_and_title(item)
+            tags.update(classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES))
 
             link_type = item.get('class')
             if  link_type in LINK_TYPE_TO_TAG:
