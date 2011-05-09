@@ -61,9 +61,13 @@ def extract_author_name(article):
 
 def extract_text_and_links_from_paragraph(paragraph):
     def extract_url_and_title(link):
-        if isinstance(link.contents[0], Tag) and link.contents[0].name == 'img':
-            img_target = link.contents[0].get('src')
-            return link.get('href'), '(img){0}'.format(img_target)
+        if isinstance(link.contents[0], Tag):
+            if link.contents[0].name == 'img':
+                img_target = link.contents[0].get('src')
+                return link.get('href'), '(img){0}'.format(img_target)
+            else:
+                title = ''.join(remove_text_formatting_markup(c) for c in link.contents)
+                return link.get('href'), title
         else:
             return link.get('href'), link.contents[0].strip()
 
@@ -309,14 +313,30 @@ def get_frontpage_toc():
 
 
 
-
-
-if __name__=='__main__':
+def show_frontpage_articles():
     toc = get_frontpage_toc()
 
     print len(toc)
     for title, url in toc[:]:
+        print
+        print url
         article_data, html_content = extract_article_data(url)
 
         article_data.print_summary()
         print article_data.to_json()
+
+
+
+def test_sample_data():
+    filepath = '../../sample_data/sudpresse_some_error.html'
+    with open(filepath) as f:
+        article_data, raw = extract_article_data(f)
+        article_data.print_summary()
+
+        print article_data.to_json()
+
+
+
+if __name__=='__main__':
+    show_frontpage_articles()
+    test_sample_data()
