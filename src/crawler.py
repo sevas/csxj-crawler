@@ -252,6 +252,8 @@ def main(outdir):
     fetch_lalibre_articles(outdir)
     fetch_sudpresse_articles(outdir)
 
+
+    
 if __name__ == '__main__':
     import argparse
     

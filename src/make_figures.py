@@ -138,7 +138,7 @@ def plot_categories_by_links_article_ratio(name, categorized_articles, outdir):
     plt.clf()
     labels = [make_label(c) for c in link_counters]
     make_barchart(x, 'Categories by article/links ratio ({0})'.format(name), labels)
-    plt.savefig(os.path.join(outdir, name+'_article_link_ratio.png'))
+    plt.savefig(os.path.join(outdir, name+'_article_link_ratio.png'), bbox_inches='tight')
 
 
 
@@ -159,7 +159,7 @@ def plot_categories_by_number_of_articles(name, categorized_articles, outdir):
     plt.clf()
     labels = [make_label(c) for c in article_counters]
     make_barchart(x, '# Articles per category ({0})'.format(name), labels)
-    plt.savefig(os.path.join(outdir, name+'_articles_by_category.png'))
+    plt.savefig(os.path.join(outdir, name+'_articles_by_category.png'), bbox_inches='tight')
 
 
 
@@ -195,7 +195,8 @@ def plot_categories_by_number_of_links(name, categorized_articles, outdir):
     plt.yticks(ind+0.35, labels, fontsize='small')
     plt.title('Number of links per category ({0})'.format(name))
     plt.legend( (p1[0], p2[0]), ('External links', 'Internal links'), 'lower right' )
-    plt.savefig(os.path.join(outdir, name+'_number_of_links.png'))
+    plt.savefig(os.path.join(outdir, name+'_number_of_links.png'), bbox_inches='tight')
+
 
 
 def make_all_figures(db_root, outdir):
@@ -206,10 +207,7 @@ def make_all_figures(db_root, outdir):
         articles = get_flat_article_list(os.path.join(db_root, source_dir))
 
         categorized_articles = categorize_articles(articles)
-
-        #for (cat_name, articles) in categorized_articles:
-        #    print u'{0} : \t {1} articles'.format(u'/'.join(cat_name), len(articles))
-
+        
         plot_categories_by_links_article_ratio(source_dir, categorized_articles, outdir)
         plot_categories_by_number_of_articles(source_dir, categorized_articles, outdir)
         plot_categories_by_number_of_links(source_dir, categorized_articles, outdir)
