@@ -129,7 +129,8 @@ def extract_associated_links(article):
 
         def extract_url_and_title(item):
             url = item.a.get('href')
-            title = item.a.contents[0].strip()
+            title = ''.join(remove_text_formatting_markup(c) for c in  item.a.contents)
+
             tags = set()
             if not title:
                 title = u'No Title'
@@ -329,14 +330,17 @@ def show_frontpage_articles():
 
 def test_sample_data():
     filepath = '../../sample_data/sudpresse_some_error.html'
+    filepath = '../../sample_data/sudpresse_associated_link_error.html'
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
         article_data.print_summary()
 
-        print article_data.to_json()
+        for link in article_data.links:
+            print link.title
+        
 
 
 
 if __name__=='__main__':
-    show_frontpage_articles()
+    #show_frontpage_articles()
     test_sample_data()
