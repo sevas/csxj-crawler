@@ -3,4 +3,7 @@ syntax: glob
 build/
 out*/
 static_data*/
+figures/
+test_figures/
+json_db*/
 .idea/
