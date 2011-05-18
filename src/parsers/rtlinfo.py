@@ -3,6 +3,7 @@ from datetime import datetime, time
 import locale
 from itertools import chain
 from utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
+from utils import extract_plaintext_urls_from_text
 from article import ArticleData, make_tagged_url, classify_and_tag
 
 
@@ -97,6 +98,24 @@ def extract_links(main_article):
 
 
 
+def extract_links_and_text_content(main_article):
+
+    articleBody = main_article.find('div', {'class':'articleBody rtl_margin_top_25'})
+
+    embedded_links = articleBody.findAll('a')
+
+    all_paragraphs = articleBody.findAll('p', recursive=False)
+    cleaned_up_paragraphs = list()
+    all_plaintext_urls = list()
+
+    for p in all_paragraphs:
+        paragraph = remove_text_formatting_markup_from_fragments(p.contents)
+        plaintext_urls = extract_plaintext_urls_from_text(paragraph)
+        cleaned_up_paragraphs.append(paragraph)
+        all_plaintext_urls.extend(plaintext_urls)
+
+    return embedded_links+all_plaintext_urls, cleaned_up_paragraphs
+
 def extract_article_data(html_content):
     soup = make_soup_from_html_content(html_content)
 
@@ -110,13 +129,14 @@ def extract_article_data(html_content):
     links = extract_links(main_article)
 
     author = None
-    content = extract_text_content(main_article)
+    links, content = extract_links_and_text_content(main_article)
 
     print category
     print pub_date, pub_time
     print title
     print links
 
+    print content
 
 
 def extract_frontpage_title_and_url(link):
