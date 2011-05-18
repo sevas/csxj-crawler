@@ -112,7 +112,15 @@ def extract_first_articles(maincontent):
     first_article = maincontent.find('div', {'id':'FirstArticlesLeft'})
     titles_and_urls = list()
 
-    titles_and_urls.append(extract_frontpage_title_and_url(first_article.h1.a))
+    if first_article:
+        if first_article.h1:
+            titles_and_urls.append(extract_frontpage_title_and_url(first_article.h1.a))
+        else:
+            video_headline = first_article.find('div', {'class':'img_with_text_on_top_holder'})
+            if video_headline:
+                url = video_headline.a.get('href')
+                title = video_headline.a.img.get('alt')
+                titles_and_urls.append((title, url))
 
     articles_right = maincontent.findAll('div', {'class':'ArticlesRight '})
     articles_right.extend(maincontent.findAll('div', {'class':'ArticlesRight ArticlesRight-First'}))
@@ -171,6 +179,11 @@ def test_sample_data():
 
 
 if __name__=='__main__':
-    test_sample_data()
+    toc, blogs = get_frontpage_toc()
+
+    for t, u in toc:
+        print t
+
+    #test_sample_data()
 
 
