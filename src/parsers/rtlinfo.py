@@ -1,7 +1,7 @@
 import sys
 from datetime import datetime, time
 import locale
-
+from itertools import chain
 from utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
 from article import ArticleData, make_tagged_url, classify_and_tag
 
@@ -65,15 +65,35 @@ def extract_external_links(main_article):
             tagged_urls.append(make_tagged_url(url, title, tags))
             
         return tagged_urls
+
     else:
         return []
 
 
-    
+
+def extract_related_links(main_article):
+    container = main_article.find('div', {'class':'relatedArticles'})
+
+    left_list, right_list = container.findAll('ul')
+    all_list_items = [link_list.findAll('li', recursive=False) for link_list in (left_list, right_list)]
+
+    tagged_urls = list()
+    for item in chain(*all_list_items):
+        url, title = item.a.get('href'), remove_text_formatting_markup_from_fragments(item.a.contents)
+        tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
+        tags.add('associated')
+
+        tagged_urls.append(make_tagged_url(url, title, tags))
+
+    return tagged_urls
+
+
+
 def extract_links(main_article):
     external_links = extract_external_links(main_article)
-    print external_links
+    related_links = extract_related_links(main_article)
 
+    return external_links + related_links
 
 
 
@@ -87,11 +107,15 @@ def extract_article_data(html_content):
     pub_date, pub_time = extract_date_and_time(main_article)
     fetched_datetime = datetime.now()
 
-    print extract_external_links(main_article)
+    links = extract_links(main_article)
+
+    author = None
+    content = extract_text_content(main_article)
 
     print category
     print pub_date, pub_time
     print title
+    print links
 
 
 
@@ -207,9 +231,6 @@ def test_sample_data():
         html_content = f.read()
 
         extract_article_data(html_content)
-
-
-
 
 
 if __name__=='__main__':
