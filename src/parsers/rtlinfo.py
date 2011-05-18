@@ -2,7 +2,7 @@ import sys
 from datetime import datetime, time
 import locale
 
-from utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup
+from utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
 from article import ArticleData, make_tagged_url, classify_and_tag
 
 
@@ -13,11 +13,18 @@ elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR')
 
 
+RTLINFO_OWN_NETLOC = 'rtl.be'
+
+RTLINFO_INTERNAL_SITES = {
+    'blogs.rtlinfo.be':['internal', 'blog'],
+}
+
+
 def extract_title(main_article):
     left_column = main_article.find('div', {'id':'leftCol'})
     title = left_column.find('h1', {'class':'rtl_font_weight_normal'})
 
-    return ''.join([remove_text_formatting_markup(fragment) for fragment in title.contents])
+    return remove_text_formatting_markup_from_fragments(title.contents)
 
 
 
@@ -44,6 +51,32 @@ def extract_category(main_article):
 
 
 
+def extract_external_links(main_article):
+    container = main_article.find('div', {'class':'art_ext_links'})
+
+    if container:
+        link_list = container.ul
+        items = link_list.findAll('li')
+        urls_and_titles = [(i.a.get('href'), remove_text_formatting_markup_from_fragments(i.a.contents))  for i in items]
+
+        tagged_urls = list()
+        for url, title in urls_and_titles:
+            tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
+            tagged_urls.append(make_tagged_url(url, title, tags))
+            
+        return tagged_urls
+    else:
+        return []
+
+
+    
+def extract_links(main_article):
+    external_links = extract_external_links(main_article)
+    print external_links
+
+
+
+
 def extract_article_data(html_content):
     soup = make_soup_from_html_content(html_content)
 
@@ -52,12 +85,13 @@ def extract_article_data(html_content):
     title = extract_title(main_article)
     category = extract_category(main_article)
     pub_date, pub_time = extract_date_and_time(main_article)
+    fetched_datetime = datetime.now()
+
+    print extract_external_links(main_article)
 
     print category
     print pub_date, pub_time
     print title
-
-
 
 
 
@@ -173,17 +207,16 @@ def test_sample_data():
         html_content = f.read()
 
         extract_article_data(html_content)
-    
+
 
 
 
 
 if __name__=='__main__':
-    toc, blogs = get_frontpage_toc()
+#    toc, blogs = get_frontpage_toc()
+#    for t, u in toc:
+#        print t
 
-    for t, u in toc:
-        print t
-
-    #test_sample_data()
+    test_sample_data()
 
 
