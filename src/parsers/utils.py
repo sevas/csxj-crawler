@@ -62,3 +62,11 @@ def remove_text_formatting_markup(formatted_text_fragment):
     # If it's a plain string, there is nothing else to do
     else:
         return formatted_text_fragment
+
+
+
+def remove_text_formatting_markup_from_fragments(fragments):
+    """
+    cleans up the html markup from a collection of fragments
+    """
+    return ''.join(remove_text_formatting_markup(f) for f in fragments)
