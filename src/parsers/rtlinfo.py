@@ -1,4 +1,52 @@
+import sys
+from datetime import datetime, time
+import locale
+
 from utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup
+from article import ArticleData, make_tagged_url, classify_and_tag
+
+
+# for datetime conversions
+if sys.platform in ['linux2', 'cygwin']:
+    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
+elif sys.platform in [ 'darwin']:
+    locale.setlocale(locale.LC_TIME, 'fr_FR')
+
+
+
+def extract_date_and_time(main_article):
+    date_container = main_article.find('span', {'class':'date'})
+    date_string = date_container.contents[0].strip()
+
+    pub_date = datetime.strptime(date_string, '%d %B %Y')
+
+    time_container = date_container.find('span', {'class':'time'})
+    time_string=  time_container.contents[0]
+    h, m = [int(i) for i in time_string.split('h')]
+    pub_time = time(h, m)
+
+    return pub_date, pub_time
+
+
+def extract_category(main_article):
+    breadcrumb_container = main_article.find('div', {'id':'breadcrumb'})
+    breadcrumbs = [''.join(link.contents) for link in  breadcrumb_container.findAll('a')]
+
+    return breadcrumbs
+
+
+
+def extract_article_data(html_content):
+    soup = make_soup_from_html_content(html_content)
+
+    main_article= soup.find('div', {'id':'mainArticle'})
+    category = extract_category(main_article)
+    pub_date, pub_time = extract_date_and_time(main_article)
+
+    print category
+    print pub_date, pub_time
+
+
 
 
 
@@ -99,10 +147,19 @@ def get_frontpage_toc():
     return [make_full_url(title_and_url) for title_and_url in news_items], blogposts
 
 
-if __name__=='__main__':
-    toc, blogs = get_frontpage_toc()
 
-    print len(toc)
-    for title, url in toc:
-        print title, url
+def test_sample_data():
+    filename = '../../sample_data/rtlinfo_sample.html'
+    with open(filename) as f:
+        html_content = f.read()
+
+        extract_article_data(html_content)
+    
+
+
+
+
+if __name__=='__main__':
+    test_sample_data()
+
 
