@@ -14,7 +14,7 @@ elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR')
 
 
-RTLINFO_OWN_NETLOC = 'rtl.be'
+RTLINFO_OWN_NETLOC = 'www.rtl.be'
 
 RTLINFO_INTERNAL_SITES = {
     'blogs.rtlinfo.be':['internal', 'blog'],
@@ -98,23 +98,43 @@ def extract_links(main_article):
 
 
 
+def extract_embedded_links_from_articlebody(article_body):
+    embedded_links = list()
+
+    for link in article_body.findAll('a'):
+        url = link.get('href')
+        title = remove_text_formatting_markup_from_fragments(link.contents)
+        tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
+        tags.add('in text')
+        embedded_links.append(make_tagged_url(url, title, tags))
+
+    return embedded_links
+
+
+
 def extract_links_and_text_content(main_article):
+    article_body = main_article.find('div', {'class':'articleBody rtl_margin_top_25'})
 
-    articleBody = main_article.find('div', {'class':'articleBody rtl_margin_top_25'})
+    embedded_links = extract_embedded_links_from_articlebody(article_body)
 
-    embedded_links = articleBody.findAll('a')
-
-    all_paragraphs = articleBody.findAll('p', recursive=False)
+    all_paragraphs = article_body.findAll('p', recursive=False)
     cleaned_up_paragraphs = list()
     all_plaintext_urls = list()
 
     for p in all_paragraphs:
         paragraph = remove_text_formatting_markup_from_fragments(p.contents)
         plaintext_urls = extract_plaintext_urls_from_text(paragraph)
-        cleaned_up_paragraphs.append(paragraph)
-        all_plaintext_urls.extend(plaintext_urls)
+        for url in plaintext_urls:
+            tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
+            tags.add('in text', 'plaintext')
+            all_plaintext_urls.append(make_tagged_url(url, url, tags))
 
-    return embedded_links+all_plaintext_urls, cleaned_up_paragraphs
+        cleaned_up_paragraphs.append(paragraph)
+
+    all_links = embedded_links+all_plaintext_urls
+    return all_links, cleaned_up_paragraphs
+
+
 
 def extract_article_data(html_content):
     soup = make_soup_from_html_content(html_content)
@@ -129,12 +149,12 @@ def extract_article_data(html_content):
     links = extract_links(main_article)
 
     author = None
-    links, content = extract_links_and_text_content(main_article)
+    embedded_links, content = extract_links_and_text_content(main_article)
 
     print category
     print pub_date, pub_time
     print title
-    print links
+    print links, embedded_links
 
     print content
 
