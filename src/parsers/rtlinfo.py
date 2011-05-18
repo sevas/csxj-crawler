@@ -13,6 +13,13 @@ elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR')
 
 
+def extract_title(main_article):
+    left_column = main_article.find('div', {'id':'leftCol'})
+    title = left_column.find('h1', {'class':'rtl_font_weight_normal'})
+
+    return ''.join([remove_text_formatting_markup(fragment) for fragment in title.contents])
+
+
 
 def extract_date_and_time(main_article):
     date_container = main_article.find('span', {'class':'date'})
@@ -28,6 +35,7 @@ def extract_date_and_time(main_article):
     return pub_date, pub_time
 
 
+
 def extract_category(main_article):
     breadcrumb_container = main_article.find('div', {'id':'breadcrumb'})
     breadcrumbs = [''.join(link.contents) for link in  breadcrumb_container.findAll('a')]
@@ -40,11 +48,14 @@ def extract_article_data(html_content):
     soup = make_soup_from_html_content(html_content)
 
     main_article= soup.find('div', {'id':'mainArticle'})
+
+    title = extract_title(main_article)
     category = extract_category(main_article)
     pub_date, pub_time = extract_date_and_time(main_article)
 
     print category
     print pub_date, pub_time
+    print title
 
 
 
