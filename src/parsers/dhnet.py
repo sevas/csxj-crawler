@@ -306,24 +306,27 @@ def extract_article_data(source):
 
     main_content = soup.find('div', {'id':'maincontent'})
 
-    title = main_content.h1.contents[0]
-    pub_date, pub_time = extract_date_from_maincontent(main_content)
-    category = extract_category_from_maincontent(main_content)
-    author_name = extract_author_name_from_maincontent(main_content)
+    if main_content:
+        title = main_content.h1.contents[0]
+        pub_date, pub_time = extract_date_from_maincontent(main_content)
+        category = extract_category_from_maincontent(main_content)
+        author_name = extract_author_name_from_maincontent(main_content)
 
 
-    article_text = main_content.find('div', {'id':'articleText'})
-    intro = extract_intro_from_articletext(article_text)
-    text, in_text_urls = extract_text_content_and_links_from_articletext(article_text)
-    associated_urls = extract_associated_links_from_maincontent(main_content)
+        article_text = main_content.find('div', {'id':'articleText'})
+        intro = extract_intro_from_articletext(article_text)
+        text, in_text_urls = extract_text_content_and_links_from_articletext(article_text)
+        associated_urls = extract_associated_links_from_maincontent(main_content)
 
-    fetched_datetime = datetime.today()
+        fetched_datetime = datetime.today()
 
 
-    new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                              in_text_urls+associated_urls,
-                              category, author_name, intro, text)
-    return new_article, html_content
+        new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
+                                  in_text_urls+associated_urls,
+                                  category, author_name, intro, text)
+        return new_article, html_content
+    else:
+        return None, html_content
 
 
 
@@ -371,29 +374,30 @@ def get_frontpage_toc():
     soup = make_soup_from_html_content(html_content)
 
     main_content = soup.find('div', {'id':'maincontent'})
+    if main_content:
+        all_titles_and_urls = []
 
-    all_titles_and_urls = []
+        # so, the list here is a combination of several subcontainer types.
+        # processing every type separately
+        first_title, first_url = get_first_story_title_and_url(main_content)
+        all_titles_and_urls.append((first_title, first_url))
 
-    # so, the list here is a combination of several subcontainer types.
-    # processing every type separately
-    first_title, first_url = get_first_story_title_and_url(main_content)
-    all_titles_and_urls.append((first_title, first_url))
+        # this will pick up the 'annouceGroup' containers with same type in the 'regions' div
+        first_announce_groups = main_content.findAll('div',
+                                                     {'class':'announceGroupFirst announceGroup'},
+                                                     recursive=True)
+        announce_groups = main_content.findAll('div',
+                                               {'class':'announceGroup'},
+                                               recursive=True)
 
-    # this will pick up the 'annouceGroup' containers with same type in the 'regions' div
-    first_announce_groups = main_content.findAll('div',
-                                                 {'class':'announceGroupFirst announceGroup'},
-                                                 recursive=True)
-    announce_groups = main_content.findAll('div',
-                                           {'class':'announceGroup'},
-                                           recursive=True)
-
-    # all those containers have two sub stories
-    for announce_group in chain(first_announce_groups, announce_groups):
-        titles_and_urls = extract_title_and_link_from_anounce_group(announce_group)
-        all_titles_and_urls.extend(titles_and_urls)
-
-    return [(title, 'http://www.dhnet.be%s' % url) for (title, url) in  all_titles_and_urls], []
-
+        # all those containers have two sub stories
+        for announce_group in chain(first_announce_groups, announce_groups):
+            titles_and_urls = extract_title_and_link_from_anounce_group(announce_group)
+            all_titles_and_urls.extend(titles_and_urls)
+    
+        return [(title, 'http://www.dhnet.be%s' % url) for (title, url) in  all_titles_and_urls], []
+    else:
+        return [], []
 
 
 def test_sample_data():
@@ -415,24 +419,25 @@ def test_sample_data():
 
 
 def show_frontpage_articles():
-    frontpage_items = get_frontpage_toc()
+    frontpage_items, blogposts = get_frontpage_toc()
 
     print '%d items on frontpage' % len(frontpage_items)
     for title, url in frontpage_items:
         print 'Fetching data for : %s (%s)' % (title, url)
 
         article_data, html_content = extract_article_data(url)
-        article_data.print_summary()
+        if article_data:
+            article_data.print_summary()
 
-        for (title, url, tags) in article_data.external_links:
-            print u'{0} -> {1} {2}'.format(title, url, tags)
+            for (title, url, tags) in article_data.external_links:
+                print u'{0} -> {1} {2}'.format(title, url, tags)
 
-        for (title, url, tags) in article_data.internal_links:
-            print u'{0} -> {1} {2}'.format(title, url, tags)
+            for (title, url, tags) in article_data.internal_links:
+                print u'{0} -> {1} {2}'.format(title, url, tags)
 
 
-        print article_data.to_json()
-        print '-' * 20
+            print article_data.to_json()
+            print '-' * 20
 
 
         
