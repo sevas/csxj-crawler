@@ -293,7 +293,7 @@ def make_full_url((title, url)):
         return title, 'http://www.rtl.be{0}'.format(url)
 
 
-    
+
 def separate_news_and_blogposts(titles_and_urls):
     all_items = set(titles_and_urls)
     blogposts = set([(title, url) for title, url in all_items if not url.startswith('/info')])
@@ -318,7 +318,7 @@ def get_frontpage_toc():
 
     news_items, blogposts = separate_news_and_blogposts(all_articles)
 
-    return [make_full_url(title_and_url) for title_and_url in news_items], blogposts
+    return [make_full_url(title_and_url) for title_and_url in news_items], list(blogposts)
 
 
 

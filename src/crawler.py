@@ -89,7 +89,7 @@ def fetch_articles_from_toc(toc,  provider, outdir):
     for (title, url) in toc:
         try:
             article_data, raw_html_content = provider.extract_article_data(url)
-            if(article_data):
+            if article_data:
                 articles.append(article_data)
                 raw_data.append((url, raw_html_content))
         except Exception as e:
@@ -206,7 +206,8 @@ def crawl_once(provider, provider_name, provider_title, prefix):
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    frontpage_toc, blogposts_toc = filter_only_new_stories(provider.get_frontpage_toc(),
+    news_toc, blogposts_toc = provider.get_frontpage_toc()
+    frontpage_toc = filter_only_new_stories(news_toc,
                                             os.path.join(outdir, 'last_frontpage_list.json'))
 
     articles, errors, raw_data = fetch_articles_from_toc(frontpage_toc, provider, outdir)
