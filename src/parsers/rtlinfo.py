@@ -102,9 +102,16 @@ def extract_links(main_article):
 
 def extract_usable_links(container):
     """
-    Sometimes that stupid cms allows for broken empty links to appear in the source.
-    It's not even clickable. It's just there, doing nothing, with with no target, with no title,
-    with no purpose, with no soul.
+    Extracts all <a> elements, then filters out anything with no title and target.
+
+    Why, will you ask me? I'm going to tell you why. Because *sometimes* that
+    stupid cms allows for broken empty links to appear in the source.
+    It's not even clickable. It's just there, doing nothing.
+
+    With no target.
+    With no title.
+    With no purpose.
+    With no soul.
 
     This is the saddest thing ever.
     """
