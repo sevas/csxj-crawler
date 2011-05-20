@@ -8,6 +8,7 @@ import urllib
 from BeautifulSoup import Tag
 from utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
 from utils import extract_plaintext_urls_from_text, remove_text_formatting_markup
+from utils import remove_text_formatting_markup_from_fragments
 from article import ArticleData, make_tagged_url, classify_and_tag
 
 
@@ -66,10 +67,10 @@ def extract_text_and_links_from_paragraph(paragraph):
                 img_target = link.contents[0].get('src')
                 return link.get('href'), '(img){0}'.format(img_target)
             else:
-                title = ''.join(remove_text_formatting_markup(c) for c in link.contents)
+                title = remove_text_formatting_markup_from_fragments(link.contents)
                 return link.get('href'), title
         else:
-            return link.get('href'), link.contents[0].strip()
+            return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
 
     urls_and_titles = [extract_url_and_title(link) for link in paragraph.findAll('a', recursive=False)]
 
@@ -315,7 +316,7 @@ def get_frontpage_toc():
 
 
 def show_frontpage_articles():
-    toc = get_frontpage_toc()
+    toc, blogs = get_frontpage_toc()
 
     print len(toc)
     for title, url in toc[:]:
@@ -342,5 +343,5 @@ def test_sample_data():
 
 
 if __name__=='__main__':
-    #show_frontpage_articles()
-    test_sample_data()
+    show_frontpage_articles()
+    #test_sample_data()
