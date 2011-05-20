@@ -101,6 +101,13 @@ def extract_links(main_article):
 
 
 def extract_usable_links(container):
+    """
+    Sometimes that stupid cms allows for broken empty links to appear in the source.
+    It's not even clickable. It's just there, doing nothing, with with no target, with no title,
+    with no purpose, with no soul.
+
+    This is the saddest thing ever.
+    """
     def is_usable(link):
         return link.get('href') and link.contents
 
