@@ -2,7 +2,7 @@ import sys
 from datetime import datetime, time
 import locale
 from itertools import chain
-from utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
+from utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, remove_text_formatting_markup
 from utils import extract_plaintext_urls_from_text
 from article import ArticleData, make_tagged_url, classify_and_tag
 
@@ -75,19 +75,21 @@ def extract_external_links(main_article):
 def extract_related_links(main_article):
     container = main_article.find('div', {'class':'relatedArticles'})
 
-    left_list, right_list = container.findAll('ul')
-    all_list_items = [link_list.findAll('li', recursive=False) for link_list in (left_list, right_list)]
+    if container:
+        left_list, right_list = container.findAll('ul')
+        all_list_items = [link_list.findAll('li', recursive=False) for link_list in (left_list, right_list)]
 
-    tagged_urls = list()
-    for item in chain(*all_list_items):
-        url, title = item.a.get('href'), remove_text_formatting_markup_from_fragments(item.a.contents)
-        tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
-        tags.add('associated')
+        tagged_urls = list()
+        for item in chain(*all_list_items):
+            url, title = item.a.get('href'), remove_text_formatting_markup_from_fragments(item.a.contents)
+            tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
+            tags.add('associated')
 
-        tagged_urls.append(make_tagged_url(url, title, tags))
+            tagged_urls.append(make_tagged_url(url, title, tags))
 
-    return tagged_urls
-
+        return tagged_urls
+    else:
+        return []
 
 
 def extract_links(main_article):
@@ -98,16 +100,32 @@ def extract_links(main_article):
 
 
 
+def extract_usable_links(container):
+    def is_usable(link):
+        return link.get('href') and link.contents
+
+    all_links = container.findAll('a')
+    return [l for l in  all_links if is_usable(l)]
+
+
+
 def extract_embedded_links_from_articlebody(article_body):
     embedded_links = list()
 
-    for link in article_body.findAll('a'):
+    for link in extract_usable_links(article_body):
         url = link.get('href')
         title = remove_text_formatting_markup_from_fragments(link.contents)
         tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
         tags.add('in text')
         embedded_links.append(make_tagged_url(url, title, tags))
 
+    for embedded_video_frame in article_body.findAll('iframe'):
+        url = embedded_video_frame.get('src')
+        title = '[Video] {0}'.format(url)
+        tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
+        tags.union(['in text', 'embedded'])
+        embedded_links.append(make_tagged_url(url, title, tags))
+        
     return embedded_links
 
 
@@ -135,29 +153,48 @@ def extract_links_and_text_content(main_article):
     return all_links, cleaned_up_paragraphs
 
 
+def extract_intro(main_article):
+    left_column = main_article.find('div', {'id':'leftCol'})
+    intro_container = left_column.find('h2', recursive=False)
 
-def extract_article_data(html_content):
+    if intro_container:
+        intro = remove_text_formatting_markup_from_fragments(intro_container.contents)
+    else:
+        intro = None
+
+    return intro
+
+
+
+def extract_article_data(source):
+    if hasattr(source, 'read'):
+        html_content = source.read()
+    else:
+        html_content = fetch_content_from_url(source)
+
     soup = make_soup_from_html_content(html_content)
 
     main_article= soup.find('div', {'id':'mainArticle'})
 
-    title = extract_title(main_article)
-    category = extract_category(main_article)
-    pub_date, pub_time = extract_date_and_time(main_article)
-    fetched_datetime = datetime.now()
+    if main_article:
+        title = extract_title(main_article)
+        category = extract_category(main_article)
+        pub_date, pub_time = extract_date_and_time(main_article)
+        fetched_datetime = datetime.now()
 
-    links = extract_links(main_article)
+        links = extract_links(main_article)
 
-    author = None
-    embedded_links, content = extract_links_and_text_content(main_article)
+        author = None
+        embedded_links, content = extract_links_and_text_content(main_article)
+        intro = extract_intro(main_article)
 
-    print category
-    print pub_date, pub_time
-    print title
-    print links, embedded_links
+        all_links = links+embedded_links
 
-    print content
+        article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime, all_links, category, author, intro, content)
+        return article_data, html_content
 
+    else:
+        return None, html_content
 
 def extract_frontpage_title_and_url(link):
     title = ''.join([remove_text_formatting_markup(c.strip()) for c in link.contents])
@@ -184,6 +221,7 @@ def extract_headlines_from_module(module_container):
         return []
 
 
+
 def extract_headlines_from_modules(maincontent):
     module_zone = maincontent.find('div', {'id':'hp-zone-list'})
 
@@ -197,6 +235,7 @@ def extract_headlines_from_modules(maincontent):
     return headlines
 
 
+
 def extract_small_articles(maincontent):
     small_articles_container = maincontent.find('div', {'id':'SmallArticles'})
 
@@ -204,6 +243,7 @@ def extract_small_articles(maincontent):
     small_articles.extend(small_articles_container.findAll('div', {'class':'SmallArticles-Items SmallArticles-Lasts'}))
 
     return [extract_frontpage_title_and_url(item.h5.a) for item in small_articles ]
+
 
 
 def extract_first_articles(maincontent):
@@ -237,9 +277,10 @@ def make_full_url((title, url)):
         return title, 'http://www.rtl.be{0}'.format(url)
 
 
+    
 def separate_news_and_blogposts(titles_and_urls):
     all_items = set(titles_and_urls)
-    blogposts = set([(title, url) for title, url in all_items if not url.startswith('/')])
+    blogposts = set([(title, url) for title, url in all_items if not url.startswith('/info')])
     news_items = all_items - blogposts
 
     return news_items, blogposts
@@ -268,16 +309,23 @@ def get_frontpage_toc():
 def test_sample_data():
     filename = '../../sample_data/rtlinfo_sample.html'
     with open(filename) as f:
-        html_content = f.read()
+        article, raw = extract_article_data(f)
+        article.print_summary()
 
-        extract_article_data(html_content)
 
+def show_frontpage_news():
+    toc, blogs = get_frontpage_toc()
+    for t, u in toc:
+        print u'fetching: {0}[{1}]'.format(t, u)
+        article_data, raw_html = extract_article_data(u)
+        if article_data:
+            article_data.print_summary()
+        else:
+            print 'Was redirected to a blogpost'
 
 if __name__=='__main__':
-#    toc, blogs = get_frontpage_toc()
-#    for t, u in toc:
-#        print t
+    show_frontpage_news()
+    #test_sample_data()
 
-    test_sample_data()
 
 
