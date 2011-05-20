@@ -7,7 +7,7 @@ from collections import namedtuple
 import traceback
 from datetime import datetime
 
-from parsers import lesoir, dhnet, lalibre, sudpresse
+from parsers import lesoir, dhnet, lalibre, sudpresse, rtlinfo
 from parsers.utils import fetch_html_content
 from providerstats import ProviderStats
 import json
@@ -89,8 +89,9 @@ def fetch_articles_from_toc(toc,  provider, outdir):
     for (title, url) in toc:
         try:
             article_data, raw_html_content = provider.extract_article_data(url)
-            articles.append(article_data)
-            raw_data.append((url, raw_html_content))
+            if(article_data):
+                articles.append(article_data)
+                raw_data.append((url, raw_html_content))
         except Exception as e:
             if e.__class__ in [AttributeError]:
                 # this is for logging errors while parsing the dom. If it fails,
@@ -205,7 +206,7 @@ def crawl_once(provider, provider_name, provider_title, prefix):
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    frontpage_toc = filter_only_new_stories(provider.get_frontpage_toc(),
+    frontpage_toc, blogposts_toc = filter_only_new_stories(provider.get_frontpage_toc(),
                                             os.path.join(outdir, 'last_frontpage_list.json'))
 
     articles, errors, raw_data = fetch_articles_from_toc(frontpage_toc, provider, outdir)
@@ -219,8 +220,11 @@ def crawl_once(provider, provider_name, provider_title, prefix):
     all_data = {'articles':[art.to_json() for art in  articles],
                 'errors':errors}
 
+    blogposts_data = {'blogposts':blogposts_toc}
+
     batch_outdir = os.path.join(outdir, make_outfile_prefix())
     write_dict_to_file(all_data, batch_outdir, 'articles.json')
+    write_dict_to_file(blogposts_data, batch_outdir, 'blogposts.json')
     update_provider_stats(outdir, articles, errors)
     save_raw_data(raw_data, batch_outdir)
 
@@ -238,6 +242,9 @@ def fetch_sudpresse_articles(prefix):
     crawl_once(sudpresse, 'sudpresse', 'Sud Presse', prefix)
 
 
+def fetch_rtlinfo_articles(prefix):
+    crawl_once(rtlinfo, 'rtlinfo', 'RTLInfo', prefix)
+
 def main(outdir):
     if not os.path.exists(outdir):
         print 'creating output directory:', outdir
@@ -251,7 +258,7 @@ def main(outdir):
     fetch_dhnet_articles(outdir)
     fetch_lalibre_articles(outdir)
     fetch_sudpresse_articles(outdir)
-
+    fetch_rtlinfo_articles(outdir)
 
     
 if __name__ == '__main__':

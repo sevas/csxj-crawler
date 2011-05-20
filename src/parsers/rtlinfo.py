@@ -210,6 +210,8 @@ def extract_article_data(source):
     else:
         return None, html_content
 
+
+    
 def extract_frontpage_title_and_url(link):
     title = ''.join([remove_text_formatting_markup(c.strip()) for c in link.contents])
     return title, link.get('href')

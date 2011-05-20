@@ -259,7 +259,7 @@ def get_frontpage_toc():
         title, url = announce.h1.a.contents[0], announce.h1.a.get('href')
         return title, '{0}{1}'.format(hostname_url, url)
     
-    return [extract_title_and_link(announce) for announce in announces]
+    return [extract_title_and_link(announce) for announce in announces], []
 
 
 

@@ -310,7 +310,7 @@ def get_frontpage_toc():
     regional_headlines = make_full_url(url, get_regional_toc())
     headlines.extend(regional_headlines)
 
-    return make_full_url(url, headlines)
+    return make_full_url(url, headlines), []
 
 
 
