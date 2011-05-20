@@ -8,7 +8,7 @@ from itertools import chain
 import re
 from BeautifulSoup import Tag
 import urlparse
-from utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup, extract_plaintext_urls_from_text
+from utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
 from article import ArticleData, tag_URL, make_tagged_url, classify_and_tag
 
 # for datetime conversions
@@ -60,7 +60,7 @@ def cleanup_text_fragment(text_fragment):
     Returns a plain text string with no formatting info whatsoever.
     """
     if isinstance(text_fragment, Tag):
-        return ''.join([cleanup_text_fragment(f) for f in text_fragment.contents])
+        return remove_text_formatting_markup_from_fragments(text_fragment.contents)
     else:
         return text_fragment
 
@@ -96,7 +96,7 @@ def extract_and_tag_in_text_links(article_text):
     Returns a list of TaggedURL objects.
     """
     def extract_link_and_title(link):
-            return link.get('href'),  link.contents[0]
+            return link.get('href'),  remove_text_formatting_markup_from_fragments(link.contents)
     links = [extract_link_and_title(link)
              for link in article_text.findAll('a', recursive=True)]
 
@@ -136,11 +136,9 @@ def extract_text_content_and_links_from_articletext(article_text):
     for child in children:
         if isinstance(child, Tag):
             if child.name in TEXT_MARKUP_TAGS:
-                cleaned_up_text_fragments.append(''.join([cleanup_text_fragment(f)
-                                                          for f in child.contents]))
+                cleaned_up_text_fragments.append(remove_text_formatting_markup_from_fragments(child.contents))
             elif child.name == 'p':
-                cleaned_up_text_fragments.append(''.join([cleanup_text_fragment(f)
-                                                          for f in child.contents]))
+                cleaned_up_text_fragments.append(remove_text_formatting_markup_from_fragments(child.contents))
         else:
             cleaned_up_text_fragments.append(child)
 
@@ -163,10 +161,8 @@ def extract_intro_from_articletext(article_text):
     """
     # intro text seems to always be in the first paragraph.
     intro_paragraph = article_text.p
-    def extract_title_and_link(link):
-        return link.contents[0], link.get('href')
 
-    intro_text = ''.join([cleanup_text_fragment(f) for f in intro_paragraph.contents])
+    intro_text =  remove_text_formatting_markup_from_fragments(intro_paragraph.contents)
 
     return intro_text
 
@@ -396,7 +392,7 @@ def get_frontpage_toc():
         titles_and_urls = extract_title_and_link_from_anounce_group(announce_group)
         all_titles_and_urls.extend(titles_and_urls)
 
-    return [(title, 'http://www.dhnet.be%s' % url) for (title, url) in  all_titles_and_urls]
+    return [(title, 'http://www.dhnet.be%s' % url) for (title, url) in  all_titles_and_urls], []
 
 
 
@@ -434,7 +430,10 @@ def show_frontpage_articles():
         for (title, url, tags) in article_data.internal_links:
             print u'{0} -> {1} {2}'.format(title, url, tags)
 
+
+        print article_data.to_json()
         print '-' * 20
+
 
         
 if __name__ == '__main__':
