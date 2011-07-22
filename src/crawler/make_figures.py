@@ -7,7 +7,7 @@ from collections import namedtuple
 import matplotlib.pyplot as plt
 import numpy as np
 
-from parsers.article import ArticleData
+from datasources.article import ArticleData
 
 
 

@@ -12,6 +12,8 @@ def print_report(stats):
     print 'Start date :        ', stats.start_date.strftime('%d/%m/%Y %H:%M')
     print 'End date :          ', stats.end_date.strftime('%d/%m/%Y %H:%M')
 
+
+
 def main(json_db_dir):
 
     provider_dirs = [d for d in os.listdir(json_db_dir) if os.path.isdir(os.path.join(json_db_dir, d))]

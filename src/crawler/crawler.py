@@ -7,8 +7,8 @@ from collections import namedtuple
 import traceback
 from datetime import datetime
 
-from parsers import lesoir, dhnet, lalibre, sudpresse, rtlinfo
-from parsers.utils import fetch_html_content
+from datasources import lesoir, dhnet, lalibre, sudpresse, rtlinfo
+from datasources.utils import fetch_html_content
 from providerstats import ProviderStats
 import json
 
