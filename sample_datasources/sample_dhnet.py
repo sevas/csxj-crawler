@@ -1,7 +1,4 @@
-import sys
-sys.path.append('../src')
-
-from datasources import dhnet
+from csxj.datasources import dhnet
 
 def test_sample_data():
     filename = '../sample_data/dhnet_missing_links.html'
