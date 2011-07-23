@@ -8,7 +8,7 @@ import traceback
 from datetime import datetime
 
 from datasources import lesoir, dhnet, lalibre, sudpresse, rtlinfo
-from datasources.utils import fetch_html_content
+from datasources.common.utils import fetch_html_content
 from providerstats import ProviderStats
 import json
 
@@ -246,31 +246,22 @@ def fetch_sudpresse_articles(prefix):
 def fetch_rtlinfo_articles(prefix):
     crawl_once(rtlinfo, 'rtlinfo', 'RTLInfo', prefix)
 
+
 def main(outdir):
     if not os.path.exists(outdir):
         print 'creating output directory:', outdir
         os.mkdir(outdir)
 
-    print '-' * 30
+    print '-' * 80
 
-    print datetime.today().strftime('New articles saved on %d/%m/%Y at %H:%S')
+    d = datetime.today()
+    print d.strftime('New articles saved on %d/%m/%Y at %H:%M')
 
     fetch_lesoir_articles(outdir)
     fetch_dhnet_articles(outdir)
     fetch_lalibre_articles(outdir)
-    fetch_sudpresse_articles(outdir)
+    #fetch_sudpresse_articles(outdir)
     fetch_rtlinfo_articles(outdir)
 
-    
-if __name__ == '__main__':
-    import argparse
-    
-    parser = argparse.ArgumentParser(description='Fetch pages from news sources, dumps interesting data')
-    parser.add_argument('--debug', dest='debug', action='store_true', help="run crawler in debug mode")
-    parser.add_argument('--outdir', type=str, dest='outdir', required=True, help='directory to dump the json db in')
-
-    args = parser.parse_args()
-    DEBUG_MODE = args.debug
-    main(args.outdir)
     
 
