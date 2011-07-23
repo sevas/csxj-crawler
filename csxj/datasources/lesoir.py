@@ -1,19 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# 
-#
-#
-#
-
 import sys
 import locale
 from datetime import datetime
 from BeautifulSoup import  BeautifulStoneSoup,  Tag
 import urlparse
-from utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
-from article import ArticleData, classify_and_tag, make_tagged_url
-from utils import remove_text_formatting_markup, extract_plaintext_urls_from_text
+from common.article import ArticleData, classify_and_tag, make_tagged_url
+from common.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
+from common.utils import remove_text_formatting_markup, extract_plaintext_urls_from_text
+
+
 
 # for datetime conversions
 if sys.platform in ['linux2', 'cygwin']:
@@ -160,7 +157,7 @@ def extract_author_name(story):
     header = story.find('div', {'id':'story_head'})
     author_name = header.find('p', {'class':'info st_signature'})
 
-    if author_name:
+    if author_name and author_name.contents:
         return author_name.contents[0]
     else:
         return 'No author found'

@@ -2,9 +2,9 @@ import sys
 from datetime import datetime, time
 import locale
 from itertools import chain
-from utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, remove_text_formatting_markup
-from utils import extract_plaintext_urls_from_text
-from article import ArticleData, make_tagged_url, classify_and_tag
+from common.utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, remove_text_formatting_markup
+from common.utils import extract_plaintext_urls_from_text
+from common.article import ArticleData, make_tagged_url, classify_and_tag
 
 
 # for datetime conversions
