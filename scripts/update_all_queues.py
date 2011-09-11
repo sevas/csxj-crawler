@@ -9,6 +9,5 @@ if __name__ == '__main__':
     parser.add_argument('--outdir', type=str, dest='outdir', required=True, help='directory to dump the json db in')
 
     args = parser.parse_args()
-    DEBUG_MODE = args.debug
-    csxj.crawler.main(args.outdir)
+    csxj.crawler.update_all_queues(args.outdir, args.debug)
 
