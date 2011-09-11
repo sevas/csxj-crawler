@@ -63,8 +63,6 @@ def make_error_log_entry(url, stacktrace, outdir):
     """
     html_content = fetch_html_content(url)
     outfile = '%s/%s' % (outdir, url)
-    #with open(outfile, 'w') as f:
-    #    f.write(html_content)
 
     return ErrorLogEntry(url, outfile, stacktrace)
 
@@ -231,6 +229,54 @@ def crawl_once(provider, provider_name, provider_title, prefix):
 
 
 
+
+class ArticleQueueFiller(object):
+    def __init__(self, provider, provider_name, prefix):
+        self.provider = provider
+        self.provider_name = provider_name
+        self.prefix = prefix
+
+
+    def fetch_newest_article_links(self):
+        outdir = os.path.join(self.prefix, self.provider_name)
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+
+        queue_root_directory = os.path.join(self.prefix, self.provider_name, 'queue')
+
+        news_toc, blogposts_toc = self.provider.get_frontpage_toc()
+        last_stories_filename = os.path.join(outdir, 'last_frontpage_list.json')
+        frontpage_toc = filter_only_new_stories(news_toc, last_stories_filename)
+
+        
+
+
+
+    def update_global_queue(self):
+        pass
+
+
+
+class ArticleQueueDownloader(object):
+    def __init__(self, provider, provider_name, provider_title):
+        pass
+
+    def download_all_articles_in_queue(self):
+        pass
+
+
+
+def put_articles_in_queue():
+    pass
+
+
+def download_queued_articles():
+    pass
+
+
+
+
+
 def fetch_dhnet_articles(prefix):
     crawl_once(dhnet, 'dhnet', 'DHNet', prefix)
 
@@ -247,6 +293,14 @@ def fetch_rtlinfo_articles(prefix):
     crawl_once(rtlinfo, 'rtlinfo', 'RTLInfo', prefix)
 
 
+def update_all_queues(outdir):
+    pass
+
+
+def download_all_queued_articles(outdir):
+    pass
+
+
 def main(outdir):
     if not os.path.exists(outdir):
         print 'creating output directory:', outdir
@@ -257,11 +311,13 @@ def main(outdir):
     d = datetime.today()
     print d.strftime('New articles saved on %d/%m/%Y at %H:%M')
 
-    fetch_lesoir_articles(outdir)
-    fetch_dhnet_articles(outdir)
-    fetch_lalibre_articles(outdir)
+    #fetch_lesoir_articles(outdir)
+    #fetch_dhnet_articles(outdir)
+    #fetch_lalibre_articles(outdir)
     #fetch_sudpresse_articles(outdir)
     fetch_rtlinfo_articles(outdir)
 
-    
 
+
+if __name__=="__main__":
+    main()
