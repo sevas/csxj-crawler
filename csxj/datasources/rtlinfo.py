@@ -2,6 +2,7 @@ import sys
 from datetime import datetime, time
 import locale
 from itertools import chain
+import codecs
 from common.utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, remove_text_formatting_markup
 from common.utils import extract_plaintext_urls_from_text
 from common.article import ArticleData, make_tagged_url, classify_and_tag
@@ -11,7 +12,7 @@ from common.article import ArticleData, make_tagged_url, classify_and_tag
 if sys.platform in ['linux2', 'cygwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
 elif sys.platform in [ 'darwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR')
+    locale.setlocale(locale.LC_TIME, 'fr_BE')
 
 
 RTLINFO_OWN_NETLOC = 'www.rtl.be'
@@ -33,7 +34,8 @@ def extract_date_and_time(main_article):
     date_container = main_article.find('span', {'class':'date'})
     date_string = date_container.contents[0].strip()
 
-    pub_date = datetime.strptime(date_string, '%d %B %Y')
+    date_bytestring = codecs.encode(date_string, 'utf-8')
+    pub_date = datetime.strptime(date_bytestring, '%d %B %Y')
 
     time_container = date_container.find('span', {'class':'time'})
     time_string=  time_container.contents[0]
@@ -323,7 +325,7 @@ def get_frontpage_toc():
 
 
 def test_sample_data():
-    filename = '../../sample_data/rtlinfo_sample.html'
+    filename = '../../sample_data/rtlinfo_unicode_date.html'
     with open(filename) as f:
         article, raw = extract_article_data(f)
         article.print_summary()
@@ -340,8 +342,8 @@ def show_frontpage_news():
             print 'Was redirected to a blogpost'
 
 if __name__=='__main__':
-    show_frontpage_news()
-    #test_sample_data()
+    #show_frontpage_news()
+    test_sample_data()
 
 
 
