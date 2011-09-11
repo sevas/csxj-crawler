@@ -6,10 +6,10 @@ import locale
 from itertools import chain
 import urllib
 from BeautifulSoup import Tag
-from utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
-from utils import extract_plaintext_urls_from_text, remove_text_formatting_markup
-from utils import remove_text_formatting_markup_from_fragments
-from article import ArticleData, make_tagged_url, classify_and_tag
+from common.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
+from common.utils import extract_plaintext_urls_from_text, remove_text_formatting_markup
+from common.utils import remove_text_formatting_markup_from_fragments
+from common.article import ArticleData, make_tagged_url, classify_and_tag
 
 
 # for datetime conversions
@@ -26,10 +26,13 @@ SUDPRESSE_INTERNAL_SITES = {
 SUDPRESSE_OWN_NETLOC = 'sudpresse.be'
 
 
-def extract_category(article):
-    breadcrumbs = article.find('p', {'class':'ariane'})
-    return [link.contents[0].strip() for link in breadcrumbs.findAll('a')]
-
+def extract_category(content):
+    breadcrumbs = content.find('p', {'class':'ariane'})
+    if breadcrumbs:
+        return [link.contents[0].strip() for link in breadcrumbs.findAll('a')]
+    else:
+        alternate_breadcrumbs = content.find('p', {'class':'fil_ariane left'})
+        return [link.contents[0].strip() for link in alternate_breadcrumbs.findAll('a')]
 
 
 def extract_title(article):
@@ -164,9 +167,11 @@ def extract_article_data(source):
 
     soup = make_soup_from_html_content(html_content)
 
-    article = soup.find('div', {'id':'article'})
 
-    category = extract_category(article)
+    content = soup.find('div', {'id':'content'})
+    category = extract_category(content)
+
+    article = soup.find('div', {'id':'article'})
     title = extract_title(article)
     pub_date, pub_time = extract_date(article)
     author = extract_author_name(article)
@@ -256,7 +261,9 @@ def extract_headlines_from_column_3(column):
     headlines = list()
     for story in stories:
         if story.h3.a.contents:
-            title_and_url = story.h3.a.contents[0].strip(), story.h3.a.get('href')
+            clean_title =   remove_text_formatting_markup_from_fragments(story.h3.a.contents)
+            print clean_title
+            title_and_url = clean_title, story.h3.a.get('href')
             headlines.append(title_and_url)
 
     return headlines
