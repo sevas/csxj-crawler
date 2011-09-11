@@ -1,0 +1,1942 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://www.facebook.com/2008/fbml" xml:lang="fr" lang="fr">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />	
+	
+<title>RTL info - La Une de l'actualité</title>
+<meta name="description" content="1er site d'information. Retrouvez toute l'actualité en Belgique, en Europe ou dans le monde, les dernières information politiques, sportives ou économiques. L'actualité en temps réel se retrouve sur RTL.be : Suivez toute l'info en vidéo, en photos ou au travers de nos galeries interactives ..." />
+<meta name="keywords" content="" />
+<meta property="og:title" content="RTL info - La Une de l'actualité" />
+<meta property="og:description" content="1er site d'information. Retrouvez toute l'actualité en Belgique, en Europe ou dans le monde, les dernières information politiques, sportives ou économiques. L'actualité en temps réel se retrouve sur RTLinfo.be : Suivez toute l'info en vidéo, en photos ou au travers de nos galeries interactives ..." />
+<meta property="og:type" content="" />
+<meta property="og:url" content="http://www.rtl.be/info" />
+<meta property="og:site_name" content="RTL info" />
+<meta property="og:image" content="" />
+<meta property="fb:app_id" content="115642321843844" />
+	<meta name="robots" content="index, follow" />
+	
+	 
+	<link rel="stylesheet" type="text/css" href="http://www.rtl.be/rtlutils/rtl/css/layout.css?cssVer=5" />
+	<link rel="stylesheet" type="text/css" href="http://www.rtl.be/rtlutils/rtl/css/styles.css?cssVer=5" />
+	<link rel="stylesheet" type="text/css" href="http://www.rtl.be/rtlutils/rtl/css/styles-info.css?cssVer=5" />
+	<link rel="stylesheet" type="text/css" href="http://www.rtl.be/rtlutils/rtl/css/jquery.checkbox.css?cssVer=5" />
+	<link rel="stylesheet" type="text/css" href="http://www.rtl.be/rtlutils/rtl/css/colorbox.css?cssVer=5" />
+	<link rel="stylesheet" type="text/css" href="http://www.rtl.be/rtlutils/rtl/css/development_beautifier.css?cssVer=5" />
+	<link rel="stylesheet" type="text/css" href="http://www.rtl.be/rtlutils/rtl/css/development_info.css?cssVer=5" />
+	<link rel="stylesheet" type="text/css" href="http://www.rtl.be/rtlutils/rtl/css/smoothness-info/jquery-ui-1.8.4.custom.css?cssVer=5" />
+
+	<!--[if IE 7]>
+		<link rel="stylesheet" type="text/css" href="http://www.rtl.be/rtlutils/rtl/css/rtlinfo_ie7.css?cssVer=5" />
+	<![endif]-->
+
+	<script type="text/javascript">
+	var LiveSite = 'http://www.rtl.be/';
+
+	// RTLNS global object (like a namespace)
+	var RTLNS = {};
+
+	RTLNS.site = 'rtl';
+	RTLNS.site_name = 'info';
+	RTLNS.tabGroups = [];
+	RTLNS.newswireModuleAjaxUrl = '/info/widgets/newswire/latestNewswireJson';
+	
+</script>
+
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/jquery-ui-1.8.4.custom.min.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/newsletter.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/jquery.tools.min.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/jquery.colorbox.js"></script>
+
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/default.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/rtl_Cookies.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/jquery.checkbox.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/jquery_loading/jquery.loading.1.6.4.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/jquery.scrollTo.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/jquery.carousel.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/swfobject_new.js"></script>
+<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/jquery.cookie.js"></script>
+
+
+
+
+<script type="text/javascript">
+
+	RTLNS.initialFontSize = 13; //px
+	
+	// executed when the dom is loaded
+	jQuery(document).ready(
+		function() {
+			jQuery('.options > .increase > a').bind(
+				'click',
+				function() {
+					jQuery('.articleBody, .articleBody p').each(
+						function () {
+							
+							var elemX = jQuery(this);
+							var crtFontSize = elemX.css('font-size');
+							
+							if(!crtFontSize || !crtFontSize.length || crtFontSize.length < 4) {
+								fontSizeNum = RTLNS.initialFontSize;
+							}
+							else {
+								var fontSizeNum = crtFontSize.substring(0, 2);
+								fontSizeNum = parseInt(fontSizeNum) + 1;
+							}
+							elemX.css('font-size', fontSizeNum+'px');
+							
+						}
+					);
+
+					jQuery('div#mainArticle h1').each(
+						function () {
+							
+							var elemX = jQuery(this);
+							var crtFontSize = elemX.css('font-size');
+							
+							if(!crtFontSize || !crtFontSize.length || crtFontSize.length < 4) {
+								fontSizeNum = RTLNS.initialFontSize;
+							}
+							else {
+								var fontSizeNum = crtFontSize.substring(0, 2);
+								fontSizeNum = parseInt(fontSizeNum) + 1;
+							}
+							elemX.css('font-size', fontSizeNum+'px');
+							
+						}
+					);
+
+					jQuery('div#mainArticle h2').each(
+						function () {
+								
+							var elemX = jQuery(this);
+							var crtFontSize = elemX.css('font-size');
+							
+							if(!crtFontSize || !crtFontSize.length || crtFontSize.length < 4) {
+								fontSizeNum = RTLNS.initialFontSize;
+							}
+							else {
+								var fontSizeNum = crtFontSize.substring(0, 2);
+								fontSizeNum = parseInt(fontSizeNum) + 1;
+							}
+							elemX.css('font-size', fontSizeNum+'px');
+								
+						}
+					);
+					
+					return false;
+				}
+			);
+			
+			jQuery('.options > .decrease > a').bind(
+				'click',
+				function() {
+					jQuery('.articleBody').each(
+						function () {
+							var elemX = jQuery(this);
+							var crtFontSize = elemX.css('font-size');
+
+							if(!crtFontSize || !crtFontSize.length || crtFontSize.length < 4) {
+								fontSizeNum = RTLNS.initialFontSize;
+							}
+							else {
+								var fontSizeNum = crtFontSize.substring(0, 2);
+								fontSizeNum = parseInt(fontSizeNum) - 1;
+							}
+							elemX.css('font-size', fontSizeNum+'px');
+						}
+					);
+					jQuery('div#mainArticle h1').each(
+							function () {
+								var elemX = jQuery(this);
+								var crtFontSize = elemX.css('font-size');
+
+								if(!crtFontSize || !crtFontSize.length || crtFontSize.length < 4) {
+									fontSizeNum = RTLNS.initialFontSize;
+								}
+								else {
+									var fontSizeNum = crtFontSize.substring(0, 2);
+									fontSizeNum = parseInt(fontSizeNum) - 1;
+								}
+								elemX.css('font-size', fontSizeNum+'px');
+							}
+						);
+					jQuery('div#mainArticle h2').each(
+							function () {
+								var elemX = jQuery(this);
+								var crtFontSize = elemX.css('font-size');
+
+								if(!crtFontSize || !crtFontSize.length || crtFontSize.length < 4) {
+									fontSizeNum = RTLNS.initialFontSize;
+								}
+								else {
+									var fontSizeNum = crtFontSize.substring(0, 2);
+									fontSizeNum = parseInt(fontSizeNum) - 1;
+								}
+								elemX.css('font-size', fontSizeNum+'px');
+							}
+						);
+					return false;
+				}
+			);
+		}
+	);
+
+</script>
+	<meta http-equiv="cache-control" content="no-cache"/>
+<meta http-equiv="pragma" content="no-cache"/>
+<meta http-equiv="expires" content="-1"/>
+<meta name="googlebot" content="noarchive" />
+<meta name= "robots" content=" index,follow,noarchive" />
+<link href="/rtlutils/others/inc/nmedia.css" rel="stylesheet" type="text/css" />
+<meta name="author" content="RTL Newmedia">
+<meta name="copyright" content="RTL Newmedia">
+<meta name="google-site-verification" content="AEwzcxBA2wfNeA42sJXh-8n6LC3W-hBjEZw2teCaSSg" />
+<meta property="fb:page_id" content="7357986105" />
+<link rel="alternate" type="application/rss+xml" title="RTL info - A la Une" href="http://feeds.feedburner.com/Rtlinfos-ALaUne" />
+<script type="text/javascript" src="/rtlutils/others/inc/direct/embed/js/jquery.galleryScroll.1.5.2.js"></script> 
+<script type="text/javascript" src="http://partner.googleadservices.com/gampad/google_service.js"></script>
+<script type="text/javascript">
+GS_googleAddAdSenseService("ca-pub-8916469631962176");
+GS_googleEnableAllServices();
+</script>
+<script type="text/javascript">
+  GA_googleFetchAds();
+</script>
+<meta name="application-name" content="RTL Info"/>
+<meta name="msapplication-tooltip" content="RTL Info - La Une de l'actualité"/>
+<meta name="msapplication-starturl" content="http://www.rtl.be/info"/>
+<meta name="msapplication-navbutton-color" content="#1e287d"/>
+<meta name="msapplication-task" content="name=Belgique;action-uri=http://www.rtl.be/info/belgique/;icon-uri=http://www.rtl.be/favicon_info.ico" />
+<meta name="msapplication-task" content="name=Votre région;action-uri=http://www.rtl.be/info/votreregion/;icon-uri=http://www.rtl.be/favicon_info.ico" />
+<meta name="msapplication-task" content="name=Sport;action-uri=http://www.rtl.be/sport/;icon-uri=http://www.rtl.be/favicon_sport.ico" />
+<meta name="msapplication-task" content="name=Magazine;action-uri=http://www.rtl.be/info/magazine/;icon-uri=http://www.rtl.be/favicon_info.ico" />
+<meta name="msapplication-task" content="name=Météo;action-uri=http://www.rtl.be/meteo/;icon-uri=http://www.rtl.be/favicon_info.ico" />
+<meta name="msapplication-task" content="name=Agenda;action-uri=http://www.rtl.be/agenda/;icon-uri=http://www.rtl.be/favicon_info.ico" />	 
+	<script type="text/javascript" src="http://www.rtl.be/rtlutils/js/facebook.js"></script>
+	
+	<link rel="SHORTCUT ICON" href="/rtlutils/rtl/images/fav_info.ico" /></head>
+<body id="infoPage">
+	<!-- Sites bar --><script language="javascript" type="text/javascript" src="http://connect.rtl.be/js/sitebar.js"></script><!-- / Sites bar -->	<div id="header">
+		<div id="leaderboard">
+			<script type="text/javascript" src="/rtlutils/others/splashpage/splashpage_info.js"></script>			<!--  begin ad tag: P4995.RTL/INFO_HOME-FR_LEADERBOARD_TOP_MULTI  (728x90,995x123,1x1) -->
+<script language="JavaScript" type="text/javascript">
+ord = (typeof(ord)!='undefined') ? ord : Math.random()*10000000000000000;
+document.write('<scr'+'ipt language="JavaScript" src="http://ad.doubleclick.net/adj/P4995.RTL/INFO_HOME-FR_LEADERBOARD_TOP_MULTI;sz=728x90,995x123,1x1;dcopt=ist;tile=1;lang=fr;pos=top;pgl1=infohome;kw=[KEYWORD];ord='+ord+'?" type="text/javascript"></scr'+'ipt>');
+</script>
+<noscript>
+<a href="http://ad.doubleclick.net/jump/P4995.RTL/INFO_HOME-FR_LEADERBOARD_TOP_MULTI;sz=728x90,995x123,1x1;dcopt=ist;tile=1;lang=fr;pos=top;pgl1=infohome;kw=[KEYWORD];ord=123456789?" target="_blank"><img src="http://ad.doubleclick.net/ad/P4995.RTL/INFO_HOME-FR_LEADERBOARD_TOP_MULTI;sz=728x90,995x123,1x1;dcopt=ist;tile=1;lang=fr;pos=top;pgl1=infohome;kw=[KEYWORD];ord=123456789?" border="0" alt=""></a>
+</noscript>
+<!-- End ad tag -->		</div>
+	</div>
+	<div id="mainMenuContainer">
+			<a href="/info" >
+			<img src="/rtlutils/rtl/images/logortl-info.jpg" class="logo" />
+		</a>
+				<div id="mainMenu">
+	<div id="firstLevel">
+		<ul id="menu_mainnav" class="menu"><li class = " "  onmouseover="doMenuOnMouseOver(1, 246)"  onmouseout="doMenuOnMouseOut(1, 246)"><a id="mainMenuElem_246"  class = "  firstItem current"  href="/info">ACTU<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(1, 247)"  onmouseout="doMenuOnMouseOut(1, 247)"><a id="mainMenuElem_247"  class = " "  href="/sport">SPORT<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(1, 248)"  onmouseout="doMenuOnMouseOut(1, 248)"><a id="mainMenuElem_248"  class = " "  href="/info/magazine">MAGAZINE<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(1, 404)"  onmouseout="doMenuOnMouseOut(1, 404)"><a id="mainMenuElem_404"  class = " "  href="/info/vous">VOUS<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(1, 401)"  onmouseout="doMenuOnMouseOut(1, 401)"><a id="mainMenuElem_401"  class = " "  href="http://blogs.rtlinfo.be">BLOGS<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(1, 237)"  onmouseout="doMenuOnMouseOut(1, 237)"><a id="mainMenuElem_237"  class = " "  href="/videos">VIDEOS<span></span></a></li><li class = "  last-item"  onmouseover="doMenuOnMouseOver(1, 249)"  onmouseout="doMenuOnMouseOut(1, 249)"><a id="mainMenuElem_249"  class = " "  href="/info/static/view/alerteznous/--ALERTEZNOUS">Alertez-nous<span></span></a></li></ul>		<div class="rightContent">
+	<div class="meteo" style="padding:0 0 0 0" >
+		<span id="NM-meteoonline"></span> <script type="text/javascript" src="/meteo/jsw10/"></script>	</div>
+	<ul class="connexion">
+			</ul>
+	
+</div>
+
+	</div><!-- end div firstLevel -->
+	<div id="secondLevel">
+									<ul id="submenu_246" class="secFirst"><li class = " "  onmouseover="doMenuOnMouseOver(2, 250)"  onmouseout="doMenuOnMouseOut(2, 250)"><a id="mainMenuElem_250"  class = "  firstItem"  href="/info/belgique">Belgique<span></span></a><ul id="submenu_250" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 251)" ><a id="mainMenuElem_251"  class = " "  href="/info/belgique/politique">Politique<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 252)" ><a id="mainMenuElem_252"  class = " "  href="/info/belgique/societe">Société<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 253)" ><a id="mainMenuElem_253"  class = " "  href="/info/belgique/faitsdivers">Faits divers<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 254)" ><a id="mainMenuElem_254"  class = " "  href="/info/belgique/familleroyale">Famille Royale<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 399)" ><a id="mainMenuElem_399"  class = " "  href="/info/belgique/sectionmeteo/">Météo<span></span></a></li></ul></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 257)"  onmouseout="doMenuOnMouseOut(2, 257)"><a id="mainMenuElem_257"  class = " "  href="/info/votreregion">Votre région<span></span></a><ul id="submenu_257" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 259)" ><a id="mainMenuElem_259"  class = " "  href="/info/votreregion/bruxelles">Bruxelles<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 260)" ><a id="mainMenuElem_260"  class = " "  href="/info/votreregion/brabantwallon">Brabant Wallon<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 261)" ><a id="mainMenuElem_261"  class = " "  href="/info/votreregion/hainaut">Hainaut<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 262)" ><a id="mainMenuElem_262"  class = " "  href="/info/votreregion/liege">Liège<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 263)" ><a id="mainMenuElem_263"  class = " "  href="/info/votreregion/namur">Namur<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 264)" ><a id="mainMenuElem_264"  class = " "  href="/info/votreregion/luxembourg">Luxembourg<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 398)" ><a id="mainMenuElem_398"  class = " "  href="/info/votreregion/flandre">Flandre<span></span></a></li></ul></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 266)"  onmouseout="doMenuOnMouseOut(2, 266)"><a id="mainMenuElem_266"  class = " "  href="/info/monde">Monde<span></span></a><ul id="submenu_266" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 267)" ><a id="mainMenuElem_267"  class = " "  href="/info/monde/france">France<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 268)" ><a id="mainMenuElem_268"  class = " "  href="/info/monde/europe">Europe<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 269)" ><a id="mainMenuElem_269"  class = " "  href="/info/monde/international">International<span></span></a></li></ul></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 270)"  onmouseout="doMenuOnMouseOut(2, 270)"><a id="mainMenuElem_270"  class = "  current"  href="/info/economie">Economie<span></span></a><ul id="submenu_270" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 271)" ><a id="mainMenuElem_271"  class = " "  href="/info/economie/belgique">Belgique<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 272)" ><a id="mainMenuElem_272"  class = " "  href="/info/economie/monargent">Mon argent<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 273)" ><a id="mainMenuElem_273"  class = "  current"  href="/info/economie/monde">Monde<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 274)" ><a id="mainMenuElem_274"  class = " "  href="/info/economie/bourse">Bourse<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 276)" ><a id="mainMenuElem_276"  class = " "  href="http://bourse.rtl.be">Actions / Indices<span></span></a></li></ul></li><li class = "  last-item"  onmouseover="doMenuOnMouseOver(2, 277)"  onmouseout="doMenuOnMouseOut(2, 277)"><a id="mainMenuElem_277"  class = " "  href="#">Emissions TV & Radio<span></span></a><ul id="submenu_277" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 278)" ><a id="mainMenuElem_278"  class = " "  href="/info/magazinesdelaredaction/rtlplus">RTL<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 279)" ><a id="mainMenuElem_279"  class = " "  href="/info/magazinesdelaredaction/Controverse">Controverse<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 280)" ><a id="mainMenuElem_280"  class = " "  href="http://www.rtltvi.be/emission/reporters/8.aspx">Reporters<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 383)" ><a id="mainMenuElem_383"  class = " "  href="http://www.rtl.be/videos/categorie/sans-langue-de-bois/1516.aspx">Sans langue de bois<span></span></a></li></ul></li></ul>												<ul id="submenu_247" class="secFirst" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 389)"  onmouseout="doMenuOnMouseOut(2, 389)"><a id="mainMenuElem_389"  class = "  firstItem"  href="/sport">A la Une<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 282)"  onmouseout="doMenuOnMouseOut(2, 282)"><a id="mainMenuElem_282"  class = " "  href="/sport/football">Football<span></span></a><ul id="submenu_282" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 289)" ><a id="mainMenuElem_289"  class = " "  href="/sport/football/footballbelgique">Football Belgique<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 290)" ><a id="mainMenuElem_290"  class = " "  href="/sport/football/footballetranger">Football Etranger<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 291)" ><a id="mainMenuElem_291"  class = " "  href="/sport/football/championsleague">Ligue des Champions<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 380)" ><a id="mainMenuElem_380"  class = " "  href="/sport/football/diablesrouges">Diables Rouges<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 293)" ><a id="mainMenuElem_293"  class = " "  href="/sport/football/depeches">Les dépêches<span></span></a></li></ul></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 284)"  onmouseout="doMenuOnMouseOut(2, 284)"><a id="mainMenuElem_284"  class = " "  href="/sport/touslessports/tennis">Tennis<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 283)"  onmouseout="doMenuOnMouseOut(2, 283)"><a id="mainMenuElem_283"  class = " "  href="/sport/touslessports/cyclisme">Cyclisme<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 285)"  onmouseout="doMenuOnMouseOut(2, 285)"><a id="mainMenuElem_285"  class = " "  href="/sport/automoto">Auto/Moto<span></span></a><ul id="submenu_285" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 344)" ><a id="mainMenuElem_344"  class = " "  href="/sport/automoto/F1">F1<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 345)" ><a id="mainMenuElem_345"  class = " "  href="/sport/automoto/motogp">Moto GP<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 400)" ><a id="mainMenuElem_400"  class = " "  href="/sport/automoto/moto2">Moto 2<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 391)" ><a id="mainMenuElem_391"  class = " "  href="/sport/auto_moto/depeches">Les dépêches<span></span></a></li></ul></li><li class = "  last-item"  onmouseover="doMenuOnMouseOver(2, 286)"  onmouseout="doMenuOnMouseOut(2, 286)"><a id="mainMenuElem_286"  class = " "  href="/sport/touslessports/autressports">Les autres sports<span></span></a></li></ul>												<ul id="submenu_248" class="secFirst" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 305)"  onmouseout="doMenuOnMouseOut(2, 305)"><a id="mainMenuElem_305"  class = "  firstItem"  href="/info/magazine">Culture<span></span></a><ul id="submenu_305" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 306)" ><a id="mainMenuElem_306"  class = " "  href="/info/magazine/cinema">Cinéma<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 307)" ><a id="mainMenuElem_307"  class = " "  href="/info/magazine/musique">Musique<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 308)" ><a id="mainMenuElem_308"  class = " "  href="/info/magazine/artsetspectacles">Arts et Spectacles<span></span></a></li></ul></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 297)"  onmouseout="doMenuOnMouseOut(2, 297)"><a id="mainMenuElem_297"  class = " "  href="/info/magazine/sciencesenvironnement">Sciences & Environnement<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 402)"  onmouseout="doMenuOnMouseOut(2, 402)"><a id="mainMenuElem_402"  class = " "  href="/loisirs">RTL loisirs<span></span></a></li><li class = "  last-item"  onmouseover="doMenuOnMouseOver(2, 403)"  onmouseout="doMenuOnMouseOut(2, 403)"><a id="mainMenuElem_403"  class = " "  href="/people">RTL people<span></span></a></li></ul>												<ul id="submenu_404" class="secFirst" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 405)"  onmouseout="doMenuOnMouseOut(2, 405)"><a id="mainMenuElem_405"  class = "  firstItem"  href="/info/vous/temoignage">Témoignages<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 406)"  onmouseout="doMenuOnMouseOut(2, 406)"><a id="mainMenuElem_406"  class = " "  href="/info/vous/opinion">Opinions<span></span></a></li><li class = "  last-item"  onmouseover="doMenuOnMouseOver(2, 407)"  onmouseout="doMenuOnMouseOut(2, 407)"><a id="mainMenuElem_407"  class = " "  href="/info/static/view/alerteznous/--ALERTEZNOUS">Envoyez vos infos<span></span></a></li></ul>												<ul id="submenu_401" class="secFirst" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 408)"  onmouseout="doMenuOnMouseOut(2, 408)"><a id="mainMenuElem_408"  class = "  firstItem"  href="#">Actu<span></span></a><ul id="submenu_408" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 411)" ><a id="mainMenuElem_411"  class = " "  href="http://blogs.rtlinfo.be/carnetpolitique/">Carnet Politique<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 412)" ><a id="mainMenuElem_412"  class = " "  href="http://blogs.rtlinfo.be/sanslanguedebois/">Sans langue de bois<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 413)" ><a id="mainMenuElem_413"  class = " "  href="http://blogs.rtlinfo.be/champselysees">Champs-Elysées<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 414)" ><a id="mainMenuElem_414"  class = " "  href="http://blogs.rtlinfo.be/econoblog/">Econoblog<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 415)" ><a id="mainMenuElem_415"  class = " "  href="http://blogs.rtlinfo.be/madeineurope/">Made in Europe<span></span></a></li></ul></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 409)"  onmouseout="doMenuOnMouseOut(2, 409)"><a id="mainMenuElem_409"  class = " "  href="#">Sport<span></span></a><ul id="submenu_409" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 416)" ><a id="mainMenuElem_416"  class = " "  href="http://blogs.rtlinfo.be/lesfooteux/">Les Footeux<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 417)" ><a id="mainMenuElem_417"  class = " "  href="http://blogs.rtlinfo.be/f1paddock/">F1 Paddock<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 418)" ><a id="mainMenuElem_418"  class = " "  href="http://blogs.rtlinfo.be/motogpinside/">MotoGP Inside<span></span></a></li></ul></li><li class = "  last-item"  onmouseover="doMenuOnMouseOver(2, 410)"  onmouseout="doMenuOnMouseOut(2, 410)"><a id="mainMenuElem_410"  class = " "  href="#">Culture & Loisirs<span></span></a><ul id="submenu_410" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 435)" ><a id="mainMenuElem_435"  class = " "  href="http://blogs.rtlinfo.be/africantulip">African Tulip<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 434)" ><a id="mainMenuElem_434"  class = " "  href="http://blogs.rtlinfo.be/bhv">BHV<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 419)" ><a id="mainMenuElem_419"  class = " "  href="http://blogs.rtlinfo.be/cinemascoop">Cinemascoop<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 437)" ><a id="mainMenuElem_437"  class = " "  href="http://blogs.rtlinfo.be/coindesbonnesaffaires/">Coin des bonnes affaires<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 433)" ><a id="mainMenuElem_433"  class = " "  href="http://blogs.rtlinfo.be/effetbuzz">Effet Buzz<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 424)" ><a id="mainMenuElem_424"  class = " "  href="http://blogs.rtlinfo.be/enviedelire">Envie de lire<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 422)" ><a id="mainMenuElem_422"  class = " "  href="http://blogs.rtlinfo.be/frenchtouch">French Touch<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 436)" ><a id="mainMenuElem_436"  class = " "  href="http://blogs.rtlinfo.be/herissonunpeu">Hérisson un peu<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 421)" ><a id="mainMenuElem_421"  class = " "  href="http://blogs.rtlinfo.be/madeinusa">Made in USA<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 420)" ><a id="mainMenuElem_420"  class = " "  href="http://blogs.rtlinfo.be/partitions">Partitions<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 423)" ><a id="mainMenuElem_423"  class = " "  href="http://blogs.rtlinfo.be/studiobd">Studio BD<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 425)" ><a id="mainMenuElem_425"  class = " "  href="http://blogs.rtlinfo.be/tendancesnumeriques">Tendances Numériques<span></span></a></li></ul></li></ul>												<ul id="submenu_237" class="secFirst" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 238)"  onmouseout="doMenuOnMouseOut(2, 238)"><a id="mainMenuElem_238"  class = "  firstItem"  href="/videos/categorie/les-news-en-video/639.aspx">Les news en vidéo<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 239)"  onmouseout="doMenuOnMouseOut(2, 239)"><a id="mainMenuElem_239"  class = " "  href="/videos/categorie/le-13-heures/286.aspx">Le journal de 13h<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 240)"  onmouseout="doMenuOnMouseOut(2, 240)"><a id="mainMenuElem_240"  class = " "  href="/videos/categorie/le-19-heures/312.aspx">Le journal de 19h<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 426)"  onmouseout="doMenuOnMouseOut(2, 426)"><a id="mainMenuElem_426"  class = " "  href="#">Magazines<span></span></a><ul id="submenu_426" class="secSec" style="display:none"><li class = " "  onmouseover="doMenuOnMouseOver(2, 427)" ><a id="mainMenuElem_427"  class = " "  href="/videos/categorie/controverse/1713.aspx">Controverse<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 428)" ><a id="mainMenuElem_428"  class = " "  href="/videos/categorie/l-invite/2867.aspx">L'invité<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 429)" ><a id="mainMenuElem_429"  class = " "  href="/videos/categorie/reporters/1659.aspxpx">Reporters<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 430)" ><a id="mainMenuElem_430"  class = " "  href="/videos/categorie/rtl-+/1832.aspx">RTL+<span></span></a></li><li class = " "  onmouseover="doMenuOnMouseOver(2, 431)" ><a id="mainMenuElem_431"  class = " "  href="/videos/categorie/sans-langue-de-bois/1516.aspxpx">Sans langue de bois<span></span></a></li></ul></li><li class = "  last-item"  onmouseover="doMenuOnMouseOver(2, 242)"  onmouseout="doMenuOnMouseOut(2, 242)"><a id="mainMenuElem_242"  class = " "  href="/videos/categorie/meteo/1250.aspx">La météo<span></span></a></li></ul>												<ul id="submenu_249" class="secFirst" style="display:none"><li class = "  last-item"  onmouseover="doMenuOnMouseOver(2, 388)"  onmouseout="doMenuOnMouseOut(2, 388)"><a id="mainMenuElem_388"  class = "  firstItem"  href="/info/static/view/alerteznous/--ALERTEZNOUS">Témoin d’un fait ? Une opinion à partager ? Envoyez-nous votre info<span></span></a></li></ul>							
+<div class="search">
+		<form onSubmit="q.value=qreal.value" action="http://www.rtl.be/recherche/page/41.aspx">
+		<input type="hidden" name="cx" value="017924056370017725885:hc4vuwvmxnc" />
+		<input type="hidden" name="cof" value="FORID:10" />
+		<input type="hidden" name="ie" value="UTF-8" />
+		
+		
+		<input type="text" class="searchField" size="30" onfocus="if (this.value=='Effectuer une recherche') this.value =''; this.style.color='#000';" id="CRTL_TopMenuSearchInput" value="Effectuer une recherche"  name="qreal"  autocomplete="off" /> 
+		
+		<input type="hidden" id="q" name="q">
+		
+		<input type="image" name="sa" value="Recherche RTL info" src="http://www.rtl.be/rtlutils/rtl/images/search.png" style="vertical-align:middle;" />
+		
+	</form> 
+		
+	
+	
+	</div>
+		
+		<div class="levelTwoEnd"></div>
+	</div>
+</div><!-- end div mainMenu -->
+<script type="text/javascript">
+	doMenuOnMouseOver(1, 246);
+</script>
+<div style="clear:both;"></div>
+	</div>
+	<div id="mainContainer" >
+		<div class="mainContent">
+							<div id="latestVideos">
+					<div id="latestVideos"><object width="990" height="137" id="nm-carousel" align="middle"><param name="movie" value="/rtlutils/others/inc/carousel/carousel.swf"></param><param name="allowFullScreen" value="true"></param><param name="wmode" value="transparent"></param><param name="allowscriptaccess" value="always"></param><embed src="/rtlutils/others/inc/carousel/carousel.swf" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" wmode="transparent" width="990" height="137" id="nm-carousel"></embed></object><script type="text/javascript">
+if((navigator.userAgent.match(/iPhone/i)) || (navigator.userAgent.match(/iPod/i)) || (navigator.userAgent.match(/iPad/i))) { $('#nm-carousel').hide(); }
+
+</script>
+<script type="text/javascript">
+if((navigator.userAgent.match(/iPad/i))) { document.write('<a href="http://www.rtl.be/videos/" target="_top"><img src="http://www.rtl.be/rtlutils/others/promo/promoipad_info.png"></a>'); }
+</script>				</div>
+				 			
+
+				<div id="mainHomepage">
+		
+						
+		<div id="rightColHomepage">
+			<div class="newsBox">
+	<div class="boxContent border-top-right">
+		<div class="fixFloat">
+			<div class="titleWidgetRight">Les dernieres infos
+				<img src="/rtlutils/rtl/images/arrow-title.png" class="TitleArrow" alt="" />
+			</div>
+		</div>
+		<div class="dlLike dlLike1">
+							<div class="dtLike">
+					21:35				</div>
+				<div class="ddLike">
+					<a class="otherStyle" href="/info/monde/international/792592/attentat-de-marrakech-un-huitieme-francais-parmi-les-16-tues">
+						Attentat de Marrakech: un huitième Français parmi les 16 tués					</a>
+				</div>
+							<div class="dtLike">
+					21:20				</div>
+				<div class="ddLike">
+					<a class="otherStyle" href="/info/belgique/politique/792590/de-wever-veut-un-formateur-je-le-ferais-volontiers-">
+						De Wever veut un formateur: "Je le ferais volontiers"					</a>
+				</div>
+							<div class="dtLike">
+					21:00				</div>
+				<div class="ddLike">
+					<a class="otherStyle" href="/info/monde/international/792591/accident-rio-paris-la-boite-noire-de-l-avion-d-air-france-en-bon-etat-">
+						Accident Rio-Paris: la boîte noire de l'avion d'Air France "en bon état"					</a>
+				</div>
+							<div class="dtLike">
+					20:33				</div>
+				<div class="ddLike">
+					<a class="otherStyle" href="/info/monde/international/792589/forte-baisse-des-agressions-antisemites-dans-le-monde-en-2010">
+						Forte baisse des agressions antisémites dans le monde en 2010					</a>
+				</div>
+							<div class="dtLike">
+					20:25				</div>
+				<div class="ddLike">
+					<a class="otherStyle" href="/info/monde/international/792588/accident-rio-paris-une-boite-noire-de-l-avion-d-air-france-repechee">
+						Accident Rio-Paris: une boîte noire de l'avion d'Air France repêchée					</a>
+				</div>
+							<div class="dtLike">
+					20:12				</div>
+				<div class="ddLike">
+					<a class="otherStyle" href="/info/monde/europe/792587/jean-paul-ii-pourrait-devenir-saint-d-ici-quelques-annees-">
+						Jean Paul II pourrait devenir saint "d'ici quelques années"					</a>
+				</div>
+							<div class="dtLike">
+					20:12				</div>
+				<div class="ddLike last-item">
+					<a class="otherStyle" href="/info/monde/international/792586/libye-le-port-de-misrata-en-feu-apres-des-bombardements">
+						Libye: le port de Misrata en feu après des bombardements					</a>
+				</div>
+					</div>
+	</div>
+</div>
+<!-- IE9Bar--><script language="javascript" type="text/javascript" src="http://common.rtl.be/js/ie9embed/ie9rtlinfo.js"></script><!-- / IE9Bar--><!--  begin ad tag: P4995.RTL/INFO_HOME-FR_HALFPAGE_CENTER_MULTI   (300x600,300x250,1x1) -->
+<script language="JavaScript" type="text/javascript">
+ord = (typeof(ord)!='undefined') ? ord : Math.random()*10000000000000000;
+document.write('<scr'+'ipt language="JavaScript" src="http://ad.doubleclick.net/adj/P4995.RTL/INFO_HOME-FR_HALFPAGE_CENTER_MULTI;sz=300x600,300x250,1x1;tile=2;lang=fr;pos=center;pgl1=infohome;kw=[KEYWORD];ord='+ord+'?" type="text/javascript"></scr'+'ipt>');
+</script>
+<noscript>
+<a href="http://ad.doubleclick.net/jump/P4995.RTL/INFO_HOME-FR_HALFPAGE_CENTER_MULTI;sz=300x600,300x250,1x1;tile=2;lang=fr;pos=center;pgl1=infohome;kw=[KEYWORD];ord=123456789?" target="_blank"><img src="http://ad.doubleclick.net/ad/P4995.RTL/INFO_HOME-FR_HALFPAGE_CENTER_MULTI;sz=300x600,300x250,1x1;tile=2;lang=fr;pos=center;pgl1=infohome;kw=[KEYWORD];ord=123456789?" border="0" alt=""></a>
+</noscript>
+<!-- End ad tag -->
+<br/><br/><!--<div style="height: 20px;"></div>--><script type="text/javascript">
+	jQuery(document).ready(
+		function() {
+			rtlLoadPoll('/info/widgets/Polls/ajaxLoadPoll/article:/articleCenter:/dossierId:/sectionId:0/subSectionId:0/ms:1304290454.1514', '');
+		}
+	);
+</script>
+<div id="pollsWidgetHolder"></div>
+<iframe src="http://www.rtl.be/rtlutils/others/widgets/facefan/" width="300px" height="305px" scrolling="no" frameborder="0"></iframe><br/><br/>		</div>
+		<div id="leftColHomepage">
+			<div id="FirstArticles">
+					<div id="FirstArticlesLeft" >
+			<a href="/info/belgique/politique/792590/de-wever-veut-un-formateur-je-le-ferais-volontiers-">
+		<img alt="De Wever veut un formateur: Je le ferais volontiers" src="/rtlutils/pics/div/2011_05_01/315x196/bart.jpg" />
+	</a>
+<h1><a href="/info/belgique/politique/792590/de-wever-veut-un-formateur-je-le-ferais-volontiers-">De Wever veut un formateur: "Je le ferais volontiers"</a></h1>
+<p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">21h20</span></span></p><p class="introArticle">
+			Dimanche, Bart de Wever a fait quelques déclarations à la presse flamande. Il a pressé Elio Di Rupo de former un gouvernement sans plus attendre. Une tâche que le président de...	</p>
+
+
+<ul>
+		<li>
+			<a class="VideosLinkArticles" href="/info/belgique/politique/792590/de-wever-veut-un-formateur-je-le-ferais-volontiers-#mainVideo">
+				La N-VA monopolise l'attention une nouvelle fois.			</a>
+		</li>
+		<li>
+			<a class="VideosLinkArticles" href="/info/belgique/politique/792590/de-wever-veut-un-formateur-je-le-ferais-volontiers-#mainVideo">
+				Bart De Wever presse Elio Di Rupo de former un gouvernement au plus vite.			</a>
+		</li>
+</ul>
+
+
+
+	</div>
+	<div id="FirstArticlesRight"  >
+																				<div class="ArticlesRight">	
+											<a href="/info/belgique/politique/792537/elio-di-rupo-endossera-t-il-le-role-de-formateur-voici-sa-reponse">
+							<img alt="Elio Di Rupo endossera-t-il le rôle de formateur? Voici sa réponse" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/120x75/dirupo.jpg" />
+						</a>
+															<h5>
+						<a href="/info/belgique/politique/792537/elio-di-rupo-endossera-t-il-le-role-de-formateur-voici-sa-reponse" style="">
+														Elio Di Rupo endossera-t-il le rôle de formateur? Voici sa réponse						</a>
+					</h5>
+					<p class="options">
+						<span class="time"><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">20h40</span></span></p></span>
+					</p>
+					<hr class="clearBoth" />
+				</div>
+																			<div class="ArticlesRight">	
+											<a href="/info/magazinesdelaredaction/Controverse/792546/opus-dei-face-a-action-laique-un-duel-particulierement-vif">
+							<img alt="Opus Déi face à Action Laïque: un duel particulièrement vif" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/120x75/duel_OK.jpg" />
+						</a>
+															<h5>
+						<a href="/info/magazinesdelaredaction/Controverse/792546/opus-dei-face-a-action-laique-un-duel-particulierement-vif" style="">
+														Opus Déi face à Action Laïque: un duel particulièrement vif						</a>
+					</h5>
+					<p class="options">
+						<span class="time"><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">15h47</span></span></p></span>
+					</p>
+					<hr class="clearBoth" />
+				</div>
+																			<div class="ArticlesRight">	
+											<a href="/info/monde/europe/792558/-traditionnelles-bagarres-de-rue-en-allemagne-video">
+							<img alt="Traditionnelles bagarres de rue en Allemagne: vidéo" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/120x75/allemagne.jpg" />
+						</a>
+															<h5>
+						<a href="/info/monde/europe/792558/-traditionnelles-bagarres-de-rue-en-allemagne-video" style="">
+														"Traditionnelles" bagarres de rue en Allemagne: vidéo						</a>
+					</h5>
+					<p class="options">
+						<span class="time"><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">17h47</span></span></p></span>
+					</p>
+					<hr class="clearBoth" />
+				</div>
+																			<div class="ArticlesRight">	
+											<a href="/sport/football/footballbelgique/219111/genk-s-isole-en-tete-des-play-offs-1">
+							<img alt="Genk s'isole en tête des play-offs 1" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/120x75/IMAGEGLOBE_26841766.jpg" />
+						</a>
+															<h5>
+						<a href="/sport/football/footballbelgique/219111/genk-s-isole-en-tete-des-play-offs-1" style="">
+														Genk s'isole en tête des play-offs 1						</a>
+					</h5>
+					<p class="options">
+						<span class="time"><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">22h26</span></span></p></span>
+					</p>
+					<hr class="clearBoth" />
+				</div>
+																																																																										</div>
+</div><!-- end FirstArticles -->
+<script type="text/javascript">
+	$('#FirstArticlesRight').find('.ArticlesRight:first').addClass('ArticlesRight-First');
+	$('#FirstArticlesRight').find('.ArticlesRight:last').addClass('ArticlesRight-Last');
+	</script>
+<div style="margin-bottom:20px;clear:both;"><div id="blockNMvideo"></div>
+<script type="text/javascript" src="/rtlutils/others/inc/direct/embed/"></script></div><div class="separatorHeadlines">
+	Les autres titres&nbsp;&nbsp;<img alt="" class="TitleArrow" src="/rtlutils/rtlutils/rtl/images/arrow-title.png" />
+</div>
+<div id="SmallArticles">
+		<div id="SmallArticlesLeft">
+				<div class="SmallArticles-Items">
+			<h5>
+				<a href="/info/monde/europe/792482/jean-paul-ii-proclame-bienheureux-par-benoit-xvi-videos" style="">
+					Jean-Paul II proclamé "bienheureux" par Benoît XVI (vidéos)				</a>
+			</h5>
+							<a href="/info/monde/europe/792482/jean-paul-ii-proclame-bienheureux-par-benoit-xvi-videos">
+					<img alt="Jean-Paul II proclamé bienheureux par Benoît XVI (vidéos)" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/145x91/jp_deux.jpg" />
+				</a>
+						<div class="SmallArticles-Items-text">
+				<span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">20h00</span>				<br style="height:1px;" />
+				<span>
+															Plus d'un millions de personnes ont afflué dimanche matin vers la place Saint-Pierre,...					
+				</span>
+			</div>
+			<hr class="clearBoth" />
+		</div>
+				<div class="SmallArticles-Items">
+			<h5>
+				<a href="/info/monde/international/792581/barack-obama-ridiculise-donald-trump-en-public-video" style="">
+					Barack Obama ridiculise Donald Trump en public: vidéo				</a>
+			</h5>
+							<a href="/info/monde/international/792581/barack-obama-ridiculise-donald-trump-en-public-video">
+					<img alt="Barack Obama ridiculise Donald Trump en public: vidéo" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/145x91/obazmz.jpg" />
+				</a>
+						<div class="SmallArticles-Items-text">
+				<span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">19h48</span>				<br style="height:1px;" />
+				<span>
+															Barack Obama s’est ouvertement moqué de celui qui avait douté de sa nationalité,...					
+				</span>
+			</div>
+			<hr class="clearBoth" />
+		</div>
+				<div class="SmallArticles-Items">
+			<h5>
+				<a href="/info/belgique/societe/792492/tout-ce-qui-change-le-1er-mai" style="">
+					Tout ce qui change le 1er mai				</a>
+			</h5>
+							<a href="/info/belgique/societe/792492/tout-ce-qui-change-le-1er-mai">
+					<img alt="Tout ce qui change le 1er mai" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/145x91/maisons[1].jpg" />
+				</a>
+						<div class="SmallArticles-Items-text">
+				<span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">09h13</span>				<br style="height:1px;" />
+				<span>
+															Comme en chaque début de mois, plusieurs nouvelles mesures entrent en application. Nous...					
+				</span>
+			</div>
+			<hr class="clearBoth" />
+		</div>
+				<div class="SmallArticles-Items">
+			<h5>
+				<a href="/sport/touslessports/autressports/219108/ostende-3e-de-l-eurochallenge" style="">
+					Ostende 3e de l'Eurochallenge				</a>
+			</h5>
+							<a href="/sport/touslessports/autressports/219108/ostende-3e-de-l-eurochallenge">
+					<img alt="Ostende 3e de l'Eurochallenge" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/145x91/IMAGEGLOBE_26758137.jpg" />
+				</a>
+						<div class="SmallArticles-Items-text">
+				<span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">21h11</span>				<br style="height:1px;" />
+				<span>
+															En battant les Russes du Spartak Saint-Petersbourg en finale de consolation du Final...					
+				</span>
+			</div>
+			<hr class="clearBoth" />
+		</div>
+			</div>
+		<div id="SmallArticlesRight">
+				<div class="SmallArticles-Items">
+			<h5>
+				<a href="/info/monde/europe/792550/beatification-jean-paul-ii-un-cardinal-espagnol-decede-d-un-infarctus" style="">
+					Béatification Jean Paul II: un cardinal espagnol décède d'un infarctus				</a>
+			</h5>
+							<a href="/info/monde/europe/792550/beatification-jean-paul-ii-un-cardinal-espagnol-decede-d-un-infarctus">
+					<img alt="Béatification Jean Paul II: un cardinal espagnol décède d'un infarctus" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/145x91/rome.jpg" />
+				</a>
+						<div class="SmallArticles-Items-text">
+				<span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">16h38</span>				<br style="height:1px;" />
+				<span>
+															Le cardinal espagnol Agustín García Gasco Vicente, ancien archevêque de Valence, est...					
+				</span>
+			</div>
+			<hr class="clearBoth" />
+		</div>
+				<div class="SmallArticles-Items">
+			<h5>
+				<a href="/info/magazine/televie/792557/rallye-televie-chaque-fois-c-est-merveilleux-chaque-annee-on-revient-" style="">
+					Rallye Télévie: "Chaque fois c’est merveilleux, chaque année, on revient"				</a>
+			</h5>
+							<a href="/info/magazine/televie/792557/rallye-televie-chaque-fois-c-est-merveilleux-chaque-annee-on-revient-">
+					<img alt="Rallye Télévie: Chaque fois c’est merveilleux, chaque année, on revient" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/145x91/televie.jpg" />
+				</a>
+						<div class="SmallArticles-Items-text">
+				<span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">20h53</span>				<br style="height:1px;" />
+				<span>
+															Le temps était radieux pour le Grand Rallye du Télévie à Namur. Cette année encore...					
+				</span>
+			</div>
+			<hr class="clearBoth" />
+		</div>
+				<div class="SmallArticles-Items">
+			<h5>
+				<a href="/info/belgique/sectionmeteo/792425/meteo-un-dimanche-sec-et-ensoleille" style="">
+					Météo: un dimanche sec et ensoleillé				</a>
+			</h5>
+							<a href="/info/belgique/sectionmeteo/792425/meteo-un-dimanche-sec-et-ensoleille">
+					<img alt="Météo: un dimanche sec et ensoleillé" class="RightImageArticle" src="/rtlutils/pics/div/2011_04_30/145x91/meteo_1.jpg" />
+				</a>
+						<div class="SmallArticles-Items-text">
+				<span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">17h39</span>				<br style="height:1px;" />
+				<span>
+															Cette journée va se passer sous le soleil avec un ciel tout bleu. Côté mercure, il...					
+				</span>
+			</div>
+			<hr class="clearBoth" />
+		</div>
+				<div class="SmallArticles-Items">
+			<h5>
+				<a href="/info/monde/europe/792559/william-kate-le-mariage-a-coute-280-000a-aux-middleton" style="">
+					William & Kate: le mariage a coûté 280.000€ aux Middleton				</a>
+			</h5>
+							<a href="/info/monde/europe/792559/william-kate-le-mariage-a-coute-280-000a-aux-middleton">
+					<img alt="William & Kate: le mariage a coûté 280.000€ aux Middleton" class="RightImageArticle" src="/rtlutils/pics/div/2011_05_01/145x91/kate.jpg" />
+				</a>
+						<div class="SmallArticles-Items-text">
+				<span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">17h53</span>				<br style="height:1px;" />
+				<span>
+															Le mariage de leur fille Kate avec le prince William aura coûté environ un quart de...					
+				</span>
+			</div>
+			<hr class="clearBoth" />
+		</div>
+			</div>
+	</div>
+<script type="text/javascript">
+	$('#SmallArticlesLeft').find('.SmallArticles-Items:last').addClass('SmallArticles-Items-Lasts');
+	$('#SmallArticlesRight').find('.SmallArticles-Items:last').addClass('SmallArticles-Items-Lasts');
+</script>					</div>
+		<div style="clear:both"></div>
+			<div style="clear:both"></div>
+	<div id="hp-zone-list">
+																								<div style="border-top: 2px solid #2c2c2c;" class="ModuleElement" id="hp-zone-21">
+	<div style="background-color: #f0f0f0" class="ModuleElementMenu">
+		<div class="ModuleElementTitle">
+				<div class="ModuleElementTitleLeft" style="background-color:#2c2c2c;border-bottom:1px solid #f0f0f0"></div>
+					<div class="ModuleElementTitleTexte" style="background-color:#2c2c2c;">SPORT</div>
+				<div class="ModuleElementTitleRight" style="background-color:#2c2c2c;border-bottom:1px solid #f0f0f0"></div>
+						<ul>
+								<li>
+					<div style="border-right: 1px solid #2c2c2c;">
+						<a href="/sport/" style="color:#2c2c2c">A LA UNE</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #2c2c2c;">
+						<a href="/sport/football" style="color:#2c2c2c">FOOTBALL</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #2c2c2c;">
+						<a href="/sport/touslessports/tennis" style="color:#2c2c2c">TENNIS</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #2c2c2c;">
+						<a href="/sport/touslessports/cyclisme" style="color:#2c2c2c">CYCLISME</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #2c2c2c;">
+						<a href="/sport/automoto" style="color:#2c2c2c">AUTO-MOTO</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 0px solid #2c2c2c;">
+						<a href="/sport/touslessports/autressports" style="color:#2c2c2c">LES AUTRES SPORTS</a>
+					</div>
+				</li>
+							</ul>
+					</div>
+		<a href="#" onclick="return hp_zone_down($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowDown"></a>
+		<a href="#" onclick="return hp_zone_up($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowUp" style=""></a>
+	</div>
+	<div class="ModuleElementBody">
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+			
+						<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First widget-threePhoto-title-datePublication-Item-Last">
+			<a href="/sport/football/footballbelgique/219105/play-offs-1-anderlecht-accroche-par-bruges">
+				<img src="/rtlutils/pics/div/2011_05_01/295x196/IMAGEGLOBE_26840108.jpg" class="BigImage" alt="Play-offs 1: Anderlecht accroché par Bruges" />
+			</a>
+			<h3 style="margin:0;font-size:24px; line-height:28px">
+				<a style="color:#2c2c2c" href="/sport/football/footballbelgique/219105/play-offs-1-anderlecht-accroche-par-bruges">
+					Play-offs 1: Anderlecht accroché par Bruges				</a>
+			</h3>
+			<p><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">22h25</span></span></p></span></p>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+								<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First">
+			<div style="float:left;width:43%">
+				<a href="/sport/football/footballbelgique/219111/genk-s-isole-en-tete-des-play-offs-1">
+					<img src="/rtlutils/pics/div/2011_05_01/120x70/IMAGEGLOBE_26841766.jpg" class="RightImageArticle" alt="Genk s'isole en tête des play-offs 1" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #2c2c2c" href="/sport/football/footballbelgique/219111/genk-s-isole-en-tete-des-play-offs-1">
+						Genk s'isole en tête des play-offs 1					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">22h26</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items">
+			<div style="float:left;width:43%">
+				<a href="/sport/automoto/motogp/219090/moto-gp-au-portugal-pedrosa-surprend-lorenzo">
+					<img src="/rtlutils/pics/div/2011_05_01/120x70/IMAGEGLOBE_23284524.jpg" class="RightImageArticle" alt="Moto GP au Portugal: Pedrosa surprend Lorenzo" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #2c2c2c" href="/sport/automoto/motogp/219090/moto-gp-au-portugal-pedrosa-surprend-lorenzo">
+						Moto GP au Portugal: Pedrosa surprend Lorenzo					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">14h57</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-Last">
+			<div style="float:left;width:43%">
+				<a href="/sport/football/footballetranger/219099/arsenal-releve-la-tete-face-a-manchester-united">
+					<img src="/rtlutils/pics/div/2011_05_01/120x70/IMAGEGLOBE_26836445.jpg" class="RightImageArticle" alt="Arsenal relève la tête face à Manchester United" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #2c2c2c" href="/sport/football/footballetranger/219099/arsenal-releve-la-tete-face-a-manchester-united">
+						Arsenal relève la tête face à Manchester United					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">17h12</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell ModuleElementCellRight">
+															<div class="tot_widget-ul"><div class="widget widget-list-seven-titles">
+		<div class="titleWidgetStyle2">
+		<div class="TitleAutreWidgetImproved">
+			<div class="borderLeft"></div>
+			<div class="borderCenter">Les autres titres</div>
+			<div class="borderRight"></div>
+		</div>
+	<hr class="clearBoth" />
+	</div>
+	<ul class="listArrow">
+					<li>
+				<a style="color:#2c2c2c" href="/sport/football/footballbelgique/219112/football-play-off-i-genk-s-impose-0-2-a-lokeren-et-garde-la-tete">
+					Football - Play-off I - Genk s'impose 0-2 à Lokeren et garde la tête				</a>
+			</li>
+					<li class="lastItem">
+				<a style="color:#2c2c2c" href="/sport/football/footballbelgique/219111/genk-s-isole-en-tete-des-play-offs-1">
+					Genk s'isole en tête des play-offs 1				</a>
+			</li>
+			</ul>
+</div>
+</div>											<div class="tot_widget-ul">					<div class="RTLBlogs">
+				<a href="http://blogs.rtlinfo.be/lesfooteux/">
+							<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/vachery.png" alt="Les footeux"  style="margin-right:8px;" />
+					</a>
+		<span class="intro">
+			<div style="height:15px;">&nbsp;</div>
+			Les footeux		</span>
+				<h5>
+						<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/lesfooteux/2011/04/28/un-but-maradonesque-revoir-la-video-du-messie/">
+				Messi: un but maradonesque							</a>
+		</h5>
+				<div style="clear:both;height:1px;"></div>
+		<div class="BlogFooter" style="margin-top:-14px">
+			<span>Martin Vachiery</span>
+		</div>
+	</div>
+	</div>												</div>
+			<!-- [-] Column -->
+			</div>
+	<div style="clear:both"></div>
+	</div>
+																	<div style="border-top: 2px solid #1e277d;" class="ModuleElement" id="hp-zone-11">
+	<div style="background-color: #f1f7fa" class="ModuleElementMenu">
+		<div class="ModuleElementTitle">
+				<div class="ModuleElementTitleLeft" style="background-color:#1e277d;border-bottom:1px solid #f1f7fa"></div>
+					<div class="ModuleElementTitleTexte" style="background-color:#1e277d;">BELGIQUE</div>
+				<div class="ModuleElementTitleRight" style="background-color:#1e277d;border-bottom:1px solid #f1f7fa"></div>
+						<ul>
+								<li>
+					<div style="border-right: 1px solid ;">
+						<a href="/info/belgique/politique" style="color:">POLITIQUE</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid ;">
+						<a href="/info/belgique/societe" style="color:">SOCIETE</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid ;">
+						<a href="/info/belgique/faitsdivers" style="color:">FAITS DIVERS</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 0px solid ;">
+						<a href="/info/belgique/familleroyale" style="color:">FAMILLE ROYALE</a>
+					</div>
+				</li>
+							</ul>
+					</div>
+		<a href="#" onclick="return hp_zone_down($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowDown"></a>
+		<a href="#" onclick="return hp_zone_up($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowUp"></a>
+	</div>
+	<div class="ModuleElementBody">
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+								<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First">
+			<div style="float:left;width:43%">
+				<a href="/info/belgique/societe/792505/un-muguet-plus-fragile-cette-annee-a-cause-du-beau-temps">
+					<img src="/rtlutils/pics/div/2011_05_01/120x70/lily.jpg" class="RightImageArticle" alt="Un muguet plus fragile cette année... à cause du beau temps" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #000000" href="/info/belgique/societe/792505/un-muguet-plus-fragile-cette-annee-a-cause-du-beau-temps">
+						Un muguet plus fragile cette année... à cause du beau temps					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">10h50</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items">
+			<div style="float:left;width:43%">
+				<a href="/info/belgique/politique/792541/1er-mai-a-jodoigne-pour-le-mr-parti-des-travailleurs-">
+					<img src="/rtlutils/pics/div/2011_05_01/120x70/mr.jpg" class="RightImageArticle" alt="1er mai à Jodoigne pour le MR, parti des travailleurs" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #000000" href="/info/belgique/politique/792541/1er-mai-a-jodoigne-pour-le-mr-parti-des-travailleurs-">
+						1er mai à Jodoigne pour le MR, "parti des travailleurs"					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">14h44</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-Last">
+			<div style="float:left;width:43%">
+				<a href="/info/belgique/faitsdivers/792508/fusillade-anvers-une-passante-grievement-blessee">
+					<img src="/rtlutils/pics/belga/2011_05_01/120x70/pxy_44293306_40635065_256_3935640.jpg" class="RightImageArticle" alt="Fusillade Anvers: une passante grièvement blessée" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #000000" href="/info/belgique/faitsdivers/792508/fusillade-anvers-une-passante-grievement-blessee">
+						Fusillade Anvers: une passante grièvement blessée					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">11h08</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-list-seven-titles">
+		<div class="titleWidgetStyle2">
+		<div class="TitleAutreWidgetImproved">
+			<div class="borderLeft"></div>
+			<div class="borderCenter">Les autres titres</div>
+			<div class="borderRight"></div>
+		</div>
+	<hr class="clearBoth" />
+	</div>
+	<ul class="listArrow">
+					<li class="lastItem">
+				<a style="color:#000000" href="/info/belgique/faitsdivers/792380/affaire-vangheluwe-nouvelle-enquete-deux-enfants-de-choeur-abuses">
+					Affaire Vangheluwe: nouvelle enquête, deux enfants de choeur abusés				</a>
+			</li>
+					<li class="lastItem">
+				<a style="color:#000000" href="/info/belgique/faitsdivers/792028/le-proces-de-la-pelouse-du-sporting-despiegeleer-et-mogi-bayat-cote-a-cote">
+					Le procès de la pelouse du Sporting: Despiegeleer et Mogi Bayat côte-à-côte...				</a>
+			</li>
+			</ul>
+</div>
+</div>											<div class="tot_widget-ul">					<div class="RTLBlogs">
+				<a href="http://blogs.rtlinfo.be/carnetpolitique/">
+							<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/grosfilley.png" alt="Carnet politique"  style="margin-right:8px;" />
+					</a>
+		<span class="intro">
+			<div style="height:15px;">&nbsp;</div>
+			Carnet politique		</span>
+				<h5>
+						<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/carnetpolitique/comment-la-n-va-investit-au-parlement/">
+				Comment la N-VA investit au parlement							</a>
+		</h5>
+				<div style="clear:both;height:1px;"></div>
+		<div class="BlogFooter" style="margin-top:-14px">
+			<span>Fabrice Grosfilley</span>
+		</div>
+	</div>
+	</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell ModuleElementCellRight">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+									<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First widget-threePhoto-title-datePublication-Item-Last">
+			<a href="/info/magazinesdelaredaction/rtlplus/792152/rtl-la-beatification-du-pape-jean-paul-ii">
+				<img src="/rtlutils/pics/div/2011_04_28/295x196/pape.jpg" class="BigImage" alt="RTL+: la béatification du Pape Jean-Paul II" />
+			</a>
+			<h3 style="margin:0;font-size:24px; line-height:28px">
+				<a style="color:#000000" href="/info/magazinesdelaredaction/rtlplus/792152/rtl-la-beatification-du-pape-jean-paul-ii">
+					RTL+: la béatification du Pape Jean-Paul II				</a>
+			</h3>
+			<p><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">28/04&nbsp;|</span><span class="inline" style="color:#666; padding:0">16h13</span></span></p></span></p>
+		</div>
+			</div>
+</div>												</div>
+			<!-- [-] Column -->
+			</div>
+	<div style="clear:both"></div>
+	</div>
+																	<div style="border-top: 2px solid #1e277d;" class="ModuleElement" id="hp-zone-12">
+	<div style="background-color: #f1f7fa" class="ModuleElementMenu">
+		<div class="ModuleElementTitle">
+				<div class="ModuleElementTitleLeft" style="background-color:#1e277d;border-bottom:1px solid #f1f7fa"></div>
+					<div class="ModuleElementTitleTexte" style="background-color:#1e277d;">VOTRE REGION</div>
+				<div class="ModuleElementTitleRight" style="background-color:#1e277d;border-bottom:1px solid #f1f7fa"></div>
+						<ul>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/votreregion/bruxelles" style="color:#1e277d">BRUXELLES</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/votreregion/brabantwallon" style="color:#1e277d">BRABANT WALLON</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/votreregion/namur" style="color:#1e277d">NAMUR</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/votreregion/liege" style="color:#1e277d">LIEGE</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/votreregion/hainaut" style="color:#1e277d">HAINAUT</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/votreregion/luxembourg" style="color:#1e277d">LUXEMBOURG</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 0px solid #1e277d;">
+						<a href="/info/votreregion/flandre" style="color:#1e277d">FLANDRE</a>
+					</div>
+				</li>
+							</ul>
+					</div>
+		<a href="#" onclick="return hp_zone_down($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowDown"></a>
+		<a href="#" onclick="return hp_zone_up($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowUp"></a>
+	</div>
+	<div class="ModuleElementBody">
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+								<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First">
+			<div style="float:left;width:43%">
+				<a href="/info/votreregion/flandre/792516/saint-trond-une-personne-percutee-par-un-train-decede">
+					<img src="/rtlutils/pics/div/2011_05_01/120x70/train.jpg" class="RightImageArticle" alt="Saint-Trond: une personne percutée par un train décède" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #1e277d" href="/info/votreregion/flandre/792516/saint-trond-une-personne-percutee-par-un-train-decede">
+						Saint-Trond: une personne percutée par un train décède					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">12h59</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items">
+			<div style="float:left;width:43%">
+				<a href="/info/votreregion/brabantwallon/792483/une-maison-detruite-par-les-flammes-a-braine-l-alleud">
+					<img src="/rtlutils/pics/div/2011_05_01/120x70/braine.jpg" class="RightImageArticle" alt="Une maison détruite par les flammes à Braine-l'Alleud" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #1e277d" href="/info/votreregion/brabantwallon/792483/une-maison-detruite-par-les-flammes-a-braine-l-alleud">
+						Une maison détruite par les flammes à Braine-l'Alleud					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">08h01</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-Last">
+			<div style="float:left;width:43%">
+				<a href="/info/votreregion/bruxelles/792493/un-bien-a-vendre-a-bruxelles-certificat-peb-obligatoire-">
+					<img src="/rtlutils/pics/div/2011_05_01/120x70/maisons.jpg" class="RightImageArticle" alt="Un bien à vendre à Bruxelles? Certificat PEB obligatoire!" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #1e277d" href="/info/votreregion/bruxelles/792493/un-bien-a-vendre-a-bruxelles-certificat-peb-obligatoire-">
+						Un bien à vendre à Bruxelles? Certificat PEB obligatoire!					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">09h18</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-list-seven-titles">
+		<div class="titleWidgetStyle2">
+		<div class="TitleAutreWidgetImproved">
+			<div class="borderLeft"></div>
+			<div class="borderCenter">Les autres titres</div>
+			<div class="borderRight"></div>
+		</div>
+	<hr class="clearBoth" />
+	</div>
+	<ul class="listArrow">
+					<li>
+				<a style="color:#1e277d" href="/info/votreregion/hainaut/792441/tournai-un-bus-heurte-une-passerelle-et-fait-chuter-trois-femmes">
+					Tournai: un bus heurte une passerelle et fait chuter trois femmes				</a>
+			</li>
+					<li>
+				<a style="color:#1e277d" href="/info/votreregion/bruxelles/792370/incendie-a-anderlecht-le-dernier-etage-d-un-immeuble-part-en-fumee">
+					Incendie à Anderlecht: le dernier étage d'un immeuble part en fumée				</a>
+			</li>
+					<li>
+				<a style="color:#1e277d" href="/info/votreregion/flandre/792481/fusillade-en-pleine-rue-a-anvers-deux-morts-et-quatre-blesses">
+					Fusillade en pleine rue à Anvers: deux morts et quatre blessés				</a>
+			</li>
+					<li>
+				<a style="color:#1e277d" href="/info/votreregion/namur/792480/grand-rallye-du-televie-le-depart-est-lance-">
+					Grand Rallye du Télévie: le départ est lancé !				</a>
+			</li>
+					<li>
+				<a style="color:#1e277d" href="/info/votreregion/liege/792431/une-fillette-tombe-d-un-deuxieme-etage-a-jupille">
+					Une fillette tombe d'un deuxième étage à Jupille				</a>
+			</li>
+					<li>
+				<a style="color:#1e277d" href="/info/votreregion/namur/792386/dinant-cinq-fermes-cibles-d-incendies-criminels">
+					Dinant: cinq fermes cibles d'incendies criminels				</a>
+			</li>
+					<li>
+				<a style="color:#1e277d" href="/info/votreregion/liege/792382/un-chalet-d-habitation-detruit-dans-un-incendie-a-wasseiges">
+					Un chalet d'habitation détruit dans un incendie à Wasseiges				</a>
+			</li>
+			</ul>
+</div>
+</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell ModuleElementCellRight">
+															<div class="tot_widget-ul"><div id="boxagenda" class="newsBox blueBox"></div>
+<script type="text/javascript" src="/rtlutils/others/inc/agenda/"></script></div>												</div>
+			<!-- [-] Column -->
+			</div>
+	<div style="clear:both"></div>
+	</div>
+																	<div style="border-top: 2px solid #1e277d;" class="ModuleElement" id="hp-zone-13">
+	<div style="background-color: #f1f7fa" class="ModuleElementMenu">
+		<div class="ModuleElementTitle">
+				<div class="ModuleElementTitleLeft" style="background-color:#1e277d;border-bottom:1px solid #f1f7fa"></div>
+					<div class="ModuleElementTitleTexte" style="background-color:#1e277d;">MONDE & ECONOMIE</div>
+				<div class="ModuleElementTitleRight" style="background-color:#1e277d;border-bottom:1px solid #f1f7fa"></div>
+						<ul>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/monde/international" style="color:#1e277d">INTERNATIONAL</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/monde/europe" style="color:#1e277d">EUROPE</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/monde/france" style="color:#1e277d">FRANCE</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/economie/monargent" style="color:#1e277d">MON ARGENT</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 0px solid #1e277d;">
+						<a href="/info/economie/bourse" style="color:#1e277d">BOURSE</a>
+					</div>
+				</li>
+							</ul>
+					</div>
+		<a href="#" onclick="return hp_zone_down($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowDown"></a>
+		<a href="#" onclick="return hp_zone_up($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowUp"></a>
+	</div>
+	<div class="ModuleElementBody">
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+			
+						<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First widget-threePhoto-title-datePublication-Item-Last">
+			<a href="/info/monde/europe/792495/qui-etait-jean-paul-ii-">
+				<img src="/rtlutils/pics/div/2011_05_01/295x196/jeanpol.jpg" class="BigImage" alt="Qui était Jean-Paul II ?" />
+			</a>
+			<h3 style="margin:0;font-size:24px; line-height:28px">
+				<a style="color:#1e277d" href="/info/monde/europe/792495/qui-etait-jean-paul-ii-">
+					Qui était Jean-Paul II ?				</a>
+			</h3>
+			<p><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">09h44</span></span></p></span></p>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+								<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First">
+			<div style="float:left;width:43%">
+				<a href="/info/monde/international/792512/syrie-situation-honteuse-et-inacceptable">
+					<img src="/rtlutils/pics/belga/2011_05_01/120x70/pxy_44293956_40635657_256_28599.jpg" class="RightImageArticle" alt="Syrie: situation honteuse et inacceptable" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #1e277d" href="/info/monde/international/792512/syrie-situation-honteuse-et-inacceptable">
+						Syrie: situation honteuse et inacceptable					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">12h03</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items">
+			<div style="float:left;width:43%">
+				<a href="/info/monde/europe/792486/un-enfant-de-3-ans-prend-le-volant-d-une-voiture-et-blesse-une-passante">
+					<img src="/rtlutils/pics/div/2011_05_01/120x70/volant.jpg" class="RightImageArticle" alt="Un enfant de 3 ans prend le volant d'une voiture et blesse une passante" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #1e277d" href="/info/monde/europe/792486/un-enfant-de-3-ans-prend-le-volant-d-une-voiture-et-blesse-une-passante">
+						Un enfant de 3 ans prend le volant d'une voiture et blesse une passante...					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">08h34</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-Last">
+			<div style="float:left;width:43%">
+				<a href="/info/monde/international/792484/libye-le-plus-jeune-fils-de-kadhafi-tue-lors-d-une-frappe-de-l-otan-">
+					<img src="/rtlutils/pics/div/2011_05_01/120x70/libye.jpg" class="RightImageArticle" alt="Libye: le plus jeune fils de Kadhafi tué lors d'une frappe de l'Otan?" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #1e277d" href="/info/monde/international/792484/libye-le-plus-jeune-fils-de-kadhafi-tue-lors-d-une-frappe-de-l-otan-">
+						Libye: le plus jeune fils de Kadhafi tué lors d'une frappe de l'Otan?					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">12h55</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell ModuleElementCellRight">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+			
+						<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First widget-threePhoto-title-datePublication-Item-Last">
+			<a href="/info/economie/belgique/792229/conditions-de-travail-a-belgacom-le-syndicat-chretien-evoque-un-risque-france-telecom">
+				<img src="/rtlutils/pics/div/2011_04_29/295x196/IMAGEGLOBE_4368026.jpg" class="BigImage" alt="Conditions de travail à Belgacom: le syndicat chrétien évoque un risque France Telecom" />
+			</a>
+			<h3 style="margin:0;font-size:24px; line-height:28px">
+				<a style="color:#1e277d" href="/info/economie/belgique/792229/conditions-de-travail-a-belgacom-le-syndicat-chretien-evoque-un-risque-france-telecom">
+					Conditions de travail à Belgacom: le syndicat chrétien évoque un risque...				</a>
+			</h3>
+			<p><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">29/04&nbsp;|</span><span class="inline" style="color:#666; padding:0">07h20</span></span></p></span></p>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+			</div>
+	<div style="clear:both"></div>
+	</div>
+																						<div id="hp-zone-18" class="ModuleElement">
+		<h4 class="ModuleBlogsHomePagetitleText">RTL BLOGS</h4>
+		<div class="ModuleHomePageNavigation">
+							<a class="ModuleHomePageNavigationPreviousInactive" id="prev-blog-18" href="#"></a>
+				<div id="pagination-blog-18" style="float:left"></div>
+				<a class="ModuleHomePageNavigationNextActive" id="next-blog-18" href="#"></a>
+					</div>
+		<a href="#" onclick="return hp_zone_down($(this).parent())" class="ModuleElementMenuArrowStatic ModuleElementMenuArrowDownStatic"></a>
+		<a href="#" onclick="return hp_zone_up($(this).parent())" class="ModuleElementMenuArrowStatic ModuleElementMenuArrowUpStatic"></a>
+		<div class="ModuleBlogsHomePage">
+			<span class="ModuleBlogsHomePagebordExt"></span>
+			<span class="ModuleBlogsHomePagebordInt"><span></span></span>
+				<div class="ModuleBlogsHomePageContent" id="ModuleBlogsCarousel" style="overflow:hidden">
+					<div>
+																												<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/champselysees/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/Christophe-Giltay.png" alt="Champs-Elysées" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Champs-Elysées			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/champselysees/2011/04/29/les-bleus-seraient-ils-trop-blacks/">
+					Les bleus seraient-ils trop blacks?				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Christophe Giltay</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/tendancesnumeriques/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/tamigniau.png" alt="Tendances numériques" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Tendances numériques			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/tendancesnumeriques/2011/04/30/ordi-vraiment-portable-macbook-air-ou-hp-pavilion/">
+					Ordi vraiment portable: MacBook Air ou HP Pavilion ?				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Mathieu Tamigniau</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/cinemascoop/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_25/90x141/nicolas.png" alt="CinémaScoop" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				CinémaScoop			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/cinemascoop/2011/04/11/la-croisiere-pas-tres-drole/">
+					La croisière: pas très drôle				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span></span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/sanslanguedebois/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_21/90x141/gregory-goethals.png" alt="Sans langue de bois" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Sans langue de bois			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/sanslanguedebois/2011/04/26/bart-de-wever-utilise-un-argument-de-poids-paul-masson-lhomme-le-plus-gros-au-monde/">
+					Bart De Wever utilise un argument de poids: Paul Masson, l’homme le plus gros au monde…				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Grégory Goethals</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/frenchtouch/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/schild.png" alt="French Touch" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				French Touch			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/frenchtouch/2011/03/30/johnny-crucifie-sur-lautel-du-rock/">
+					Johnny crucifié sur l’autel du rock				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Amélie Schildt</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/econoblog/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/delory.png" alt="Econoblog" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Econoblog			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/econoblog/2011-tout-augmente-ma-bonne-dame/">
+					2011 : tout augmente, ma bonne dame				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Ludovic Delory</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/enviesdelire/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/Christine_calmeau.png" alt="Envies de lire" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Envies de lire			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/enviesdelire/2011/02/20/la-theorie-des-dominos-alex-scarrow/">
+					La Théorie des dominos, Alex Scarrow				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Christine Calmeau</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/madeinusa/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_08/90x141/lecluse.png" alt="Made in USA" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Made in USA			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/madeinusa/2011/03/26/obama-enferme-a-lexterieur-de-la-maison-blanche/">
+					Obama “enfermé à l’extérieur” de la Maison Blanche				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Jennifer Lecluse</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/carnetpolitique/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/grosfilley.png" alt="Carnet politique" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Carnet politique			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/carnetpolitique/comment-la-n-va-investit-au-parlement/">
+					Comment la N-VA investit au parlement				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Fabrice Grosfilley</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/f1paddock/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/arnaud.png" alt="F1 Paddock" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				F1 Paddock			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/f1paddock/2011/04/28/schumacher-veut-aller-au-bout/">
+					Schumacher veut aller au bout				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Arnaud Vankerckhove</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/partitions/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/gerlache.png" alt="Partitions" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Partitions			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/partitions/2011/03/28/johnny-hallyday-un-come-back-reussi/">
+					Johnny Hallyday: un come-back réussi				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Jean-Claude Gerlache</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/lesteknophiles/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/marcLescroart.png" alt="Les Teknophiles" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Les Teknophiles			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/lesteknophiles/2011/05/01/presentation-et-test-de-portal-2/">
+					Présentation et test de PORTAL 2				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Marc Lescroart</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/motogpinside">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/domine.png" alt="MotoGP Inside" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				MotoGP Inside			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/motogpinside/2011/05/01/gp-destoril-moto2-course-iannone-le-chasseur/">
+					GP d’EStoril, Moto2, course : Iannone le chasseur…				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Leeroy Domine</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/lesfooteux/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/vachery.png" alt="Les footeux" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Les footeux			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/lesfooteux/2011/04/28/un-but-maradonesque-revoir-la-video-du-messie/">
+					Messi: un but maradonesque				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Martin Vachiery</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																																			<div style="height:163px;float:left;">
+	<div class="RTLBlogs">
+		<div>
+			<a href="http://blogs.rtlinfo.be/studiobd/">
+									<img class="RTLBlogsPhoto" src="/rtlutils/pics/div/2011_03_05/90x141/rosenfeld.png" alt="Studio BD" style="margin-right:8px;" />
+							</a>
+			<span class="intro">
+				<div style="height:15px;">&nbsp;</div>
+				Studio BD			</span>
+						<h5>
+				<a style="color: rgb(30, 40, 125);" href="http://blogs.rtlinfo.be/studiobd/2011/04/25/les-sentinelles-super-heros-dans-les-tranchees/">
+					Les sentinelles: super-héros dans les tranchées				</a>
+			</h5>
+					</div>
+		<div style="clear:both"></div>
+		<div class="BlogFooter" style="margin-top:-14px; margin-left:105px;">
+			<span>Sébastien Rosenfeld</span>
+		</div>
+	</div>
+	<div class="RTLBlogsSeperation"></div>
+</div>																			<hr class="clearBoth clearBothImproved" />
+					</div>
+				</div>
+			<span class="ModuleBlogsHomePagebordInt"><span></span></span>
+			<span class="ModuleBlogsHomePagebordExt"></span>
+		</div>
+		<br />
+		<div class="clearBoth"></div>
+	</div>
+	<script type="text/javascript">
+		$("#ModuleBlogsCarousel").carousel({
+			dispItems :3,
+			pagination:true, 
+			paginationPosition :'outside', 
+			nextButtonId:'next-blog-18', 
+			prevButtonId:'prev-blog-18', 
+			animSpeed:'slow', 
+			childrenTag:'div', 
+			paginationContainerId:'pagination-blog-18'
+			});
+	</script>
+																	<div style="border-top: 2px solid #810b79;" class="ModuleElement" id="hp-zone-20">
+	<div style="background-color: #f7eff7" class="ModuleElementMenu">
+		<div class="ModuleElementTitle">
+				<div class="ModuleElementTitleLeft" style="background-color:#810b79;border-bottom:1px solid #f7eff7"></div>
+					<div class="ModuleElementTitleTexte" style="background-color:#810b79;">MAGAZINE</div>
+				<div class="ModuleElementTitleRight" style="background-color:#810b79;border-bottom:1px solid #f7eff7"></div>
+						<ul>
+								<li>
+					<div style="border-right: 1px solid #810b79;">
+						<a href="/info/magazine/" style="color:#810b79">CULTURE</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #810b79;">
+						<a href="/info/magazine/sciencesenvironnement" style="color:#810b79">SCIENCES</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #810b79;">
+						<a href="/loisirs" style="color:#810b79">RTL LOISIRS</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 0px solid #810b79;">
+						<a href="/people" style="color:#810b79">RTL PEOPLE</a>
+					</div>
+				</li>
+							</ul>
+					</div>
+		<a href="#" onclick="return hp_zone_down($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowDown"></a>
+		<a href="#" onclick="return hp_zone_up($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowUp"></a>
+	</div>
+	<div class="ModuleElementBody">
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+			
+						<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First widget-threePhoto-title-datePublication-Item-Last">
+			<a href="/loisirs/detente/livresbd/4433/deces-de-l-ecrivain-argentin-ernesto-sabato">
+				<img src="/rtlutils/pics/afprelax/2011_04_30/295x196/000_mvd54117.16b98125602.original.jpg" class="BigImage" alt="Décès de l'écrivain argentin Ernesto Sabato" />
+			</a>
+			<h3 style="margin:0;font-size:24px; line-height:28px">
+				<a style="color:#810b79" href="/loisirs/detente/livresbd/4433/deces-de-l-ecrivain-argentin-ernesto-sabato">
+					Décès de l'écrivain argentin Ernesto Sabato				</a>
+			</h3>
+			<p><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">30/04&nbsp;|</span><span class="inline" style="color:#666; padding:0">13h56</span></span></p></span></p>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-list-seven-titles">
+		<div class="titleWidgetStyle2">
+		<div class="TitleAutreWidgetImproved">
+			<div class="borderLeft"></div>
+			<div class="borderCenter">Les autres titres</div>
+			<div class="borderRight"></div>
+		</div>
+	<hr class="clearBoth" />
+	</div>
+	<ul class="listArrow">
+					<li>
+				<a style="color:#810b79" href="/people/people/news/10893/kate-et-williama-portraits-officiels">
+					Kate et William : portraits officiels				</a>
+			</li>
+					<li>
+				<a style="color:#810b79" href="/people/people/news/10892/pas-de-lune-de-miel-pour-kate-et-william">
+					Pas de lune de miel pour Kate et William				</a>
+			</li>
+					<li>
+				<a style="color:#810b79" href="/people/people/news/10891/mariah-carey-a-accouche-">
+					Mariah Carey a accouché!				</a>
+			</li>
+					<li>
+				<a style="color:#810b79" href="/people/people/news/10886/johnny-depp-est-genereux-">
+					Johnny Depp est généreux!				</a>
+			</li>
+			</ul>
+</div>
+</div>											<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+		<div class="titleWidgetStyle1">
+		Vidéo		<img alt="" class="TitleArrow" src="/rtlutils/rtl/images/arrow-title.png" />
+	</div>
+								<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First widget-threePhoto-title-datePublication-Item-Last">
+			<div style="float:left;width:43%">
+				<a href="/people/buzz/video/10854/un-cure-fait-la-roue-apres-le-mariage-princier-video">
+					<img src="/rtlutils/pics/div/2011_04_30/120x70/cure_roue.jpg" class="RightImageArticle" alt="Un curé fait la roue après le mariage princier (VIDEO)" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #810b79" href="/people/buzz/video/10854/un-cure-fait-la-roue-apres-le-mariage-princier-video">
+						Un curé fait la roue après le mariage princier (VIDEO)					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">30/04&nbsp;|</span><span class="inline" style="color:#666; padding:0">10h09</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell ModuleElementCellRight">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+								<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First">
+			<div style="float:left;width:43%">
+				<a href="/loisirs/sortir/expo/4450/new-york-une-expo-dediee-a-david-bowie">
+					<img src="/rtlutils/pics/cinetelerevue/2011_05_01/120x70/20100220_bowie.jpg" class="RightImageArticle" alt="New-York: une expo dédiée à David Bowie" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #810b79" href="/loisirs/sortir/expo/4450/new-york-une-expo-dediee-a-david-bowie">
+						New-York: une expo dédiée à David Bowie					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">01/05&nbsp;|</span><span class="inline" style="color:#666; padding:0">12h16</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items">
+			<div style="float:left;width:43%">
+				<a href="/loisirs/rtellesils/sexe/4364/fantasmes-8-confessions-erotiques-de-filles">
+					<img src="/rtlutils/pics/topsante/2011_04_29/120x70/Fantasmes_s_feed.jpg" class="RightImageArticle" alt="Fantasmes : 8 confessions érotiques de filles" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #810b79" href="/loisirs/rtellesils/sexe/4364/fantasmes-8-confessions-erotiques-de-filles">
+						Fantasmes : 8 confessions érotiques de filles					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">29/04&nbsp;|</span><span class="inline" style="color:#666; padding:0">17h44</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-Last">
+			<div style="float:left;width:43%">
+				<a href="/loisirs/cinema/news/4377/harry-potter-pres-de-2-millions-de-vues-pour-la-bande-annonce-du-dernier-chapitre">
+					<img src="/rtlutils/pics/afprelax/2011_04_29/120x70/harry.56166132559.original.jpg" class="RightImageArticle" alt="Harry Potter: près de 2 millions de vues pour la bande-annonce du dernier chapitre" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #810b79" href="/loisirs/cinema/news/4377/harry-potter-pres-de-2-millions-de-vues-pour-la-bande-annonce-du-dernier-chapitre">
+						Harry Potter: près de 2 millions de vues pour la bande-annonce du dernier...					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">29/04&nbsp;|</span><span class="inline" style="color:#666; padding:0">16h24</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+			</div>
+	<div style="clear:both"></div>
+	</div>
+																	<div style="border-top: 2px solid #1e277d;" class="ModuleElement" id="hp-zone-14">
+	<div style="background-color: #f1f7fa" class="ModuleElementMenu">
+		<div class="ModuleElementTitle">
+				<div class="ModuleElementTitleLeft" style="background-color:#1e277d;border-bottom:1px solid #f1f7fa"></div>
+					<div class="ModuleElementTitleTexte" style="background-color:#1e277d;">VOUS</div>
+				<div class="ModuleElementTitleRight" style="background-color:#1e277d;border-bottom:1px solid #f1f7fa"></div>
+						<ul>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/vous/temoignage" style="color:#1e277d">TEMOIGNAGES</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 1px solid #1e277d;">
+						<a href="/info/vous/opinion" style="color:#1e277d">OPINIONS</a>
+					</div>
+				</li>
+								<li>
+					<div style="border-right: 0px solid #1e277d;">
+						<a href="/info/static/view/alerteznous/--ALERTEZNOUS" style="color:#1e277d">ENVOYEZ VOS INFOS</a>
+					</div>
+				</li>
+							</ul>
+					</div>
+		<a href="#" onclick="return hp_zone_down($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowDown"></a>
+		<a href="#" onclick="return hp_zone_up($(this).parent().parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowUp"></a>
+	</div>
+	<div class="ModuleElementBody">
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-threePhoto-title-datePublication">
+								<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-First">
+			<div style="float:left;width:43%">
+				<a href="/info/vous/temoignage/791847/une-marche-pour-les-chevaux-maltraites-de-lessines">
+					<img src="/rtlutils/pics/div/2011_04_27/120x70/chev.jpg" class="RightImageArticle" alt="Une marche pour les chevaux maltraités de Lessines" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #1e277d" href="/info/vous/temoignage/791847/une-marche-pour-les-chevaux-maltraites-de-lessines">
+						Une marche pour les chevaux maltraités de Lessines					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">27/04&nbsp;|</span><span class="inline" style="color:#666; padding:0">13h10</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items">
+			<div style="float:left;width:43%">
+				<a href="/info/vous/opinion/790547/-notre-democratie-belge-est-confisquee-par-une-presidentocratie-">
+					<img src="/rtlutils/pics/div/2011_04_21/120x70/pras.jpg" class="RightImageArticle" alt="Notre démocratie belge est confisquée par une présidentocratie" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #1e277d" href="/info/vous/opinion/790547/-notre-democratie-belge-est-confisquee-par-une-presidentocratie-">
+						"Notre démocratie belge est confisquée par une présidentocratie"					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">21/04&nbsp;|</span><span class="inline" style="color:#666; padding:0">12h25</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+							<div class="widget-threePhoto-title-datePublication-Items widget-threePhoto-title-datePublication-Item-Last">
+			<div style="float:left;width:43%">
+				<a href="/info/vous/opinion/790592/avec-internet-et-les-smartphones-nous-sommes-devenus-des-monstres-">
+					<img src="/rtlutils/pics/div/2011_04_21/120x70/aioa.jpg" class="RightImageArticle" alt="Avec internet et les smartphones nous sommes devenus des monstres" />
+				</a>
+			</div>
+			<div style="float:left;width:56%">
+				<h5 class="widget-list-with-images" style="width:100%">
+					<a style="color: #1e277d" href="/info/vous/opinion/790592/avec-internet-et-les-smartphones-nous-sommes-devenus-des-monstres-">
+						Avec internet et les smartphones nous sommes devenus des "monstres"					</a>
+				</h5>
+			</div>
+			<p style="margin-bottom: 0;"><span><p class="options"><span class="time"><span class="color_gray inline" style="margin: 0 2px; padding:0px;">21/04&nbsp;|</span><span class="inline" style="color:#666; padding:0">14h34</span></span></p></span></p>
+			<div class="clearfix" style="clear: both; float: none;"></div>
+		</div>
+		</div>
+</div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell">
+															<div class="tot_widget-ul"><div class="widget widget-list-seven-titles">
+		<div class="titleWidgetStyle2">
+		<div class="TitleAutreWidgetImproved">
+			<div class="borderLeft"></div>
+			<div class="borderCenter">Les autres titres</div>
+			<div class="borderRight"></div>
+		</div>
+	<hr class="clearBoth" />
+	</div>
+	<ul class="listArrow">
+					<li class="lastItem">
+				<a style="color:#1e277d" href="/info/vous/temoignage/790244/la-n-va-en-vente-sur-ebay">
+					La N-VA en vente sur eBay				</a>
+			</li>
+					<li class="lastItem">
+				<a style="color:#1e277d" href="/info/vous/temoignage/790324/arnaque-a-la-carte-visa-sur-internet-denichee-par-luc-comment-reagir-">
+					Arnaque à la carte Visa sur internet dénichée par Luc: comment réagir?...				</a>
+			</li>
+			</ul>
+</div>
+</div>											<div class="tot_widget-ul"><a href="/info/static/view/alerteznous/--ALERTEZNOUS"><img src="/rtlutils/others/banners/vous/promoVous_300x150.png"></a><br/><br/></div>												</div>
+			<!-- [-] Column -->
+								<!-- [+] Column -->
+			<div class="ModuleElementCell ModuleElementCellRight">
+															<div class="tot_widget-ul"><iframe src="http://www.rtl.be/rtlutils/others/widgets/facefan/" width="300px" height="305px" scrolling="no" frameborder="0"></iframe></div>												</div>
+			<!-- [-] Column -->
+			</div>
+	<div style="clear:both"></div>
+	</div>
+																								<div id="hp-zone-19" class="ModuleElement">
+	<a href="#" onclick="return hp_zone_down($(this).parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowDown" style="float:right;"></a>
+	<a href="#" onclick="return hp_zone_up($(this).parent())" class="ModuleElementMenuArrow ModuleElementMenuArrowUp" style="float:right;"></a>
+	<div>
+		<div id="nw-service">Service<script type="text/javascript" src="http://www.rtl.be/rtlutils/others/inc/services/widget.js"></script> </div>
+<div style="clear:both"></div> 	</div>
+</div>
+			</div>
+	<script type="text/javascript">
+		sort_zones_start('info');
+	</script>
+	</div>
+</div><!-- end div mainContent -->
+		<div class="contentFooter"></div>
+		
+		<!-- (START) footer above footer -->
+		 		<!-- (END) footer above footer -->
+
+		 		<link rel="stylesheet" type="text/css" href="/rtlutils/others/inc/generic/feedback.css" />
+		<div class="topFooter"> <a class="backTop" href="#">Top</a> </div>
+<div class="mainContent fourcols">
+  <div class="floated firstCol">
+    <h5><a href="/people" style="color:#000000;">RTL people</a></h5>
+    <ul class="listArrow2">
+      <li><a href="/people/people">People</a></li>
+      <li><a href="/people/royaute">Royauté</a></li>
+      <li><a href="/people/media">Média</a></li>
+      <li><a href="/people/rtlhouse">RTL House</a></li>
+      <li><a href="/people/buzz">Buzz</a></li>
+    </ul>
+    <h5><a href="/sport" style="color:#000000;">RTL sport</a></h5>
+    <ul class="listArrow2">
+      <li><a href="/sport/football">Football</a></li>
+      <li><a href="/sport/tennis">Tennis</a></li>
+      <li><a href="/sport/cyclisme">Cyclisme</a></li>
+      <li><a href="/sport/auto_moto">Auto/Moto</a></li>
+      <li><a href="/sport/tous_les_sports/autres_sports">Les autres sports</a></li>
+    </ul>
+  </div>
+  <div class="floated secondCol">
+    <h5>RTL Services</h5>
+    <ul class="listArrow2">
+      <li><a href="/meteo">La météo</a></li>
+      <li><a href="/agenda">L'agenda des évènements</a></li>
+      <li><a href="/info/static/view/rss">Les flux RSS</a></li>
+      <li><a href="/info/newswire/">Le fil de l'actualité</a></li>
+      <li><a href="http://blogs.rtlinfo.be">Les blogs</a></li>
+    </ul>
+
+    <h5>A propos de RTL Belgium</h5>
+    <ul class="listArrow2">
+      <li><a href="http://www.rtl.be/recherche/page/infos-sur-rtl-belgium/76.aspx">Infos sur RTL Belgium</a></li>
+      <li><a href="http://www.ipb.be/newmedia/index.html">Publicité - IP NewMedia</a></li>
+      <li><a href="http://www.rtl.be/recherche/page/vie-privee-et-conditions-d-utilisation/77.aspx">Charte de la vie privée</a></li>
+      <li><a href="http://www.rtl.be/recherche/page/emplois-et-stages-chez-rtl-belgium/79.aspx">Emplois et Stages chez RTL Belgium</a></li>
+    </ul>
+  </div>
+  <div class="floated thirdCol">
+    <h5><a href="/infovideo" style="color:#000000;">Nos vidéos</a></h5>
+    <ul class="listArrow2">
+      <li><a href="/infovideo/videos/le-13-heures/286.aspx">Le journal de 13h</a></li>
+      <li><a href="/infovideo/videos/le-19-heures/312.aspx">Le journal de 19h</a></li>
+      <li><a href="/infovideo/videos/les-news-en-video/639.aspx">Les dernières infos</a></li>
+      <li><a href="/infovideo/">Toutes les vidéos</a></li>
+    </ul>
+    <h5>Nos autres sites</h5>
+    <ul class="listArrow2">
+      <li><a href="http://www.rtltvi.be">RTL TVI</a> <a href="http://www.clubrtl.be">Club RTL</a> <a href="http://www.plugrtl.be">Plug RTL</a></li>
+      <li><a href="http://www.belrtl.be">Bel RTL</a> <a href="http://www.radiocontact.be">Radio Contact</a></li>
+      <li><a href="http://www.rtlalinfini.be/">RTL A l'infini</a></li>
+      <li><a href="http://www.allortl.be">Allo RTL</a>, <a href="http://www.plugmobile.be">Plug Mobile</a></li>
+      <li><a href="http://www.puntavista.be/fr/">PuntaVista</a>, <a href="http://www.rtlvacances.be/">RTL Vacances</a></li>
+    </ul>
+  </div>
+  <div class="floated fourthCol">
+    <h5>Les sitemaps</h5>
+    <ul class="listArrow2">
+      <li><a href="/archive/info/belgique/">Belgique</a></li>
+      <li><a href="/archive/info/economie/">Economie</a></li>
+      <li><a href="/archive/info/monde/">Monde</a></li>
+      <li><a href="/archive/info/votreregion/">Votre région</a></li>
+      <li><a href="/archive/info/magazine/">Magazine</a></li>
+      <li><a href="/archive/sport/">Sport</a></li>
+    </ul>
+    <h5>Contactez nous</h5>
+    <p>Vous souhaitez nous envoyer une information?<br />
+      Utilisez le <a href="/info/static/view/alerteznous/--ALERTEZNOUS">formulaire de contact</a> pour nous envoyer vos scoops!</p>
+  </div>
+</div>
+<!-- end div mainContent -->
+<div class="contentFooter"></div>
+<div id="feedbackallbtns"></div>
+<script type="text/javascript" src="/rtlutils/others/inc/generic/feedback.js"></script>
+		<p class="footerRight"><a href="http://www.cim.be/inet/fr/r.html"><img src="/rtlutils/rtl/images/metriweb.jpg" alt="" /></a><a href="http://www.anais-it.com"><img src="/rtlutils/rtl/images/ANAIS_LOGO.gif" /></a></p>
+		<p class="clearit">&nbsp;</p>
+		<!-- (START) special html to position the right skyscraper banner -->
+		<div style="position:absolute; top:5px; left:0px; width:100%;">
+			<div style="position:relative;width:1004px; margin-left:auto; margin-right:auto;">
+				<div class="rtl_skyscraper_right">
+					<div ="skyscraper_ads">
+<!--  begin ad tag: P4995.RTL/INFO_HOME-FR_SKYSCRAPER_NOPOS_MULTI   (160x600,120x600,1x1) -->
+<script language="JavaScript" type="text/javascript">
+ord = (typeof(ord)!='undefined') ? ord : Math.random()*10000000000000000;
+document.write('<scr'+'ipt language="JavaScript" src="http://ad.doubleclick.net/adj/P4995.RTL/INFO_HOME-FR_SKYSCRAPER_NOPOS_MULTI;sz=160x600,120x600,1x1;tile=3;lang=fr;pos=right;pgl1=infohome;kw=[KEYWORD];ord='+ord+'?" type="text/javascript"></scr'+'ipt>');
+</script>
+<noscript>
+<a href="http://ad.doubleclick.net/jump/P4995.RTL/INFO_HOME-FR_SKYSCRAPER_NOPOS_MULTI;sz=160x600,120x600,1x1;tile=3;lang=fr;pos=right;pgl1=infohome;kw=[KEYWORD];ord=123456789?" target="_blank"><img src="http://ad.doubleclick.net/ad/P4995.RTL/INFO_HOME-FR_SKYSCRAPER_NOPOS_MULTI;sz=160x600,120x600,1x1;tile=3;lang=fr;pos=right;pgl1=infohome;kw=[KEYWORD];ord=123456789?" border="0" alt=""></a>
+</noscript>
+<!-- End ad tag -->
+</div>
+<script type="text/javascript">
+if((navigator.userAgent.match(/iPhone/i)) || (navigator.userAgent.match(/iPod/i)) || (navigator.userAgent.match(/iPad/i))) { $('#skyscraper_ads').hide(); }
+</script>				</div>
+			</div>
+		</div>
+		<!-- (END) special html to position the right skyscraper banner -->
+		
+	</div><!-- end div mainContainer -->
+	
+		<script type="text/javascript" src="http://static.ak.connect.facebook.com/js/api_lib/v0.4/FeatureLoader.js.php"></script>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			//needs to be here (and not external js) because of the php
+			//FB.init("247e35bf1a4a3bf16b1439b5881b16a6", "/rtlutils/xd_receiver.htm",{"ifUserConnected" : update_comment_login});
+		});
+	</script>
+<div style="display:none">
+	<a id="thickboxSimulationAnchor" href=""  class="thickbox">Simulate</a>
+</div> 
+
+	<!-- start metriweb scripts -->
+	<!-- another javascript for metriweb is included in the header -->
+	<script type="text/javascript">
+		var keyword = "info/homepage";
+		var extra = "fr"; /* or "en", "nl", "ge", "na" */
+	</script>
+	<script type="text/javascript" src="http://www.rtl.be/rtlutils/metriweb/mwTag.js"></script>
+	<script type="text/javascript">
+		metriwebTag("rtlinfo", keyword, extra);
+	</script>
+	
+	<!-- end metriweb scripts -->
+	<!-- start XITI scripts -->
+	<script type="text/javascript">
+	<!--
+		xtnv = document;        //parent.document or top.document or document         
+		xtsd = "http://logi10";
+		xtsite = "289456";
+		xtn2 = "50";        // level 2 site 
+		xtpage = "hprtlinfo";        //page name (with the use of :: to create chapters)
+		xtdi = "";        //implication degree
+	//-->
+	</script> 
+	<script type="text/javascript" language="javascript" src="/rtlutils/rtlutils/js/xtclicks.js" ></script> 
+	<script type="text/javascript" language="javascript" src="/rtlutils/rtlutils/js/xiti.js" ></script> 
+	<noscript>
+		<img width="1" height="1" alt="" src="http://logi10.xiti.com/hit.xiti?s=289456&amp;s2=50&amp;p=hprtlinfo&amp;di=&amp;" />
+	</noscript>
+	<!-- end XITI scripts -->
+	
+	
+	<script type="text/javascript"><!--
+if (xtclzone>0) {xtNodesload();}
+//--></script>
+
+
+	<script type="text/javascript">
+		RTLNS.currentPageName = 'homepage';
+		RTLNS.currentPageTitle = 'La Une de lactualité';
+		RTLNS.crtUrl = 'http://www.rtl.be/info';
+		RTLNS.elementType = 0;
+		RTLNS.elementId = 0;
+	</script>
+	<div style="width:1000px; margin:0 auto;">
+	</div>
+</body>
+</html>
