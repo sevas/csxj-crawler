@@ -293,6 +293,8 @@ def fetch_rtlinfo_articles(prefix):
     crawl_once(rtlinfo, 'rtlinfo', 'RTLInfo', prefix)
 
 
+
+    
 def update_all_queues(outdir):
     pass
 
@@ -320,4 +322,18 @@ def main(outdir):
 
 
 if __name__=="__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Manages the article queue')
+    parser.add_argument('--dir', type=str, dest='input_dir', required=True, help='json db directory')
+
+    group = parser.add_mutually_exclusive_group(required=True)
+
+    group.add_argument('--update-queue', action='store_true',  dest='update_queue',
+                       help='Fetch links to the newest articles and add them to the download queue')
+    group.add_argument('--download-queue', action='store_true', dest='download_queue',
+                       help='Download all queued articles and store them in the json database')
+
+    args = parser.parse_args()
+
+    print args
