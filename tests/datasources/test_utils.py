@@ -1,10 +1,9 @@
 __author__ = 'sevas'
 
 import sys
-sys.path.append('../')
 import unittest
 
-from parsers.utils import extract_plaintext_urls_from_text
+from csxj.datasources.common.utils import extract_plaintext_urls_from_text
 
 class PlainTextURLExtractorTestCases(unittest.TestCase):
     def setUp(self):

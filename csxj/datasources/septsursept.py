@@ -7,7 +7,7 @@ from datetime import datetime
 from itertools import chain
 import re
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup, UnicodeDammit, Tag
-from utils import fetch_html_content, count_words, make_soup_from_html_content
+from common.utils import fetch_html_content, make_soup_from_html_content
 
 
 

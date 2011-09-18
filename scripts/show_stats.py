@@ -2,7 +2,7 @@ __author__ = 'sevas'
 
 import os, os.path
 import argparse
-from csxj.crawler.providerstats import ProviderStats
+from csxj.providerstats import ProviderStats
 
 
 def print_report(stats):

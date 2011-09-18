@@ -28,17 +28,15 @@ Things should look like this:
 
 """
 
-
 import os, os.path
 from datetime import time, datetime
 from itertools import chain
 import json
-from article import ArticleData
+
+from csxj.datasources.common.article import ArticleData
+from csxj.providerstats import ProviderStats
 
 import utils
-
-from providerstats import ProviderStats
-
 
 def get_source_list(db_root):
     return utils.get_subdirectories(db_root)
