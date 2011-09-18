@@ -15,19 +15,6 @@ import json
 DEBUG_MODE = True
 
 
-def filter_only_new_stories(frontpage_stories, filename):
-    if os.path.exists(filename):
-        with open(filename, 'r') as f:
-            last_stories_fetched = [tuple(i) for i in  json.load(f)]
-            new_stories = set(frontpage_stories) - set(last_stories_fetched)
-    else:
-        new_stories = frontpage_stories
-
-    # save the current current list
-    with open(filename, 'w') as f:
-        json.dump(frontpage_stories, f)
-
-    return new_stories
 
 
 def find_stories_missing_from_frontpage(frontpage_toc, rss_toc):
@@ -229,43 +216,6 @@ def crawl_once(provider, provider_name, provider_title, prefix):
 
 
 
-
-class ArticleQueueFiller(object):
-    def __init__(self, provider, provider_name, prefix):
-        self.provider = provider
-        self.provider_name = provider_name
-        self.prefix = prefix
-
-
-    def fetch_newest_article_links(self):
-        outdir = os.path.join(self.prefix, self.provider_name)
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
-
-        queue_root_directory = os.path.join(self.prefix, self.provider_name, 'queue')
-
-        news_toc, blogposts_toc = self.provider.get_frontpage_toc()
-        last_stories_filename = os.path.join(outdir, 'last_frontpage_list.json')
-        frontpage_toc = filter_only_new_stories(news_toc, last_stories_filename)
-
-        
-
-
-
-    def update_global_queue(self):
-        pass
-
-
-
-class ArticleQueueDownloader(object):
-    def __init__(self, provider, provider_name, provider_title):
-        pass
-
-    def download_all_articles_in_queue(self):
-        pass
-
-
-
 def put_articles_in_queue():
     pass
 
@@ -296,7 +246,12 @@ def fetch_rtlinfo_articles(prefix):
 
     
 def update_all_queues(outdir):
-    pass
+    if not os.path.exists(outdir):
+        print 'creating output directory:', outdir
+        os.mkdir(outdir)
+
+    
+
 
 
 def download_all_queued_articles(outdir):
@@ -304,12 +259,6 @@ def download_all_queued_articles(outdir):
 
 
 def main(outdir):
-    if not os.path.exists(outdir):
-        print 'creating output directory:', outdir
-        os.mkdir(outdir)
-
-    print '-' * 80
-
     d = datetime.today()
     print d.strftime('New articles saved on %d/%m/%Y at %H:%M')
 
@@ -321,19 +270,18 @@ def main(outdir):
 
 
 
-if __name__=="__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description='Manages the article queue')
-    parser.add_argument('--dir', type=str, dest='input_dir', required=True, help='json db directory')
-
-    group = parser.add_mutually_exclusive_group(required=True)
-
-    group.add_argument('--update-queue', action='store_true',  dest='update_queue',
-                       help='Fetch links to the newest articles and add them to the download queue')
-    group.add_argument('--download-queue', action='store_true', dest='download_queue',
-                       help='Download all queued articles and store them in the json database')
-
-    args = parser.parse_args()
-
-    print args
+#if __name__=="__main__":
+#    import argparse
+#
+#    parser = argparse.ArgumentParser(description='Manages the article queue')
+#    parser.add_argument('--dir', type=str, dest='input_dir', required=True, help='json db directory')
+#
+#    group = parser.add_mutually_exclusive_group(required=True)
+#    group.add_argument('--update-queue', action='store_true',  dest='update_queue',
+#                       help='Fetch links to the newest articles and add them to the download queue')
+#    group.add_argument('--download-queue', action='store_true', dest='download_queue',
+#                       help='Download all queued articles and store them in the json database')
+#
+#    args = parser.parse_args()
+#
+#    print args
