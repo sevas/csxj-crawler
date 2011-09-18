@@ -1,14 +1,9 @@
 __author__ = 'sevas'
 
-import sys
-# excuse me, but a bunny just died
-sys.path.append('../')
-
 import unittest
-import json
 from datetime import datetime, date, time
 
-from parsers.article import classify_and_tag, tag_URL, ArticleData, TaggedURL
+from csxj.datasources.common.article import classify_and_tag, tag_URL, TaggedURL
 
 
 class URLClassificationTestCases(unittest.TestCase):
@@ -24,32 +19,32 @@ class URLClassificationTestCases(unittest.TestCase):
     def test_internal_url(self):
         url = '/this/is/just/a/path.php'
         tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, ['internal'])
+        self.assertEqual(tags, set(['internal']))
 
     
 
     def test_external_url(self):
         url = 'http://www.bar.org'
         tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, ['external'])
+        self.assertEqual(tags, set(['external']))
 
 
     def test_internal_blog(self):
         url = 'http://awesomeblog.foo.com/bestest-article-of-the-day.aspx?hl=nl'
         tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, ['internal blog'])
+        self.assertEqual(tags, set(['internal blog']))
 
 
     def test_internal_biased_blog(self):
         url = 'http://elections.foo.com/bestest-article-of-the-day.aspx?hl=nl'
         tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, ['internal blog', 'politics'])
+        self.assertEqual(tags, set(['internal blog', 'politics']))
 
 
     def test_other_internal_site(self):
         url = 'http://community.foo.com/index.php?section=humor&show_rows=30'
         tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, ['community forum'])
+        self.assertEqual(tags, set(['community forum']))
 
 
 
