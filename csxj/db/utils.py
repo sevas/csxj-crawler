@@ -16,7 +16,7 @@ def make_time_from_string(time_string):
 
     For example:
 
-    >>> make_time_from_string('22:06:10')
+    >>> make_time_from_string('22.06.10')
     datetime.time(22, 6, 10)
     """
     h, m, s = [int(i) for i in time_string.split('.')]
