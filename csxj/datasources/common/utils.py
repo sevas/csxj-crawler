@@ -12,10 +12,6 @@ def fetch_html_content(url):
     return fetch_content_from_url(url)
 
 
-def fetch_html_content_with_redirection(url):
-    pass
-
-
 def fetch_rss_content(url):
     return fetch_content_from_url(url)
 
@@ -42,7 +38,7 @@ def extract_plaintext_urls_from_text(some_text):
     return urls
 
 
-TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span', 'sub', 'sup' ]
+TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span', 'sub', 'sup', 'p' ]
 
 def remove_text_formatting_markup(formatted_text_fragment):
     """
@@ -55,10 +51,10 @@ def remove_text_formatting_markup(formatted_text_fragment):
     if isinstance(formatted_text_fragment, Tag):
         # If it's the former, we remove the tag and clean up all its children
         if formatted_text_fragment.name in TEXT_MARKUP_TAGS:
-            return ''.join([remove_text_formatting_markup(f) for f in formatted_text_fragment.contents])
+            return u''.join([remove_text_formatting_markup(f) for f in formatted_text_fragment.contents])
         # sometimes we get embedded <objects>, just ignore it
         else:
-            return ''
+            return u''
     # If it's a plain string, there is nothing else to do
     else:
         return formatted_text_fragment
@@ -69,4 +65,4 @@ def remove_text_formatting_markup_from_fragments(fragments):
     """
     cleans up the html markup from a collection of fragments
     """
-    return ''.join(remove_text_formatting_markup(f) for f in fragments)
+    return u''.join(remove_text_formatting_markup(f) for f in fragments)
