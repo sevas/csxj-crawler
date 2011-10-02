@@ -17,16 +17,32 @@ This is how a typical database looks like:
   - queue
     -
 
-This helper module enables programmatic access to this hierarchy. No data is
-parsed or loaded here. We only allow to iterate over the directories.
-
-
+This helper module enables programmatic access to this hierarchy. 
 """
 
 import os, os.path
 from datetime import time, datetime
 from itertools import chain
+import json
+
 import utils
+from article import ArticleData
+from providerstats import ProviderStats
+
+
+class NonExistentDayError(Exception):
+    def __init__(self, provider_name, date_string):
+        super(NonExistentDayError, self).__init__()
+        self.provider_name = provider_name
+        self.date_string = date_string
+
+
+class NonExistentBatchError(Exception):
+    def __init__(self, provider_name, date_string, batch_time_string):
+        super(NonExistentBatchError, self).__init__()
+        self.provider_name = provider_name
+        self.date_string = date_string
+        self.batch_time_string = batch_time_string
 
 
 def get_all_provider_names(db_root):
@@ -36,6 +52,7 @@ def get_all_provider_names(db_root):
     Returns a list of string, one for each content provider.
     """
     return utils.get_subdirectories(db_root)
+
 
 
 def get_latest_fetched_articles(db_root):
@@ -64,8 +81,89 @@ def get_latest_fetched_articles(db_root):
 
 
 class Provider(object):
+    """
+    Programmatic interface to access the data stored for one content provider.
+    """
     def __init__(self, db_root, provider_name):
-        self.root = db_root
+        self.db_root = db_root
         self.name = provider_name
 
-    
+
+    @property
+    def directory(self):
+        return os.path.join(self.db_root, self.name)
+
+
+    def get_last_frontpage_items(self):
+        """
+        Returns a list of (title, url) for the items fetched on the last query.
+        """
+        provider_dir = self.directory
+        filename = os.path.join(provider_dir, 'last_frontpage_list.json')
+        if os.path.exists(filename):
+            with open(filename, 'r') as f:
+                last_stories_fetched = [tuple(i) for i in  json.load(f)]
+                return last_stories_fetched
+        else:
+            return list()
+
+
+    def get_all_days(self):
+        """
+        Returns a sorted list of all the dates for which there is data available
+        """
+        all_days = utils.get_subdirectories(self.directory)
+        all_days.sort()
+        return all_days
+
+
+
+    def get_all_batches(self, date_string):
+        """
+        For a certain date, returns a list of hours (as strings) for which we have data available.
+        """
+        path = os.path.join(self.directory, date_string)
+        if os.path.exists(path):
+            all_batches = utils.get_subdirectories(path)
+            all_batches.sort()
+            return all_batches
+        else:
+            raise NonExistentDayError(self.name, date_string)
+
+
+    def get_batch(self, date_string, batch_time_string):
+        batch_dir = os.path.join(self.directory, date_string, batch_time)
+        if os.path.exists(batch_dir):
+            json_filepath = os.path.join(batch_dir, 'articles.json')
+            with open(json_filepath, 'r') as f:
+                json_content = json.load(f)
+                articles = [ArticleData.from_json(json_string) for json_string in json_content['articles']]
+                n_errors = len(json_content['errors'])
+                all_batches.append((batch_time, articles, n_errors))
+        else:
+            raise NonExistentBatchError(self.name, date_string, batch_time_string)
+
+
+    def get_articles_per_batch(self, date_string):
+        """
+        Returns a list of (time, [Articles]).
+        """
+        day_directory = os.path.join(self.directory, date_string)
+        if os.path.exists(day_directory):
+            all_batch_times = utils.get_subdirectories(day_directory)
+            all_batches = []
+            for batch_time in all_batch_times:
+                pass
+
+            all_batches.sort(key=lambda x: x[0])
+            return all_batches
+        else:
+            raise NonExistentDayError(self.name, date_string)
+
+
+    def get_queued_batches(self):
+        pass
+
+
+    def get_queued_items_for_batch(self):
+        pass
