@@ -6,11 +6,12 @@ import os, os.path
 from collections import namedtuple
 import traceback
 from datetime import datetime
+import json
 
 from datasources import lesoir, dhnet, lalibre, sudpresse, rtlinfo
 from datasources.common.utils import fetch_html_content
 from providerstats import ProviderStats
-import json
+from articlequeue import ArticleQueueFiller, ArticleQueueDownloader
 
 DEBUG_MODE = True
 
@@ -250,6 +251,8 @@ def update_all_queues(outdir):
         print 'creating output directory:', outdir
         os.mkdir(outdir)
 
+
+
     
 
 
@@ -266,7 +269,7 @@ def main(outdir):
     #fetch_dhnet_articles(outdir)
     #fetch_lalibre_articles(outdir)
     #fetch_sudpresse_articles(outdir)
-    fetch_rtlinfo_articles(outdir)
+    #fetch_rtlinfo_articles(outdir)
 
 
 

@@ -3,16 +3,24 @@ import json
 
 
 
-def filter_only_new_stories(frontpage_stories, filename):
+def load_last_toc_from_file(filename):
+    last_stories_fetched = list()
     if os.path.exists(filename):
         with open(filename, 'r') as f:
             last_stories_fetched = [tuple(i) for i in  json.load(f)]
-            new_stories = set(frontpage_stories) - set(last_stories_fetched)
-    else:
-        new_stories = frontpage_stories
+    return last_stories_fetched
 
-    # save the current current list
+
+
+def save_toc_to_file(toc, filename):
     with open(filename, 'w') as f:
-        json.dump(frontpage_stories, f)
+        json.dump(toc, f)
 
+
+
+def filter_only_new_stories(frontpage_stories, filename):
+    last_stories_fetched = load_last_toc(filename)
+    new_stories = set(frontpage_stories) - set(last_stories_fetched)
+
+    save_toc_to_file(filename)
     return new_stories
