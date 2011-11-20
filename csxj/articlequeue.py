@@ -1,5 +1,6 @@
 import os, os.path
 import utils
+import json
 
 
 class ArticleQueueFiller(object):
@@ -17,7 +18,12 @@ class ArticleQueueFiller(object):
         queue_root_directory = os.path.join(self.prefix, self.provider_name, 'queue')
 
         news_toc, blogposts_toc = self.provider.get_frontpage_toc()
-        last_stories_filename = os.path.join(outdir, 'last_frontpage_list.json')
+
+        
+        if os.path.exists(last_stories_filename):
+            with open(last_stories_filename, 'r') as f:
+                last_stories_fetched = [tuple(i) for i in  json.load(f)]
+
         frontpage_toc = utils.filter_only_new_stories(news_toc, last_stories_filename)
 
 

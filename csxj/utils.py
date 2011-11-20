@@ -2,6 +2,7 @@ import os.path
 import json
 
 
+
 def filter_only_new_stories(frontpage_stories, filename):
     if os.path.exists(filename):
         with open(filename, 'r') as f:

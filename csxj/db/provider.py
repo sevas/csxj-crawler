@@ -49,7 +49,7 @@ def get_all_provider_names(db_root):
     """
     Get the list of providers for which we have data.
 
-    Returns a list of string, one for each content provider.
+    Returns a list of string, the names of each content provider.
     """
     return utils.get_subdirectories(db_root)
 
@@ -58,8 +58,8 @@ def get_all_provider_names(db_root):
 def get_latest_fetched_articles(db_root):
     providers = utils.get_subdirectories(db_root)
 
-    last_articles = {}
-    last_errors = {}
+    last_articles = dict()
+    last_errors = dict()
 
     # todo: fix that shit
     fetched_date = datetime.today().date()
@@ -110,7 +110,7 @@ class Provider(object):
 
     def get_all_days(self):
         """
-        Returns a sorted list of all the dates for which there is data available
+        Returns a sorted list of all the dates (formatted as: YYYY-MM-DD) for which there is data available
         """
         all_days = utils.get_subdirectories(self.directory)
         all_days.sort()
@@ -118,9 +118,9 @@ class Provider(object):
 
 
 
-    def get_all_batches(self, date_string):
+    def get_all_batch_hours(self, date_string):
         """
-        For a certain date, returns a list of hours (as strings) for which we have data available.
+        For a certain date (YYYY-MM-DD string), returns a list of hours (as HH.MM.SS strings) for which we have data available.
         """
         path = os.path.join(self.directory, date_string)
         if os.path.exists(path):
@@ -131,15 +131,18 @@ class Provider(object):
             raise NonExistentDayError(self.name, date_string)
 
 
-    def get_batch(self, date_string, batch_time_string):
-        batch_dir = os.path.join(self.directory, date_string, batch_time)
+    def get_batch_content(self, date_string, batch_time_string):
+        """
+        Returns the data saved for a specific batch
+        """
+        batch_dir = os.path.join(self.directory, date_string, batch_time_string)
         if os.path.exists(batch_dir):
             json_filepath = os.path.join(batch_dir, 'articles.json')
             with open(json_filepath, 'r') as f:
                 json_content = json.load(f)
                 articles = [ArticleData.from_json(json_string) for json_string in json_content['articles']]
                 n_errors = len(json_content['errors'])
-                all_batches.append((batch_time, articles, n_errors))
+                return articles, n_errors
         else:
             raise NonExistentBatchError(self.name, date_string, batch_time_string)
 
@@ -153,8 +156,9 @@ class Provider(object):
             all_batch_times = utils.get_subdirectories(day_directory)
             all_batches = []
             for batch_time in all_batch_times:
-                pass
-
+                batch_content = self.get_batch_content(date_string, batch_time)
+                all_batches.append((batch_time, batch_content[0]))
+                
             all_batches.sort(key=lambda x: x[0])
             return all_batches
         else:
