@@ -22,8 +22,8 @@ This helper module enables programmatic access to this hierarchy.
 
 import os, os.path
 from datetime import time, datetime
-from itertools import chain
 import json
+import shutil
 
 import utils
 from article import ArticleData
@@ -165,9 +165,46 @@ class Provider(object):
             raise NonExistentDayError(self.name, date_string)
 
 
-    def get_queued_batches(self):
-        pass
+        
+    def get_queued_batches_by_day(self):
+        """
+        Each datasource directory contains a 'queue' directory in which items' urls
+        are stored for delayed download.
+
+        Under the 'queue' directory,
+        """
+        queue_directory = os.join(self.directory, "queue")
+        batched_days = utils.get_subdirectories(queue_directory)
+        batches_by_day = dict()
+        for day_string in batched_days:
+            batches_by_day[day_string] = self.get_queued_items_by_batch(os.path.join(queue_directory, day_string))
+
+        return batches_by_day
 
 
-    def get_queued_items_for_batch(self):
-        pass
+
+    def get_queued_items_by_batch(self, day_directory):
+        """
+        Queued items for a day are stored in json files, one for every batch.
+        The hierarchy looks like:
+
+         - 2011-26-11/
+            - ...
+            - 21.00.00.json
+            - 22.00.00.json
+            - ...
+
+        Every file contains two lists of (title, url) pairs: one for the actual
+        news stories, and one for the occasionally promoted blogposts.
+        """
+        def get_json_files(parent_dir):
+            return [i for i in os.listdir(parent_dir) if os.path.isfile(i) and i.endswith(".json")]
+
+        items_by_batch = list()
+        for batch_file in get_json_files(day_directory):
+            batch_hour = batch_file[:-5]
+            with open(os.path.join(day_directory, batch_file)) as f:
+                items = json.load(f)
+                items.append((batch_hour, items))
+        #shutil.rmtree(day_directory)
+        return items_by_batch
