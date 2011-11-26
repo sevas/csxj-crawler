@@ -9,6 +9,13 @@ def get_subdirectories(parent_dir):
     return [d for d in os.listdir(parent_dir) if os.path.isdir(os.path.join(parent_dir, d))]
 
 
+def get_json_files(parent_dir):
+    """
+    Returns a list of file names corresponding to all the .json files in the supplied directory.
+    """
+    return [i for i in os.listdir(parent_dir)
+                    if os.path.isfile(os.path.join(parent_dir, i)) and i.endswith(".json")]
+
 
 def make_time_from_string(time_string):
     """
