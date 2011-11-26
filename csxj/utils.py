@@ -19,8 +19,7 @@ def save_toc_to_file(toc, filename):
 
 
 def filter_only_new_stories(frontpage_stories, filename):
-    last_stories_fetched = load_last_toc(filename)
+    last_stories_fetched = load_last_toc_from_file(filename)
     new_stories = set(frontpage_stories) - set(last_stories_fetched)
-
-    save_toc_to_file(filename)
-    return new_stories
+    save_toc_to_file(frontpage_stories, filename)
+    return list(new_stories)
