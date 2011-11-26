@@ -10,7 +10,7 @@ from db import Provider
 
 LAST_STORIES_FILENAME='last_frontpage_list.json'
 LAST_BLOGPOSTS_FILENAME='last_blogposts_list.json'
-
+LOG_PATH = "logs"
 
 def make_queued_batch_filename():
     pass
@@ -18,6 +18,7 @@ def make_queued_batch_filename():
 
 
 class ArticleQueueFiller(object):
+    log_name = "csxj_QueueFiller.log"
     def __init__(self, provider, provider_name, prefix):
         self.provider = provider
         self.provider_name = provider_name
@@ -29,11 +30,11 @@ class ArticleQueueFiller(object):
 
 
     def setup_logging(self):
-        if not os.path.exists("logs"):
-            os.mkdir("logs")
+        if not os.path.exists(LOG_PATH):
+            os.mkdir(LOG_PATH)
             
         file_formatter = logging.Formatter('%(asctime)s [%(levelname)s:{0}] %(message)s'.format(self.provider_name))
-        file_handler = logging.FileHandler("logs/csxj_QueueFiller.log")
+        file_handler = logging.FileHandler(os.path.join(LOG_PATH, self.log_name))
         file_handler.setFormatter(file_formatter)
 
         stream_formatter = logging.Formatter("[%(levelname)s:{0}]  %(message)s".format(self.provider_name))
@@ -92,20 +93,53 @@ class ArticleQueueFiller(object):
 
 
 class ArticleQueueDownloader(object):
-    def __init__(self, db_root, provider_name, provider_title):
+    log_name = "csxj_QueueDownloader.log"
+    def __init__(self, provider, db_root, provider_name):
         self.db_root = db_root
+        self.provider = provider
         self.provider_name = provider_name
-        self.provider_title = provider_title
+        self.setup_logging()
+
+
+
+    def setup_logging(self):
+        if not os.path.exists(LOG_PATH):
+            os.mkdir(LOG_PATH)
+
+        file_formatter = logging.Formatter('%(asctime)s [%(levelname)s:{0}] %(message)s'.format(self.provider_name))
+        file_handler = logging.FileHandler(os.path.join(LOG_PATH, self.log_name))
+        file_handler.setFormatter(file_formatter)
+
+        stream_formatter = logging.Formatter("[%(levelname)s:{0}]  %(message)s".format(self.provider_name))
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setFormatter(stream_formatter)
+
+        self.log = logging.getLogger(self.log_name)
+        self.log.setLevel(logging.INFO)
+        self.log.addHandler(file_handler)
+        self.log.addHandler(stream_handler)
 
 
 
     def download_all_articles_in_queue(self):
         provider_db = Provider(self.db_root, self.provider_name)
+        queued_items = provider_db.get_queued_batches_by_day()
+        for (day_string, batches) in queued_items.items():
+            for batch in batches:
+                batch_hour_string, items = batch
+                print batch_hour_string
+                urls = [url for (title, url) in items['articles']]
+                articles = self.download_batch(urls)
 
 
 
-    def download_all_articles_for_day(self, day_string):
-        pass
+    def download_batch(self, urls):
+        articles = list()
+        for url in urls:
+            article_data, html_content = self.provider.extract_article_data(url)
+            print article_data.fetched_datetime, article_data.title
+            articles.append(article_data)
+        return articles
 
 
 
@@ -118,8 +152,12 @@ def test_filler():
 
 
 def test_downloader():
-    pass
+    from datasources import lesoir
+    queue_downloader = ArticleQueueDownloader(lesoir, "out", "lesoir")
+    queue_downloader.download_all_articles_in_queue()
+
 
 
 if __name__ == "__main__":
-    test_filler()
+    #test_filler()
+    test_downloader()
