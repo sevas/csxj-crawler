@@ -7,3 +7,4 @@ figures/
 test_figures/
 json_db*/
 .idea/
+logs/
