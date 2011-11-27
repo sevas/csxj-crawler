@@ -259,16 +259,20 @@ class ArticleQueueDownloader(object):
     def update_provider_stats(self, outdir, articles, errors):
         stats_filename = os.path.join(outdir, 'stats.json')
         if not os.path.exists(stats_filename):
-            print 'creating stats file:', stats_filename
+            self.log_info("Creating stats file: {0}".foramt(stats_filename))
             init_stats = ProviderStats.make_init_instance()
             init_stats.save_to_file(stats_filename)
 
-        current_stats = ProviderStats.load_from_file(stats_filename)
-        current_stats.n_articles += len(articles)
-        current_stats.n_errors += len(errors)
-        current_stats.n_dumps += 1
-        current_stats.end_date = datetime.today()
-        current_stats.n_links += sum([(len(art.external_links) + len(art.internal_links)) for art in articles])
+        try:
+            self.log_info("Restoring stats from file {0} ".format(stats_filename))
+            current_stats = ProviderStats.load_from_file(stats_filename)
+            current_stats.n_articles += len(articles)
+            current_stats.n_errors += len(errors)
+            current_stats.n_dumps += 1
+            current_stats.end_date = datetime.today()
+            current_stats.n_links += sum([(len(art.external_links) + len(art.internal_links)) for art in articles])
+        except Exception as e:
+            self.log_info(e.message)
 
         current_stats.save_to_file(stats_filename)
 
