@@ -4,7 +4,8 @@ from datetime import datetime
 import json
 import utils
 import logging
-
+import traceback
+from collections import namedtuple
 
 from db import Provider
 
@@ -12,62 +13,101 @@ LAST_STORIES_FILENAME='last_frontpage_list.json'
 LAST_BLOGPOSTS_FILENAME='last_blogposts_list.json'
 LOG_PATH = "logs"
 
-def make_queued_batch_filename():
-    pass
+ARTICLES_FILENAME = 'articles.json'
+BLOGPOSTS_FILENAME = 'blogposts.json'
+ERRORS_FILENAME = 'errors.json'
+RAW_DATA_DIR = 'raw_data'
+
+DEBUG_MODE = True
+
+ErrorLogEntry = namedtuple('ErrorLogEntry', 'url filename stacktrace')
+
+
+def make_error_log_entry(url, stacktrace, outdir):
+    """
+    """
+    outfile = '%s/%s' % (outdir, url)
+    return ErrorLogEntry(url, outfile, stacktrace)
+
+
+
+def write_dict_to_file(d, outdir, outfile):
+    """
+    """
+    publication_outdir = outdir
+    if not os.path.exists(publication_outdir):
+        os.makedirs(publication_outdir)
+
+    filename = os.path.join(publication_outdir, outfile)
+    with open(filename, 'w') as outfile:
+        json.dump(d, outfile)
+
+
 
 
 
 class ArticleQueueFiller(object):
     log_name = "csxj_QueueFiller.log"
-    def __init__(self, provider, provider_name, prefix):
-        self.provider = provider
-        self.provider_name = provider_name
-        self.prefix = prefix
+    def __init__(self, source, source_name, db_root):
+        self.source = source
+        self.source_name = source_name
+        self.db_root = db_root
         self.new_stories = list()
-        self.root = os.path.join(prefix, provider_name)
-        self.setup_logging()
+        self.root = os.path.join(db_root, source_name)
 
 
 
-    def setup_logging(self):
+    def make_log_message(self, message):
+        return u"[{0}] {1}".format(self.source_name, message)
+
+
+
+    def log_info(self, message):
+        self.log.info(self.make_log_message(message))
+
+
+
+    @classmethod
+    def setup_logging(cls):
         if not os.path.exists(LOG_PATH):
             os.mkdir(LOG_PATH)
-            
-        file_formatter = logging.Formatter('%(asctime)s [%(levelname)s:{0}] %(message)s'.format(self.provider_name))
-        file_handler = logging.FileHandler(os.path.join(LOG_PATH, self.log_name))
+
+        file_formatter = logging.Formatter('%(asctime)s [%(levelname)s:] %(message)s')
+        file_handler = logging.FileHandler(os.path.join(LOG_PATH, cls.log_name))
         file_handler.setFormatter(file_formatter)
 
-        stream_formatter = logging.Formatter("[%(levelname)s:{0}]  %(message)s".format(self.provider_name))
+        stream_formatter = logging.Formatter("[%(levelname)s]  %(message)s")
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setFormatter(stream_formatter)
         
-        self.log = logging.getLogger("csxj_QueueFiller")
-        self.log.setLevel(logging.INFO)
-        self.log.addHandler(file_handler)
-        self.log.addHandler(stream_handler)
+        cls.log = logging.getLogger("csxj_QueueFiller")
+        cls.log.setLevel(logging.INFO)
+        cls.log.addHandler(file_handler)
+        cls.log.addHandler(stream_handler)
+        
 
 
 
     def fetch_newest_article_links(self):
-        outdir = os.path.join(self.prefix, self.provider_name)
+        outdir = os.path.join(self.db_root, self.source_name)
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
-        frontpage_toc, blogposts_toc = self.provider.get_frontpage_toc()
-        self.log.info("Found {0} stories and {1} blogposts on frontpage".format(len(frontpage_toc),
+        frontpage_toc, blogposts_toc = self.source.get_frontpage_toc()
+        self.log_info("Found {0} stories and {1} blogposts on frontpage".format(len(frontpage_toc),
                                                                                  len(blogposts_toc)))
 
-        last_stories_filename = os.path.join(self.prefix,
-                                             self.provider_name,
+        last_stories_filename = os.path.join(self.db_root,
+                                             self.source_name,
                                              LAST_STORIES_FILENAME)
-        last_blogposts_filename = os.path.join(self.prefix,
-                                               self.provider_name,
+        last_blogposts_filename = os.path.join(self.db_root,
+                                               self.source_name,
                                                LAST_BLOGPOSTS_FILENAME)
 
         self.new_stories = utils.filter_only_new_stories(frontpage_toc, last_stories_filename)
         self.new_blogposts = utils.filter_only_new_stories(blogposts_toc, last_blogposts_filename)
 
-        self.log.info("Found {0} new stories and {1} new blogposts since last time".format(len(self.new_stories),
+        self.log_info("Found {0} new stories and {1} new blogposts since last time".format(len(self.new_stories),
                                                                                            len(self.new_blogposts)))
 
 
@@ -84,9 +124,10 @@ class ArticleQueueFiller(object):
         batch_hour_str = today.strftime("%H.%M.%S")
         batch_filename = "{0}.json".format(os.path.join(day_directory, batch_hour_str))
 
-        self.log.info("Saving toc to {0}".format(batch_filename))
+        self.log.info(self.make_log_message("Saving toc to {0}".format(batch_filename)))
         with open(batch_filename, "w") as f:
-            self.log.info("Enqueuing {0} new stories and {1} blogposts".format(len(self.new_stories), len(self.new_blogposts)))
+            self.log.info(self.make_log_message("Enqueuing {0} new stories and {1} blogposts".format(len(self.new_stories),
+                                                                                                     len(self.new_blogposts))))
             json.dump({"articles":self.new_stories, "blogposts":self.new_blogposts}, f)
 
             
@@ -94,67 +135,143 @@ class ArticleQueueFiller(object):
 
 class ArticleQueueDownloader(object):
     log_name = "csxj_QueueDownloader.log"
-    def __init__(self, provider, db_root, provider_name):
+    def __init__(self, source, source_name, db_root):
         self.db_root = db_root
-        self.provider = provider
-        self.provider_name = provider_name
-        self.setup_logging()
+        self.source = source
+        self.source_name = source_name
+        self.downloaded_articles = []
 
 
 
-    def setup_logging(self):
+    def make_log_message(self, message):
+        return u"[{0}] {1}".format(self.source_name, message)
+
+
+
+    def log_info(self, message):
+        self.log.info(self.make_log_message(message))
+
+
+
+    @classmethod
+    def setup_logging(cls):
         if not os.path.exists(LOG_PATH):
             os.mkdir(LOG_PATH)
 
-        file_formatter = logging.Formatter('%(asctime)s [%(levelname)s:{0}] %(message)s'.format(self.provider_name))
-        file_handler = logging.FileHandler(os.path.join(LOG_PATH, self.log_name))
+        file_formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+        file_handler = logging.FileHandler(os.path.join(LOG_PATH, cls.log_name))
         file_handler.setFormatter(file_formatter)
 
-        stream_formatter = logging.Formatter("[%(levelname)s:{0}]  %(message)s".format(self.provider_name))
+        stream_formatter = logging.Formatter("[%(levelname)s]  %(message)s")
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setFormatter(stream_formatter)
 
-        self.log = logging.getLogger(self.log_name)
-        self.log.setLevel(logging.INFO)
-        self.log.addHandler(file_handler)
-        self.log.addHandler(stream_handler)
+        cls.log = logging.getLogger(cls.log_name)
+        cls.log.setLevel(logging.INFO)
+        cls.log.addHandler(file_handler)
+        cls.log.addHandler(stream_handler)
 
 
 
     def download_all_articles_in_queue(self):
-        provider_db = Provider(self.db_root, self.provider_name)
+        provider_db = Provider(self.db_root, self.source_name)
         queued_items = provider_db.get_queued_batches_by_day()
+
         for (day_string, batches) in queued_items.items():
-            for batch in batches:
+            self.log_info("Downloading {0} batches for {1}".format(len(batches), day_string))
+            for (i, batch) in enumerate(batches):
                 batch_hour_string, items = batch
-                print batch_hour_string
+                self.log.info(self.make_log_message("Downloading {0} articles for batch#{1} ({2})".format(len(items['articles']), i, batch_hour_string)))
                 urls = [url for (title, url) in items['articles']]
-                articles = self.download_batch(urls)
+                articles, errors, raw_data = self.download_batch(urls)
+
+                self.log_info("Found data for {0} articles ({1} errors)".format(len(articles),
+                                                                                len(errors)))
+                batch_output_directory = os.path.join(self.db_root, self.source_name, day_string, batch_hour_string)
+                self.save_articles_to_db(articles, errors, items['blogposts'], batch_output_directory)
+                self.save_raw_data_to_db(raw_data, batch_output_directory)
 
 
 
     def download_batch(self, urls):
-        articles = list()
+        articles, errors, raw_data = list(), list(), list()
         for url in urls:
-            article_data, html_content = self.provider.extract_article_data(url)
-            print article_data.fetched_datetime, article_data.title
-            articles.append(article_data)
-        return articles
+            try:
+                article_data, html_content = self.source.extract_article_data(url)
+                if article_data:
+                    articles.append(article_data)
+                    raw_data.append((url, html_content))
+            except Exception as e:
+                if e.__class__ in [AttributeError]:
+                    # this is for logging errors while parsing the dom. If it fails,
+                    # we should get an AttributeError at some point. We'll keep
+                    # that in a log, and save the html for future processing.
+                    stacktrace = traceback.format_stack()
+                    new_error = make_error_log_entry(url, stacktrace, self.db_root)
+                    errors.append(new_error)
+                else:
+                    if DEBUG_MODE:
+                        # when developing, it's useful to not hide the exception
+                        raise e
+                    else:
+                        # but in production, log everything
+                        stacktrace = traceback.format_stack()
+                        new_error = make_error_log_entry(url, stacktrace, self.db_root)
+                        errors.append(new_error)
+
+        return articles, errors, raw_data
 
 
+
+    def save_articles_to_db(self, articles, errors, blogposts, outdir):
+        all_data = {'articles':[art.to_json() for art in  articles],
+                    'errors':errors}
+
+        self.log_info("Writing articles {0}".format(os.path.join(outdir, ARTICLES_FILENAME)))
+        write_dict_to_file(all_data, outdir, ARTICLES_FILENAME)
+        blogposts_data = {'blogposts':blogposts}
+        self.log_info("Writing blogposts {0}".format(os.path.join(outdir, BLOGPOSTS_FILENAME)))
+        write_dict_to_file(blogposts_data, outdir, BLOGPOSTS_FILENAME)
+        self.log_info("Writing errors {0}".format(os.path.join(outdir, ERRORS_FILENAME)))
+        write_dict_to_file({'errors':errors}, outdir, ERRORS_FILENAME)
+
+
+
+    def save_raw_data_to_db(self, raw_data, batch_outdir):
+        """
+        """
+        self.log_info("Writing raw html data to {0}".format(os.path.join(batch_outdir, RAW_DATA_DIR)))
+        
+        raw_data_dir = os.path.join(batch_outdir, RAW_DATA_DIR)
+        os.mkdir(raw_data_dir)
+        references = []
+        for (i, (url, html_content)) in enumerate(raw_data):
+            outfilename = "{0}.html".format(i)
+            with open(os.path.join(raw_data_dir, outfilename), 'w') as f:
+                f.write(html_content)
+            references.append((url, outfilename))
+
+        with open(os.path.join(raw_data_dir, 'references.json'), 'w') as f:
+            json.dump(references, f)
+
+        
 
 def test_filler():
-    from datasources import lesoir
-    queue_filler = ArticleQueueFiller(lesoir, "lesoir", "out")
-    queue_filler.fetch_newest_article_links()
-    queue_filler.update_global_queue()
+    from datasources import lesoir, lalibre
+    ArticleQueueFiller.setup_logging()
+    for source in [lesoir, lalibre]:
+        queue_filler = ArticleQueueFiller(source, source.SOURCE_NAME, "testing")
+        queue_filler.fetch_newest_article_links()
+        queue_filler.update_global_queue()
     
 
 
 def test_downloader():
-    from datasources import lesoir
-    queue_downloader = ArticleQueueDownloader(lesoir, "out", "lesoir")
-    queue_downloader.download_all_articles_in_queue()
+    ArticleQueueDownloader.setup_logging()
+    from datasources import lesoir, lalibre
+    for source in [lesoir, lalibre]:
+        queue_downloader = ArticleQueueDownloader(source, source.SOURCE_NAME, "testing")
+        queue_downloader.download_all_articles_in_queue()
 
 
 
