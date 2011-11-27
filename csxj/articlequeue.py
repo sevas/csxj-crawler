@@ -7,7 +7,7 @@ import logging
 import traceback
 from collections import namedtuple
 
-from db import Provider
+from db import Provider, ProviderStats
 
 LAST_STORIES_FILENAME='last_frontpage_list.json'
 LAST_BLOGPOSTS_FILENAME='last_blogposts_list.json'
@@ -190,6 +190,7 @@ class ArticleQueueDownloader(object):
                 batch_output_directory = os.path.join(self.db_root, self.source_name, day_string, batch_hour_string)
                 self.save_articles_to_db(articles, errors, items['blogposts'], batch_output_directory)
                 self.save_raw_data_to_db(raw_data, batch_output_directory)
+                self.update_provider_stats(os.path.join(self.db_root, self.source_name), articles, errors)
 
 
 
@@ -253,6 +254,23 @@ class ArticleQueueDownloader(object):
 
         with open(os.path.join(raw_data_dir, 'references.json'), 'w') as f:
             json.dump(references, f)
+
+
+    def update_provider_stats(self, outdir, articles, errors):
+        stats_filename = os.path.join(outdir, 'stats.json')
+        if not os.path.exists(stats_filename):
+            print 'creating stats file:', stats_filename
+            init_stats = ProviderStats.make_init_instance()
+            init_stats.save_to_file(stats_filename)
+
+        current_stats = ProviderStats.load_from_file(stats_filename)
+        current_stats.n_articles += len(articles)
+        current_stats.n_errors += len(errors)
+        current_stats.n_dumps += 1
+        current_stats.end_date = datetime.today()
+        current_stats.n_links += sum([(len(art.external_links) + len(art.internal_links)) for art in articles])
+
+        current_stats.save_to_file(stats_filename)
 
         
 
