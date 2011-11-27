@@ -264,7 +264,6 @@ def extract_headlines_from_column_3(column):
     for story in stories:
         if story.h3.a.contents:
             clean_title =   remove_text_formatting_markup_from_fragments(story.h3.a.contents)
-            print clean_title
             title_and_url = clean_title, story.h3.a.get('href')
             headlines.append(title_and_url)
 
