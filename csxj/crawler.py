@@ -51,28 +51,6 @@ def download_queued_articles(source, db_root):
 
 
 
-    
-def update_all_queues(db_root):
-    if not os.path.exists(db_root):
-        print 'creating output directory:', db_root
-        os.mkdir(db_root)
-
-    ArticleQueueFiller.setup_logging()
-    all_providers = lesoir, dhnet, lalibre, sudpresse, rtlinfo
-    for provider in all_providers[:2]:
-        put_articles_in_queue(provider, db_root)
-
-
-def download_all_queued_articles(db_root):
-    if not os.path.exists(db_root):
-        print("no such database directory: {0}".format(db_root))
-    else:
-        ArticleQueueDownloader.setup_logging()
-        all_sources = lesoir, dhnet, lalibre, sudpresse, rtlinfo
-        for source in all_sources[:2]:
-            download_queued_articles(source, db_root)
-
-
 
 def main(outdir):
     d = datetime.today()
@@ -82,19 +60,3 @@ def main(outdir):
 
 if __name__=="__main__":
     main("testing")
-
-#if __name__=="__main__":
-#    import argparse
-#
-#    parser = argparse.ArgumentParser(description='Manages the article queue')
-#    parser.add_argument('--dir', type=str, dest='input_dir', required=True, help='json db directory')
-#
-#    group = parser.add_mutually_exclusive_group(required=True)
-#    group.add_argument('--update-queue', action='store_true',  dest='update_queue',
-#                       help='Fetch links to the newest articles and add them to the download queue')
-#    group.add_argument('--download-queue', action='store_true', dest='download_queue',
-#                       help='Download all queued articles and store them in the json database')
-#
-#    args = parser.parse_args()
-#
-#    print args
