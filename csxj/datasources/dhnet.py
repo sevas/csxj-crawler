@@ -25,6 +25,8 @@ DHNET_INTERNAL_SITES = {
 
 DHNET_NETLOC = 'www.dhnet.be'
 
+SOURCE_TITLE = "DHNet"
+SOURCE_NAME = "dhnet"
 
 def is_on_same_domain(url):
     """

@@ -18,6 +18,8 @@ if sys.platform in ['linux2', 'cygwin']:
 elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR')
 
+SOURCE_TITLE = "Le Soir"
+SOURCE_NAME = "lesoir"
 
 LESOIR_INTERNAL_BLOGS = {
     'blog.lesoir.be':['internal blog', 'internal'],
