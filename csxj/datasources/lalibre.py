@@ -5,7 +5,8 @@ from datetime import datetime, time
 from BeautifulSoup import Tag
 import urlparse
 from common.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
-from common.article import ArticleData, tag_URL, classify_and_tag, make_tagged_url
+from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
+from csxj.db.article import ArticleData
 
 
 LALIBRE_ASSOCIATED_SITES = {

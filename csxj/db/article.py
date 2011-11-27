@@ -1,41 +1,9 @@
 # -*- coding: utf-8 -*-
 __author__ = 'sevas'
 
-from collections import namedtuple
 from datetime import datetime, date, time
-import urlparse
+from csxj.common.tagging import TaggedURL, make_tagged_url
 import json
-
-
-TaggedURL = namedtuple('TaggedURL', 'URL title tags')
-
-
-def make_tagged_url(url, title, tags):
-    return TaggedURL(URL=url, title=title, tags=tags)
-
-
-def tag_URL((url, title), tags):
-    return TaggedURL(URL=url, title=title, tags=tags)
-
-
-def classify_and_tag(url, own_netlog, associated_sites):
-    """
-    """
-    tags = []
-    parsed = urlparse.urlparse(url)
-    scheme, netloc, path, params, query, fragment = parsed
-    if netloc:
-        if netloc == own_netlog:
-            tags = ['internal']
-        else:
-            if netloc in associated_sites:
-                tags = associated_sites[netloc]
-            else:
-                tags = ['external']
-    else:
-        tags = ['internal']
-
-    return set(tags)
 
 
 def count_words(some_text):

@@ -5,7 +5,8 @@ from itertools import chain
 import codecs
 from common.utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, remove_text_formatting_markup
 from common.utils import extract_plaintext_urls_from_text
-from common.article import ArticleData, make_tagged_url, classify_and_tag
+from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
+from csxj.db.article import ArticleData
 
 
 # for datetime conversions
