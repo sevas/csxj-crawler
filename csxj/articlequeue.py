@@ -267,7 +267,7 @@ class ArticleQueueDownloader(object):
     def update_provider_stats(self, outdir, articles, errors):
         stats_filename = os.path.join(outdir, 'stats.json')
         if not os.path.exists(stats_filename):
-            self.log_info("Creating stats file: {0}".foramt(stats_filename))
+            self.log_info("Creating stats file: {0}".format(stats_filename))
             init_stats = ProviderStats.make_init_instance()
             init_stats.save_to_file(stats_filename)
 
