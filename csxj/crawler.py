@@ -3,10 +3,7 @@
 
 import sys
 import os, os.path
-from collections import namedtuple
-import traceback
 from datetime import datetime
-import json
 
 from datasources import lesoir, dhnet, lalibre, sudpresse, rtlinfo
 from datasources.common.utils import fetch_html_content
@@ -14,90 +11,6 @@ from providerstats import ProviderStats
 from articlequeue import ArticleQueueFiller, ArticleQueueDownloader
 
 DEBUG_MODE = True
-
-
-
-
-def find_stories_missing_from_frontpage(frontpage_toc, rss_toc):
-    """
-    Compare the list of titles found in both the frontpage and the RSS feed.
-    The RSS feed is considered complete. This function tests whether or not
-    the frontpage parser got all the frontpage stories.
-
-    Returns the list of items found only in the rss feed
-    """
-    frontpage_titles = [t for (t, u) in frontpage_toc]
-    rss_titles = [t for (t, u) in rss_toc]
-
-    only_in_rss = set(rss_titles) - set(frontpage_titles)
-    return list(only_in_rss)
-
-
-ErrorLogEntry = namedtuple('ErrorLogEntry', 'url filename stacktrace')
-
-
-def make_outfile_prefix():
-    """
-    """
-    now = datetime.today()
-    date_string = now.strftime('%Y-%m-%d')
-    hour_string = now.strftime('%H.%M.%S')
-    return os.path.join(date_string, hour_string)
-
-
-
-def make_error_log_entry(url, stacktrace, outdir):
-    """
-    """
-    html_content = fetch_html_content(url)
-    outfile = '%s/%s' % (outdir, url)
-
-    return ErrorLogEntry(url, outfile, stacktrace)
-
-
-
-def write_dict_to_file(d, outdir, outfile):
-    """
-    """
-    publication_outdir = outdir
-    if not os.path.exists(publication_outdir):
-        os.makedirs(publication_outdir)
-
-    filename = os.path.join(publication_outdir, outfile)
-    with open(filename, 'w') as outfile:
-        json.dump(d, outfile)
-
-
-
-def fetch_articles_from_toc(toc,  provider, outdir):
-    articles, errors, raw_data = [], [], []
-
-    for (title, url) in toc:
-        try:
-            article_data, raw_html_content = provider.extract_article_data(url)
-            if article_data:
-                articles.append(article_data)
-                raw_data.append((url, raw_html_content))
-        except Exception as e:
-            if e.__class__ in [AttributeError]:
-                # this is for logging errors while parsing the dom. If it fails,
-                # we should get an AttributeError at some point. We'll keep
-                # that in a log, and save the html for future processing.
-                stacktrace = traceback.format_stack()
-                new_error = make_error_log_entry(url, stacktrace, outdir)
-                errors.append(new_error)
-            else:
-                if DEBUG_MODE:
-                    # when developing, it's useful to not hide the exception
-                    raise e
-                else:
-                    # but in production, log everything
-                    stacktrace = traceback.format_stack()
-                    new_error = make_error_log_entry(url, stacktrace, outdir)
-                    errors.append(new_error)
-
-    return articles, errors, raw_data
-
 
 
 def update_provider_stats(outdir, articles, errors):
@@ -118,160 +31,57 @@ def update_provider_stats(outdir, articles, errors):
 
 
 
-def save_raw_data(raw_data, batch_outdir):
-    """
-    """
-    raw_data_dir = os.path.join(batch_outdir, 'raw_data')
-    os.mkdir(raw_data_dir)
-    references = []
-    for (i, (url, html_content)) in enumerate(raw_data):
-        outfilename = "{0}.html".format(i)
-        with open(os.path.join(raw_data_dir, outfilename), 'w') as f:
-            f.write(html_content)
-        references.append((url, outfilename))
-
-    with open(os.path.join(raw_data_dir, 'references.json'), 'w') as f:
-        json.dump(references, f)
-
-        
-
-def fetch_lesoir_articles(prefix):
-    """
-    """
-    outdir = os.path.join(prefix, 'lesoir')
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
 
 
-    articles_toc, blogposts_toc = lesoir.get_frontpage_toc()
-    blogposts_toc = list(filter_only_new_stories(blogposts_toc,
-                                            os.path.join(outdir, 'last_blogposts_list.json')))
-    
-
-    new_articles_toc = filter_only_new_stories(articles_toc,
-                                               os.path.join(outdir, 'last_frontpage_list.json'))
-
-    rss_toc = filter_only_new_stories(lesoir.get_rss_toc(),
-                                      os.path.join(outdir, 'last_rss_list.json'))
-
-
-    articles, errors, raw_data = fetch_articles_from_toc(new_articles_toc, lesoir, outdir)
-
-    print 'Summary for Le Soir:'
-    print """
-    articles : {0}
-    blogposts : {1}
-    errors : {2}""".format(len(articles),
-                           len(blogposts_toc),
-                           len(errors))
-    
-    all_data = {'articles':[art.to_json() for art in  articles],
-                'blogposts':blogposts_toc,
-                'errors':errors}
-
-
-
-    batch_outdir = os.path.join(outdir, make_outfile_prefix())
-
-    write_dict_to_file(all_data, batch_outdir, 'articles.json')
-    update_provider_stats(outdir, articles, errors)
-
-    missing = find_stories_missing_from_frontpage(articles_toc, rss_toc)
-    if missing:
-        missing_filename = os.path.join(batch_outdir, 'missing.json')
-        with open(missing_filename, 'w') as f:
-            json.dump(missing, f)
-
-
-    save_raw_data(raw_data, batch_outdir)
-
-
-
-def crawl_once(provider, provider_name, provider_title, prefix):
-    outdir = os.path.join(prefix, provider_name)
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-
-    news_toc, blogposts_toc = provider.get_frontpage_toc()
-    frontpage_toc = filter_only_new_stories(news_toc,
-                                            os.path.join(outdir, 'last_frontpage_list.json'))
-
-    articles, errors, raw_data = fetch_articles_from_toc(frontpage_toc, provider, outdir)
-
-    print 'Summary for {0}:'.format(provider_title)
-    print """
-    articles : {0}
-    errors : {1}""".format(len(articles),
-                           len(errors))
-
-    all_data = {'articles':[art.to_json() for art in  articles],
-                'errors':errors}
-
-    blogposts_data = {'blogposts':blogposts_toc}
-
-    batch_outdir = os.path.join(outdir, make_outfile_prefix())
-    write_dict_to_file(all_data, batch_outdir, 'articles.json')
-    write_dict_to_file(blogposts_data, batch_outdir, 'blogposts.json')
-    update_provider_stats(outdir, articles, errors)
-    save_raw_data(raw_data, batch_outdir)
-
-
-
-def put_articles_in_queue():
-    pass
-
-
-def download_queued_articles():
-    pass
+def put_articles_in_queue(provider, db_root):
+    name = provider.SOURCE_NAME
+    print("Enqueuing stories for {0}".format(name))
+    queue_filler = ArticleQueueFiller(provider, name, db_root)
+    queue_filler.fetch_newest_article_links()
+    queue_filler.update_global_queue()
 
 
 
 
-
-def fetch_dhnet_articles(prefix):
-    crawl_once(dhnet, 'dhnet', 'DHNet', prefix)
-
-
-def fetch_lalibre_articles(prefix):
-    crawl_once(lalibre, 'lalibre', 'La Libre', prefix)
-
-
-def fetch_sudpresse_articles(prefix):
-    crawl_once(sudpresse, 'sudpresse', 'Sud Presse', prefix)
-
-
-def fetch_rtlinfo_articles(prefix):
-    crawl_once(rtlinfo, 'rtlinfo', 'RTLInfo', prefix)
+def download_queued_articles(source, db_root):
+    name = source.SOURCE_NAME
+    print("Downloading enqueued stories for {0}".format(name))
+    queue_downloader = ArticleQueueDownloader(source, name, db_root)
+    queue_downloader.download_all_articles_in_queue()
 
 
 
     
-def update_all_queues(outdir):
-    if not os.path.exists(outdir):
-        print 'creating output directory:', outdir
-        os.mkdir(outdir)
+def update_all_queues(db_root):
+    if not os.path.exists(db_root):
+        print 'creating output directory:', db_root
+        os.mkdir(db_root)
+
+    ArticleQueueFiller.setup_logging()
+    all_providers = lesoir, dhnet, lalibre, sudpresse, rtlinfo
+    for provider in all_providers[:2]:
+        put_articles_in_queue(provider, db_root)
 
 
+def download_all_queued_articles(db_root):
+    if not os.path.exists(db_root):
+        print("no such database directory: {0}".format(db_root))
+    else:
+        ArticleQueueDownloader.setup_logging()
+        all_sources = lesoir, dhnet, lalibre, sudpresse, rtlinfo
+        for source in all_sources[:2]:
+            download_queued_articles(source, db_root)
 
-    
-
-
-
-def download_all_queued_articles(outdir):
-    pass
 
 
 def main(outdir):
     d = datetime.today()
     print d.strftime('New articles saved on %d/%m/%Y at %H:%M')
-
-    #fetch_lesoir_articles(outdir)
-    #fetch_dhnet_articles(outdir)
-    #fetch_lalibre_articles(outdir)
-    #fetch_sudpresse_articles(outdir)
-    #fetch_rtlinfo_articles(outdir)
+    update_all_queues(outdir)
 
 
+if __name__=="__main__":
+    main("testing")
 
 #if __name__=="__main__":
 #    import argparse
