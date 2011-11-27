@@ -5,6 +5,7 @@ import json
 import utils
 import logging
 import traceback
+import shutil
 from collections import namedtuple
 
 from db import Provider, ProviderStats
@@ -177,20 +178,27 @@ class ArticleQueueDownloader(object):
         provider_db = Provider(self.db_root, self.source_name)
         queued_items = provider_db.get_queued_batches_by_day()
 
-        for (day_string, batches) in queued_items.items():
-            self.log_info("Downloading {0} batches for {1}".format(len(batches), day_string))
-            for (i, batch) in enumerate(batches):
-                batch_hour_string, items = batch
-                self.log.info(self.make_log_message("Downloading {0} articles for batch#{1} ({2})".format(len(items['articles']), i, batch_hour_string)))
-                urls = [url for (title, url) in items['articles']]
-                articles, errors, raw_data = self.download_batch(urls)
+        if queued_items:
+            for (day_string, batches) in queued_items.items():
+                self.log_info("Downloading {0} batches for {1}".format(len(batches), day_string))
+                day_directory = os.path.join(self.db_root, self.source_name, day_string)
+                for (i, batch) in enumerate(batches):
+                    batch_hour_string, items = batch
+                    self.log.info(self.make_log_message("Downloading {0} articles for batch#{1} ({2})".format(len(items['articles']), i, batch_hour_string)))
+                    urls = [url for (title, url) in items['articles']]
+                    articles, errors, raw_data = self.download_batch(urls)
 
-                self.log_info("Found data for {0} articles ({1} errors)".format(len(articles),
-                                                                                len(errors)))
-                batch_output_directory = os.path.join(self.db_root, self.source_name, day_string, batch_hour_string)
-                self.save_articles_to_db(articles, errors, items['blogposts'], batch_output_directory)
-                self.save_raw_data_to_db(raw_data, batch_output_directory)
-                self.update_provider_stats(os.path.join(self.db_root, self.source_name), articles, errors)
+                    self.log_info("Found data for {0} articles ({1} errors)".format(len(articles),
+                                                                                    len(errors)))
+                    batch_output_directory = os.path.join(day_directory, batch_hour_string)
+                    self.save_articles_to_db(articles, errors, items['blogposts'], batch_output_directory)
+                    self.save_raw_data_to_db(raw_data, batch_output_directory)
+                    self.update_provider_stats(os.path.join(self.db_root, self.source_name), articles, errors)
+
+                self.log_info("Removing queue directory")
+                provider_db.cleanup_queue(day_string)
+        else:
+            self.log_info("Empty queue. Nothing to do.")
 
 
 

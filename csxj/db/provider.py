@@ -23,6 +23,7 @@ This helper module enables programmatic access to this hierarchy.
 import os, os.path
 from datetime import time, datetime
 import json
+import shutil
 
 import utils
 from article import ArticleData
@@ -165,6 +166,16 @@ class Provider(object):
 
 
 
+    def cleanup_queue(self, day_string):
+        """
+
+        """
+        day_queue_directory = os.path.join(self.directory, "queue", day_string)
+        if os.path.exists(day_queue_directory):
+            shutil.rmtree(day_queue_directory)
+
+            
+
     def get_queued_batches_by_day(self):
         """
         Each datasource directory contains a 'queue' directory in which items' urls
@@ -204,3 +215,4 @@ class Provider(object):
                 items = json.load(f)
                 items_by_batch.append((batch_hour, items))
         return items_by_batch
+
