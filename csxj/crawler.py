@@ -1,13 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-import os, os.path
 from datetime import datetime
-
-from datasources import lesoir, dhnet, lalibre, sudpresse, rtlinfo
-from datasources.common.utils import fetch_html_content
-from providerstats import ProviderStats
 from articlequeue import ArticleQueueFiller, ArticleQueueDownloader
 
 DEBUG_MODE = True
