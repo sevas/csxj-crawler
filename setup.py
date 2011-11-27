@@ -4,7 +4,9 @@ import csxj
 
 setup(name='csxj',
       package_dir={'': '.'},
-      packages=['csxj', 'csxj.datasources', 'csxj.db'],
+      packages=['csxj', 'csxj.common',
+                'csxj.datasources', 'csxj.datasources.common',
+                'csxj.db'],
       scripts=['scripts/csxj_update_all_queues.py',
                'scripts/csxj_download_queued_articles.py'],
       version=csxj.__version__,
