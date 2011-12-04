@@ -54,7 +54,7 @@ class HTMLReport(object):
             f.write(html_content)
 
 
-def list_errors(db_root, sources):
+def reprocess_errors(db_root, sources):
     report = HTMLReport()
 
     for source in sources:
@@ -66,13 +66,26 @@ def list_errors(db_root, sources):
                     for err in errors[:1]:
                         report.process_error(date_string, time, source, err.url)
 
-
     report.write_html_to_file("reprocessed_errors_report.html")
 
 
+def list_errors(db_root, sources):
+    report = HTMLReport()
+
+    for source in sources:
+        provider_db = Provider(db_root, source.SOURCE_NAME)
+        for date_string in provider_db.get_all_days():
+            errors_by_batch = provider_db.get_errors_per_batch(date_string)
+            for (time, errors) in errors_by_batch:
+                if errors:
+                    print source.SOURCE_NAME, date_string, time
+                    for err in errors:
+                        print "\t", err.url
+                    print
+
 def main(db_root):
-    list_errors(db_root, [lesoir])
+    list_errors(db_root, [lesoir, sudpresse, lalibre, dhnet, rtlinfo])
                     
 
 if __name__=="__main__":
-    main("./out")
+    main("/Users/sevas/Documents/juliette/json_db_0_4")
