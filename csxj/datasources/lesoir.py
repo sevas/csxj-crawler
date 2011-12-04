@@ -6,6 +6,7 @@ import locale
 from datetime import datetime
 from BeautifulSoup import  BeautifulStoneSoup,  Tag
 import urlparse
+import codecs
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
 from csxj.db.article import ArticleData
 from common.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
@@ -173,7 +174,9 @@ def extract_date(story):
 
     if publication_date:
         date_string = publication_date.contents[0]
-        datetime_published = datetime.strptime(date_string, '%A %d %B %Y, %H:%M')
+
+        date_bytestring = codecs.encode(date_string, 'utf-8')
+        datetime_published = datetime.strptime(date_bytestring, u'%A %d %B %Y, %H:%M')
 
         return datetime_published.date(), datetime_published.time()
     else:
