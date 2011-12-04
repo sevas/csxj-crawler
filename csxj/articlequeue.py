@@ -17,8 +17,6 @@ BLOGPOSTS_FILENAME = 'blogposts.json'
 ERRORS_FILENAME = 'errors.json'
 RAW_DATA_DIR = 'raw_data'
 
-DEBUG_MODE = True
-
 
 
 def write_dict_to_file(d, outdir, outfile):
@@ -129,11 +127,12 @@ class ArticleQueueFiller(object):
 
 class ArticleQueueDownloader(object):
     log_name = "csxj_QueueDownloader.log"
-    def __init__(self, source, source_name, db_root):
+    def __init__(self, source, source_name, db_root, debug_mode=True):
         self.db_root = db_root
         self.source = source
         self.source_name = source_name
         self.downloaded_articles = []
+        self.debug_mode = debug_mode
 
 
 
@@ -212,7 +211,7 @@ class ArticleQueueDownloader(object):
                     new_error = make_error_log_entry(url, stacktrace, self.db_root)
                     errors.append(new_error)
                 else:
-                    if DEBUG_MODE:
+                    if self.debug_mode:
                         # when developing, it's useful to not hide the exception
                         raise e
                     else:
