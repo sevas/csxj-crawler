@@ -5,10 +5,8 @@ import json
 import utils
 import logging
 import traceback
-import shutil
-from collections import namedtuple
 
-from db import Provider, ProviderStats
+from db import Provider, ProviderStats, make_error_log_entry
 
 LAST_STORIES_FILENAME='last_frontpage_list.json'
 LAST_BLOGPOSTS_FILENAME='last_blogposts_list.json'
@@ -20,15 +18,6 @@ ERRORS_FILENAME = 'errors.json'
 RAW_DATA_DIR = 'raw_data'
 
 DEBUG_MODE = True
-
-ErrorLogEntry = namedtuple('ErrorLogEntry', 'url filename stacktrace')
-
-
-def make_error_log_entry(url, stacktrace, outdir):
-    """
-    """
-    outfile = '%s/%s' % (outdir, url)
-    return ErrorLogEntry(url, outfile, stacktrace)
 
 
 
@@ -66,6 +55,10 @@ class ArticleQueueFiller(object):
     def log_info(self, message):
         self.log.info(self.make_log_message(message))
 
+
+
+    def log_error(self, message):
+        self.log.error(self.make_log_message(message))
 
 
     @classmethod

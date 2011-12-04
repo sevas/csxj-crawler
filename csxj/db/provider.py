@@ -22,12 +22,24 @@ This helper module enables programmatic access to this hierarchy.
 
 import os, os.path
 from datetime import time, datetime
+from collections import namedtuple
 import json
 import shutil
 
 import utils
 from article import ArticleData
 from providerstats import ProviderStats
+
+
+
+ErrorLogEntry = namedtuple('ErrorLogEntry', 'url filename stacktrace')
+
+
+def make_error_log_entry(url, stacktrace, outdir):
+    """
+    """
+    outfile = '%s/%s' % (outdir, url)
+    return ErrorLogEntry(url, outfile, stacktrace)
 
 
 class NonExistentDayError(Exception):
@@ -147,6 +159,20 @@ class Provider(object):
             raise NonExistentBatchError(self.name, date_string, batch_time_string)
 
 
+
+    def get_errors_from_batch(self, date_string, batch_time_string):
+        batch_dir = os.path.join(self.directory, date_string, batch_time_string)
+        if os.path.exists(batch_dir):
+            json_filepath = os.path.join(batch_dir, 'articles.json')
+            with open(json_filepath, 'r') as f:
+                json_content = json.load(f)
+
+                return [ErrorLogEntry(*error_data) for error_data in json_content['errors']]
+        else:
+            raise NonExistentBatchError(self.name, date_string, batch_time_string)
+
+
+
     def get_articles_per_batch(self, date_string):
         """
         Returns a list of (time, [Articles]).
@@ -157,12 +183,50 @@ class Provider(object):
             all_batches = []
             for batch_time in all_batch_times:
                 batch_content = self.get_batch_content(date_string, batch_time)
-                all_batches.append((batch_time, batch_content[0]))
+                articles, error_count = batch_content
+                all_batches.append((batch_time, articles))
                 
             all_batches.sort(key=lambda x: x[0])
             return all_batches
         else:
             raise NonExistentDayError(self.name, date_string)
+
+
+
+    def get_errors_per_batch(self, date_string):
+        """
+        Returns a list of (time, [errors]).
+        """
+        day_directory = os.path.join(self.directory, date_string)
+        if os.path.exists(day_directory):
+            all_batch_times = utils.get_subdirectories(day_directory)
+            all_errors = []
+            for batch_time in all_batch_times:
+                errors = self.get_errors_from_batch(date_string, batch_time)
+                all_errors.append((batch_time, errors))
+            all_errors.sort(key=lambda x: x[0])
+            return all_errors
+        
+        else:
+            raise NonExistentDayError(self.name, date_string)
+
+
+
+
+    def get_data_per_batch(self, date_string, data_extractor_func):
+        day_directory = os.path.join(self.directory, date_string)
+        if os.path.exists(day_directory):
+            all_batch_times = utils.get_subdirectories(day_directory)
+            all_data = []
+            for batch_time in all_batch_times:
+                extracted_data = data_extractor_func(self, date_string, batch_time)
+                all_data.append(extracted_data)
+            all_data.sort(key=lambda x: x[0])
+            return all_data
+
+        else:
+            raise NonExistentDayError(self.name, date_string)
+
 
 
 
