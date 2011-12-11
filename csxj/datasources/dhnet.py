@@ -236,7 +236,7 @@ def extract_associated_links_from_maincontent(main_content):
     # sometimes there are no links
     if container:
         def extract_link_and_title(list_item):
-            return  list_item.a.get('href'), list_item.a.contents[0].strip()
+            return  list_item.a.get('href'), remove_text_formatting_markup_from_fragments(list_item.a.contents[0])
         tagged_urls = list()
         for list_item in container.findAll('li', recursive=False):
             url, title = extract_link_and_title(list_item)
@@ -404,3 +404,21 @@ def get_frontpage_toc():
         return [], []
 
 
+if __name__ == "__main__":
+    url = "http://www.dhnet.be/sports/basket/article/378224/spirous-de-charleroi-satisfaction-et-regrets.html"
+    url = "http://www.dhnet.be/sports/anderlecht/article/378221/jacobs-si-de-sutter-part-j-aurai-besoin-d-un-remplacant.html"
+    url = "http://www.dhnet.be/cine-tele/television/article/378217/koh-lanta-martin-a-saisi-sa-chance.html"
+    url = "http://www.dhnet.be/sports/formule-1/article/378259/le-francais-romain-grosjean-en-f1-la-saison-prochaine.html"
+    url = "http://www.dhnet.be/infos/faits-divers/article/378214/proces-sheikh-le-verdict-attendu-ce-vendredi.html"
+    url = "http://www.dhnet.be/infos/elections-2010/article/378213/un-gouvernement-francophone-et-taxateur.html"
+    url = "http://www.dhnet.be/infos/societe/article/378212/un-enfant-sur-trois-victime-du-web.html"
+    url = "http://www.dhnet.be/sports/standard/article/378222/le-standard-evitera-les-deux-manchester.html"
+    url = "http://www.dhnet.be/people/show-biz/article/378218/miss-france-est-une-paysanne.html"
+    url = "http://www.dhnet.be/sports/football/article/378256/les-catalans-sont-des-piranhas.html"
+    url = "http://www.dhnet.be/sports/cyclisme/article/378225/elisez-le-coureur-belge-de-la-saison-2011.html"
+    url = "http://www.dhnet.be/people/show-biz/article/378219/lindsay-lohan-nue-la-couverture.html"
+    url = "http://www.dhnet.be/sports/tennis/article/378226/clijsters-wimbledon-d-abord-l-australie.html"
+    article, html = extract_article_data(url)
+
+    article.print_summary()
+    
