@@ -124,7 +124,7 @@ class Provider(object):
         """
         Returns a sorted list of all the dates (formatted as: YYYY-MM-DD) for which there is data available
         """
-        all_days = utils.get_subdirectories(self.directory)
+        all_days = [d for d in utils.get_subdirectories(self.directory) if d != "queue"]
         all_days.sort()
         return all_days
 
