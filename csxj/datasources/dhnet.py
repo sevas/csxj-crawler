@@ -11,6 +11,7 @@ from BeautifulSoup import Tag
 from common.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
 from csxj.db.article import ArticleData
+from common import constants
 
 # for datetime conversions
 if sys.platform in ['linux2', 'cygwin']:
@@ -183,7 +184,7 @@ def extract_author_name_from_maincontent(main_content):
         # cleaning it up.
         return signature.contents[0].lstrip().rstrip()
     else:
-        return None
+        return constants.NO_AUTHOR_NAME
     
 
 
