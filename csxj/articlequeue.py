@@ -244,7 +244,8 @@ class ArticleQueueDownloader(object):
         self.log_info("Writing raw html data to {0}".format(os.path.join(batch_outdir, RAW_DATA_DIR)))
         
         raw_data_dir = os.path.join(batch_outdir, RAW_DATA_DIR)
-        os.mkdir(raw_data_dir)
+        if not os.path.exists(raw_data_dir):
+            os.mkdir(raw_data_dir)
         references = []
         for (i, (url, html_content)) in enumerate(raw_data):
             outfilename = "{0}.html".format(i)
@@ -290,9 +291,9 @@ def test_filler():
 
 def test_downloader():
     ArticleQueueDownloader.setup_logging()
-    from datasources import lesoir, lalibre
-    for source in [lesoir, lalibre]:
-        queue_downloader = ArticleQueueDownloader(source, source.SOURCE_NAME, "testing")
+    from datasources import lesoir
+    for source in [lesoir]:
+        queue_downloader = ArticleQueueDownloader(source, source.SOURCE_NAME, "/Users/sevas/Documents/juliette/json_db_0_5/")
         queue_downloader.download_all_articles_in_queue()
 
 
