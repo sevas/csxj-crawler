@@ -236,7 +236,7 @@ def extract_associated_links_from_maincontent(main_content):
     # sometimes there are no links
     if container:
         def extract_link_and_title(list_item):
-            return  list_item.a.get('href'), remove_text_formatting_markup_from_fragments(list_item.a.contents[0])
+            return  list_item.a.get('href'), remove_text_formatting_markup_from_fragments(list_item.a.contents)
         tagged_urls = list()
         for list_item in container.findAll('li', recursive=False):
             url, title = extract_link_and_title(list_item)
@@ -298,6 +298,29 @@ def extract_date_from_maincontent(main_content):
 
 
 
+def extract_links_from_embedded_content(embedded_content):
+    if embedded_content.iframe:
+        url = embedded_content.iframe.get('src')
+        title = "Embedded content"
+        all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+        return [make_tagged_url(url, title, all_tags | set(['embedded']))]
+    else:
+        divs = embedded_content.findAll('div', recursive=False)
+        kplayer = embedded_content.find('div', {'class':'containerKplayer'})
+        if kplayer:
+            kplayer_infos = kplayer.find('video')
+            url = kplayer_infos.get('data-src')
+            title = remove_text_formatting_markup_from_fragments(divs[1].contents)
+            all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+            return [make_tagged_url(url, title, all_tags | set(['video', 'embedded', 'kplayer']))]
+        else:
+            return []
+
+
+
+
+
+
 def extract_article_data(source):
     """
     """
@@ -311,7 +334,7 @@ def extract_article_data(source):
     main_content = soup.find('div', {'id':'maincontent'})
 
     if main_content:
-        title = main_content.h1.contents[0]
+        title = remove_text_formatting_markup_from_fragments(main_content.h1.contents)
         pub_date, pub_time = extract_date_from_maincontent(main_content)
         category = extract_category_from_maincontent(main_content)
         author_name = extract_author_name_from_maincontent(main_content)
@@ -322,11 +345,17 @@ def extract_article_data(source):
         text, in_text_urls = extract_text_content_and_links_from_articletext(article_text)
         associated_urls = extract_associated_links_from_maincontent(main_content)
 
+
+        embedded_content = main_content.find('div', {'class':'embedContents'})
+        embedded_content_urls = []
+        #if embedded_content:
+        #    embedded_content_urls = extract_links_from_embedded_content(embedded_content)
+
         fetched_datetime = datetime.today()
 
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                                  in_text_urls+associated_urls,
+                                  in_text_urls+associated_urls+embedded_content_urls,
                                   category, author_name, intro, text)
         return new_article, html_content
     else:
@@ -405,6 +434,7 @@ def get_frontpage_toc():
 
 
 if __name__ == "__main__":
+    import json
     url = "http://www.dhnet.be/sports/basket/article/378224/spirous-de-charleroi-satisfaction-et-regrets.html"
     url = "http://www.dhnet.be/sports/anderlecht/article/378221/jacobs-si-de-sutter-part-j-aurai-besoin-d-un-remplacant.html"
     url = "http://www.dhnet.be/cine-tele/television/article/378217/koh-lanta-martin-a-saisi-sa-chance.html"
@@ -418,7 +448,12 @@ if __name__ == "__main__":
     url = "http://www.dhnet.be/sports/cyclisme/article/378225/elisez-le-coureur-belge-de-la-saison-2011.html"
     url = "http://www.dhnet.be/people/show-biz/article/378219/lindsay-lohan-nue-la-couverture.html"
     url = "http://www.dhnet.be/sports/tennis/article/378226/clijsters-wimbledon-d-abord-l-australie.html"
+    url = "http://www.dhnet.be/infos/buzz/article/378300/caro-fait-son-show.html"
+    #url = "http://www.dhnet.be/cine-tele/multimedia/article/376450/quand-samsung-raille-apple.html"
     article, html = extract_article_data(url)
 
     article.print_summary()
+    print article.links
+    print article.to_json()
+    print article.title
     
