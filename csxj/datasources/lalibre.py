@@ -5,6 +5,7 @@ from datetime import datetime, time
 from BeautifulSoup import Tag
 import urlparse
 from common.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
+from common import constants
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
 from csxj.db.article import ArticleData
 
@@ -203,7 +204,7 @@ def extract_author_name(main_content):
     if writer:
         return writer.contents[0].rstrip().lstrip()
     else:
-        return 'None'
+        return constants.NO_AUTHOR_NAME
 
 
 
@@ -216,24 +217,37 @@ def extract_intro(main_content):
         return ''
 
 
-    
-def extract_article_data(source):
-    """
-    """
-    if hasattr(source, 'read'):
-        html_content = source.read()
-    else:
-        html_content = fetch_html_content(source)
 
+def extract_article_data_from_file(source_url, source_file):
+
+    if not hasattr(source_file, 'read'):
+        f = open(source_file)
+    else:
+        f = source_file
+
+    html_content = f.read()
+    return extract_article_data_from_html(html_content, source_url)
+
+
+
+def extract_article_data_from_html(html_content, source_url):
     soup = make_soup_from_html_content(html_content)
 
     main_content = soup.find('div', {'id':'mainContent'})
 
+
+    if main_content.h1:
+        title = main_content.h1.contents[0].rstrip().lstrip()
+    else:
+        return None, html_content
+       
+
     category = extract_category(main_content)
     author = extract_author_name(main_content)
-    title = main_content.h1.contents[0].rstrip().lstrip()
+
+
     pub_date, pub_time = extract_date(main_content)
-    
+
     intro = extract_intro(main_content)
 
     text_content, in_text_urls  = extract_text_content_and_links(main_content)
@@ -241,11 +255,20 @@ def extract_article_data(source):
 
     fetched_datetime = datetime.today()
 
-    new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
+    new_article = ArticleData(source_url, title, pub_date, pub_time, fetched_datetime,
                               in_text_urls + associated_tagged_urls,
                               category, author,
                               intro, text_content)
     return new_article, html_content
+
+
+
+def extract_article_data(source_url):
+    """
+    """
+
+    html_content = fetch_html_content(source_url)
+    return extract_article_data_from_html(html_content, source_url)
 
 
 
@@ -268,16 +291,18 @@ def get_frontpage_toc():
 
 
 def test_sample_data():
-    filename = '../../sample_data/lalibre_external_links_in_text.html'
-    with open(filename, 'r') as f:
-        article_data = extract_article_data(f)
-        article_data.print_summary()
+    url = "http://www.lalibre.be/economie/actualite/article/704138/troisieme-belgian-day-a-wall-street.html"
 
-        article_data.url =  filename
+    article_data, html_content = extract_article_data(url)
+
+    if article_data:
+        article_data.print_summary()
 
         print article_data.to_json()
         for url in article_data.external_links:
             print url
+    else:
+        print "article was removed"
 
 
         
@@ -302,5 +327,5 @@ def list_frontpage_articles():
 
 
 if __name__ == '__main__':
-    list_frontpage_articles()
-    #test_sample_data()
+    #list_frontpage_articles()
+    test_sample_data()
