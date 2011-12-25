@@ -13,6 +13,7 @@ setup(name='csxj',
 
       #PyPI metadata
       url=['http://bitbucket.org/sevas/csxj-crawler'],
+      zip_safe=False,
       keywords=[''],
       platforms='All',
       classifiers=[
