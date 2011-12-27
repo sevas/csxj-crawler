@@ -176,11 +176,33 @@ class Provider(object):
         if os.path.exists(day_directory):
             all_batch_times = utils.get_subdirectories(day_directory)
             all_batches = []
+            error_count_for_day = 0
             for batch_time in all_batch_times:
                 batch_content = self.get_batch_content(date_string, batch_time)
-                articles, error_count = batch_content
+                articles, batch_error_count = batch_content
+                error_count_for_day += batch_error_count
                 all_batches.append((batch_time, articles))
                 
+            all_batches.sort(key=lambda x: x[0])
+            return all_batches, error_count_for_day
+        else:
+            raise NonExistentDayError(self.name, date_string)
+
+
+    def get_articles_and_errorcounts_per_batch(self, date_string):
+        """
+        Returns a list of (time, [Articles]).
+        """
+        day_directory = os.path.join(self.directory, date_string)
+        if os.path.exists(day_directory):
+            all_batch_times = utils.get_subdirectories(day_directory)
+            all_batches = []
+            for batch_time in all_batch_times:
+                batch_content = self.get_batch_content(date_string, batch_time)
+                articles, batch_error_count = batch_content
+
+                all_batches.append((batch_time, articles, batch_error_count))
+
             all_batches.sort(key=lambda x: x[0])
             return all_batches
         else:
@@ -204,7 +226,6 @@ class Provider(object):
         
         else:
             raise NonExistentDayError(self.name, date_string)
-
 
 
 
