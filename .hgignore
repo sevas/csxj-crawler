@@ -9,3 +9,4 @@ json_db*/
 .idea/
 logs/
 csxj.egg-info/
+dist/
