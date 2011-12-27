@@ -57,40 +57,6 @@ class NonExistentBatchError(Exception):
         self.batch_time_string = batch_time_string
 
 
-def get_all_provider_names(db_root):
-    """
-    Get the list of providers for which we have data.
-
-    Returns a list of string, the names of each content provider.
-    """
-    return utils.get_subdirectories(db_root)
-
-
-
-def get_latest_fetched_articles(db_root):
-    providers = utils.get_subdirectories(db_root)
-
-    last_articles = dict()
-    last_errors = dict()
-
-    # todo: fix that shit
-    fetched_date = datetime.today().date()
-
-    for p in providers:
-        provider_dir = os.path.join(db_root, p)
-        all_days = utils.get_subdirectories(provider_dir)
-        last_day = utils.get_latest_day(all_days)
-
-        last_day_dir = os.path.join(provider_dir, last_day)
-        all_hours = utils.get_subdirectories(last_day_dir)
-        last_hour = utils.get_latest_hour(all_hours)
-
-        fetched_date = utils.make_date_time_from_string(last_day, last_hour)
-
-        filename = os.path.join(last_day_dir, last_hour, 'articles.json')
-        return filename
-
-
 
 class Provider(object):
     """
@@ -128,6 +94,35 @@ class Provider(object):
         all_days.sort()
         return all_days
 
+
+    def get_source_summary_for_all_days(self):
+        """
+        Returns a list of (date, article_count, error_count). The date is a string (formatted as: YYYY-MM-DD),
+        and counters are integers.
+
+        The list is sorted on the date (earlier date at the front)
+        """
+
+        all_days = [d for d in utils.get_subdirectories(self.directory) if d != "queue"]
+        all_days.sort()
+        result = list()
+        for date_string in all_days:
+            article_count, error_count = self.get_article_and_error_count(date_string)
+            result.append((date_string, article_count, error_count))
+        return result
+
+
+
+    def get_article_and_error_count(self, date_string):
+        """
+        Returns the number of articles fetched and errors encountered for all the batches in a day.
+        """
+        article_count, error_count = 0, 0
+        for hour_string in self.get_all_batch_hours(date_string):
+            articles, batch_error_count = self.get_batch_content(date_string, hour_string)
+            article_count += len(articles)
+            error_count += batch_error_count
+        return article_count, error_count
 
 
     def get_all_batch_hours(self, date_string):
