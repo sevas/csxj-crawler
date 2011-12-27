@@ -69,23 +69,38 @@ def reprocess_errors(db_root, sources):
     report.write_html_to_file("reprocessed_errors_report.html")
 
 
+def try_reprocessing(source, url):
+    article_data, html_content = source.extract_article_data(url)
+    print article_data.title, article_data.links
+
+
 def list_errors(db_root, sources):
-    report = HTMLReport()
+    res = dict()
 
     for source in sources:
         provider_db = Provider(db_root, source.SOURCE_NAME)
+        count = 0
         for date_string in provider_db.get_all_days():
             errors_by_batch = provider_db.get_errors_per_batch(date_string)
             for (time, errors) in errors_by_batch:
                 if errors:
+                    count += len(errors)
                     print source.SOURCE_NAME, date_string, time
                     for err in errors:
                         print "\t", err.url
+                        for line in err.stacktrace:
+                            print "\t", line
+                        #try_reprocessing(source, err.url)
                     print
+        res[source.SOURCE_NAME] = count
+
+    print "\n" * 4
+    for (name, error_count) in res.items():
+        print "{0}: {1} errors".format(name, error_count)
 
 def main(db_root):
-    list_errors(db_root, [lesoir, sudpresse, lalibre, dhnet, rtlinfo])
+    list_errors(db_root, [lesoir, rtlinfo, sudpresse, lalibre, dhnet])
                     
 
 if __name__=="__main__":
-    main("/Users/sevas/Documents/juliette/json_db_0_4")
+    main("/Users/sevas/Documents/juliette/json_db_0_5")

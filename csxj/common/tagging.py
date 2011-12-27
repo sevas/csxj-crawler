@@ -4,6 +4,8 @@ import urlparse
 TaggedURL = namedtuple('TaggedURL', 'URL title tags')
 
 
+
+
 def make_tagged_url(url, title, tags):
     return TaggedURL(URL=url, title=title, tags=tags)
 

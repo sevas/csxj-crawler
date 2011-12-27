@@ -291,8 +291,8 @@ def test_filler():
 
 def test_downloader():
     ArticleQueueDownloader.setup_logging()
-    from datasources import lesoir
-    for source in [lesoir]:
+    from datasources import dhnet
+    for source in [dhnet]:
         queue_downloader = ArticleQueueDownloader(source, source.SOURCE_NAME, "/Users/sevas/Documents/juliette/json_db_0_5/")
         queue_downloader.download_all_articles_in_queue()
 
