@@ -45,7 +45,7 @@ def make_date_from_string(date_string):
 
 
 def make_date_time_from_string(date_string, time_string):
-    return make_date_from_string(date_string), make_time(time_string)
+    return make_date_from_string(date_string), make_time_from_string(time_string)
 
 
 
