@@ -296,3 +296,27 @@ class Provider(object):
                 items_by_batch.append((batch_hour, items))
         return items_by_batch
 
+
+
+
+
+    def get_queued_items_count(self):
+        queue_directory = os.path.join(self.directory, "queue")
+        batched_days = utils.get_subdirectories(queue_directory)
+        item_count = 0
+        for day_string in batched_days:
+            day_directory = os.path.join(queue_directory, day_string)
+            item_count += self.get_item_count_for_day(day_directory)
+
+        return item_count
+
+
+
+    def get_item_count_for_day(self, day_directory):
+        item_count = 0
+        for batch_file in utils.get_json_files(day_directory):
+            batch_hour = batch_file[:-5]
+            with open(os.path.join(day_directory, batch_file)) as f:
+                items = json.load(f)
+                item_count += len(items['articles'])
+        return item_count
