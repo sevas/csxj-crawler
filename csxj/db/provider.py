@@ -265,10 +265,10 @@ class Provider(object):
         """
         queue_directory = os.path.join(self.directory, "queue")
         batched_days = utils.get_subdirectories(queue_directory)
-        batches_by_day = dict()
+        batches_by_day = list()
         for day_string in batched_days:
             day_directory = os.path.join(queue_directory, day_string)
-            batches_by_day[day_string] = self.get_queued_items_by_batch(day_directory)
+            batches_by_day.append((day_string, self.get_queued_items_by_batch(day_directory)))
 
         return batches_by_day
 
