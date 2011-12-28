@@ -148,6 +148,7 @@ class Provider(object):
             with open(json_filepath, 'r') as f:
                 json_content = json.load(f)
                 articles = [ArticleData.from_json(json_string) for json_string in json_content['articles']]
+                articles.sort(key=lambda art: art.url)
                 n_errors = len(json_content['errors'])
                 return articles, n_errors
         else:
