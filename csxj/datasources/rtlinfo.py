@@ -163,7 +163,7 @@ def extract_links_and_text_content(main_article):
         plaintext_urls = extract_plaintext_urls_from_text(paragraph)
         for url in plaintext_urls:
             tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
-            tags.add('in text', 'plaintext')
+            tags.union(['in text', 'plaintext'])
             all_plaintext_urls.append(make_tagged_url(url, url, tags))
 
         cleaned_up_paragraphs.append(paragraph)
