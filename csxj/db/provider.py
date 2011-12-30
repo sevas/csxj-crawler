@@ -271,6 +271,7 @@ class Provider(object):
             day_directory = os.path.join(queue_directory, day_string)
             batches_by_day.append((day_string, self.get_queued_items_by_batch(day_directory)))
 
+        batches_by_day.sort(key=lambda day_batches: day_batches[0])
         return batches_by_day
 
 
@@ -295,6 +296,7 @@ class Provider(object):
             with open(os.path.join(day_directory, batch_file)) as f:
                 items = json.load(f)
                 items_by_batch.append((batch_hour, items))
+        items_by_batch.sort(key=lambda batch: batch[0])
         return items_by_batch
 
 
