@@ -171,7 +171,7 @@ class ArticleQueueDownloader(object):
         queued_items = provider_db.get_queued_batches_by_day()
 
         if queued_items:
-            for (day_string, batches) in queued_items.items():
+            for (day_string, batches) in queued_items:
                 self.log_info("Downloading {0} batches for {1}".format(len(batches), day_string))
                 day_directory = os.path.join(self.db_root, self.source_name, day_string)
                 for (i, batch) in enumerate(batches):
@@ -291,8 +291,8 @@ def test_filler():
 
 def test_downloader():
     ArticleQueueDownloader.setup_logging()
-    from datasources import dhnet
-    for source in [dhnet]:
+    from datasources import rtlinfo
+    for source in [rtlinfo]:
         queue_downloader = ArticleQueueDownloader(source, source.SOURCE_NAME, "/Users/sevas/Documents/juliette/json_db_0_5/")
         queue_downloader.download_all_articles_in_queue()
 
