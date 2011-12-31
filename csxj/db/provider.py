@@ -7,6 +7,7 @@ This is how a typical database looks like:
   - stats.json
   - last_frontpage_list.json
   - YYYY-MM-DD
+    - cached_metainfo.json
     - HH.MM.SS
         - articles.json
         - raw_data
@@ -21,14 +22,34 @@ This helper module enables programmatic access to this hierarchy.
 """
 
 import os, os.path
-from datetime import time, datetime
 from collections import namedtuple
 import json
 import shutil
 
 import utils
 from article import ArticleData
-from providerstats import ProviderStats
+
+
+import warnings
+import functools
+
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emitted
+    when the function is used."""
+
+    @functools.wraps(func)
+    def new_func(*args, **kwargs):
+        warnings.warn_explicit(
+            "Call to deprecated function %(funcname)s." % {
+                'funcname': func.__name__,
+            },
+            category=DeprecationWarning,
+            filename=func.func_code.co_filename,
+            lineno=func.func_code.co_firstlineno + 1
+        )
+        return func(*args, **kwargs)
+    return new_func
 
 
 
@@ -107,12 +128,12 @@ class Provider(object):
         all_days.sort()
         result = list()
         for date_string in all_days:
-            article_count, error_count = self.get_article_and_error_count(date_string)
-            result.append((date_string, article_count, error_count))
+            metainfo = self.get_metainfo_for_day(date_string)
+            result.append((date_string, metainfo['article_count'], metainfo['error_count']))
         return result
 
 
-
+    @deprecated
     def get_article_and_error_count(self, date_string):
         """
         Returns the number of articles fetched and errors encountered for all the batches in a day.
@@ -192,7 +213,7 @@ class Provider(object):
 
     def get_articles_and_errorcounts_per_batch(self, date_string):
         """
-        Returns a list of (time, [Articles]).
+        Returns a list of (hour_string, [Articles], error_count) for a certain date
         """
         day_directory = os.path.join(self.directory, date_string)
         if os.path.exists(day_directory):
@@ -201,7 +222,6 @@ class Provider(object):
             for batch_time in all_batch_times:
                 batch_content = self.get_batch_content(date_string, batch_time)
                 articles, batch_error_count = batch_content
-
                 all_batches.append((batch_time, articles, batch_error_count))
 
             all_batches.sort(key=lambda x: x[0])
@@ -230,6 +250,52 @@ class Provider(object):
 
 
 
+    def get_metainfo_for_day(self, date_string):
+        """
+        Returns a dictionary with some cached statistics about the content for a particular day.
+
+
+        """
+        day_directory = os.path.join(self.directory, date_string)
+        if os.path.exists(day_directory):
+            cached_metainfo_file = os.path.join(day_directory, 'cached_metainfo.json')
+            if os.path.exists(cached_metainfo_file):
+                with open(cached_metainfo_file) as f:
+                    cached_metainfo = json.load(f)
+                    return cached_metainfo
+            else:
+                articles_and_errorcounts = self.get_articles_and_errorcounts_per_batch(date_string)
+                article_count, error_count, link_count = 0, 0, 0
+
+                for (hour, articles, batch_error_count) in articles_and_errorcounts:
+                    article_count += len(articles)
+                    error_count += batch_error_count
+                    batch_link_count = sum(len(art.links) for art in articles)
+                    link_count += batch_link_count
+
+                cached_metainfo_file = os.path.join(day_directory, 'cached_metainfo.json')
+                with open(cached_metainfo_file, 'w') as f:
+                    metainfo = {
+                        'article_count':article_count,
+                        'error_count':error_count,
+                        'link_count':link_count
+                    }
+                    json.dump(metainfo, f)
+                return metainfo
+        else:
+            raise NonExistentDayError(self.name, date_string)
+
+
+
+    def remove_all_cached_metainfo(self):
+        for date_string in self.get_all_days():
+            day_directory = os.path.join(self.directory, date_string)
+            cached_metainfo_file = os.path.join(day_directory, 'cached_metainfo.json')
+            if os.path.exists(cached_metainfo_file):
+                os.remove(cached_metainfo_file)
+
+
+
     def get_data_per_batch(self, date_string, data_extractor_func):
         day_directory = os.path.join(self.directory, date_string)
         if os.path.exists(day_directory):
@@ -249,7 +315,8 @@ class Provider(object):
 
     def cleanup_queue(self, day_string):
         """
-
+        Removes the queued items for a certain date. Should be called only after
+        a successfull crawling session.
         """
         day_queue_directory = os.path.join(self.directory, "queue", day_string)
         if os.path.exists(day_queue_directory):
@@ -301,8 +368,6 @@ class Provider(object):
 
 
 
-
-
     def get_queued_items_count(self):
         queue_directory = os.path.join(self.directory, "queue")
         batched_days = utils.get_subdirectories(queue_directory)
@@ -314,7 +379,7 @@ class Provider(object):
         return item_count
 
 
-
+    @deprecated
     def get_item_count_for_day(self, day_directory):
         item_count = 0
         for batch_file in utils.get_json_files(day_directory):
