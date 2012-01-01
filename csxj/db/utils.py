@@ -49,6 +49,14 @@ def make_date_time_from_string(date_string, time_string):
 
 
 
+def convert_date_to_string(d):
+    return d.strftime("%Y-%m-%d")
+
+
+def convert_hour_to_string(h):
+    return h.strfimt("%H.%M.%S")
+
+
 def get_latest_hour(hour_directory_names):
     """
     From a list of string-formatted hours ('HH.MM.SS'), returns the latest hour (also in string form).
