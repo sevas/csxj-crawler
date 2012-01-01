@@ -28,28 +28,9 @@ import shutil
 
 import utils
 from article import ArticleData
+from csxj.common.decorators import deprecated
 
 
-import warnings
-import functools
-
-def deprecated(func):
-    """This is a decorator which can be used to mark functions
-    as deprecated. It will result in a warning being emitted
-    when the function is used."""
-
-    @functools.wraps(func)
-    def new_func(*args, **kwargs):
-        warnings.warn_explicit(
-            "Call to deprecated function %(funcname)s." % {
-                'funcname': func.__name__,
-            },
-            category=DeprecationWarning,
-            filename=func.func_code.co_filename,
-            lineno=func.func_code.co_firstlineno + 1
-        )
-        return func(*args, **kwargs)
-    return new_func
 
 
 
@@ -250,11 +231,28 @@ class Provider(object):
 
 
 
+    def get_metainfo(self):
+        source_metainfo = {
+            'article_count':0,
+            'error_count':0,
+            'link_count':0}
+
+        for day in self.get_all_days():
+            day_metainfo = self.get_metainfo_for_day(day)
+            for k in ['article_count', 'error_count', 'link_count']:
+                source_metainfo[k] += day_metainfo[k]
+
+        return source_metainfo
+
+
     def get_metainfo_for_day(self, date_string):
         """
         Returns a dictionary with some cached statistics about the content for a particular day.
 
-
+        Current metainfo is:
+            - article_count
+            - error_count
+            - link_count
         """
         day_directory = os.path.join(self.directory, date_string)
         if os.path.exists(day_directory):

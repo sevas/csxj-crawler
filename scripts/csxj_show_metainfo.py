@@ -18,3 +18,5 @@ if __name__=='__main__':
                 print('\t\t{0}:\t{1}'.format(k, v))
 
 
+    print csxjdb.get_summed_statistics(args.jsondb)
+

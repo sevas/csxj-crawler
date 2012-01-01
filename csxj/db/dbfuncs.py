@@ -8,7 +8,7 @@ from article import ArticleData
 from providerstats import ProviderStats
 from provider import Provider
 import utils
-
+from csxj.common.decorators import deprecated
 
 
 def get_all_provider_names(db_root):
@@ -17,7 +17,9 @@ def get_all_provider_names(db_root):
 
     Returns a list of string, one for each content provider.
     """
-    return utils.get_subdirectories(db_root)
+    subdirs = utils.get_subdirectories(db_root)
+    subdirs.sort()
+    return subdirs
 
 
 
@@ -27,7 +29,7 @@ def get_provider_dump(filename):
         return json.loads(json_content)
 
 
-
+@deprecated
 def collect_stats(all_articles, all_errors):
     num_providers = len(all_articles.keys())
     num_articles =  sum(len(articles) for articles in chain(all_articles.values()))
@@ -36,7 +38,7 @@ def collect_stats(all_articles, all_errors):
     return {'num_providers':num_providers, 'num_articles':num_articles, 'num_errors':num_errors}
 
 
-
+@deprecated
 def get_latest_fetched_articles(db_root):
     providers = utils.get_subdirectories(db_root)
 
@@ -76,7 +78,7 @@ def get_latest_fetched_articles(db_root):
     return fetched_date, last_articles, last_errors
 
 
-
+@deprecated
 def get_last_status_update(db_root):
     fetched_date, articles, errors = get_latest_fetched_articles(db_root)
 
@@ -87,7 +89,7 @@ def get_last_status_update(db_root):
     return stats
 
 
-
+@deprecated
 def get_overall_statistics(db_root):
     providers = utils.get_subdirectories(db_root)
 
@@ -105,6 +107,7 @@ def get_overall_statistics(db_root):
     return overall_stats
 
 
+@deprecated
 def make_overall_statistics(source_statistics):
     overall_stats = {'total_articles':0, 'total_errors':0, 'total_links':0, 'start_date':None, 'end_date':None}
     for (name, provider_stats) in source_statistics.items():
@@ -117,7 +120,7 @@ def make_overall_statistics(source_statistics):
     return overall_stats
 
 
-
+@deprecated
 def get_per_source_statistics(db_root):
     sources = utils.get_subdirectories(db_root)
 
@@ -129,3 +132,51 @@ def get_per_source_statistics(db_root):
     return source_stats
 
 
+
+def get_first_and_last_date(db_root):
+    source_names = get_all_provider_names(db_root)
+
+    p = Provider(db_root, source_names[0])
+    all_days = p.get_all_days()
+
+    return utils.make_date_from_string(all_days[0]), utils.make_date_from_string(all_days[-1])
+
+
+
+def get_summed_statistics(db_root):
+    overall_metainfo = {'total_article_count':0, 'total_error_count':0, 'total_link_count':0}
+    for source_name in get_all_provider_names(db_root):
+        p = Provider(db_root, source_name)
+        source_metainfo = p.get_metainfo()
+
+        overall_metainfo['total_article_count'] += source_metainfo['article_count']
+        overall_metainfo['total_error_count'] += source_metainfo['error_count']
+        overall_metainfo['total_link_count'] += source_metainfo['link_count']
+    return overall_metainfo
+
+
+def get_statistics_from_last_update(db_root):
+    overall_metainfo = {'last_update_article_count':0, 'last_update_error_count':0, 'last_update_link_count':0}
+    for source_name in get_all_provider_names(db_root):
+        p = Provider(db_root, source_name)
+        last_day = utils.get_latest_day(p.get_all_days())
+        source_metainfo = p.get_metainfo_for_day(last_day)
+
+        overall_metainfo['last_update_article_count'] += source_metainfo['article_count']
+        overall_metainfo['last_update_error_count'] += source_metainfo['error_count']
+        overall_metainfo['last_update_link_count'] += source_metainfo['link_count']
+    return overall_metainfo
+
+
+def get_summary_from_last_update(db_root):
+    source_names = get_all_provider_names(db_root)
+
+    last_update = list()
+    for name in source_names:
+        p = Provider(db_root, name)
+        last_day = utils.get_latest_day(p.get_all_days())
+
+        summary = p.get_metainfo_for_day(last_day)
+        last_update.append((name, utils.make_date_from_string(last_day), summary))
+
+    return last_update
