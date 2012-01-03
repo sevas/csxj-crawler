@@ -9,7 +9,8 @@ setup(name='csxj',
                 'csxj.db'],
       scripts=['scripts/csxj_update_all_queues.py',
                'scripts/csxj_download_queued_articles.py',
-               'scripts/csxj_cleanup_cached_metainfo.py'],
+               'scripts/csxj_cleanup_cached_metainfo.py',
+               'scripts/csxj_update_metainfo.py'],
       version=csxj.__version__,
 
       #PyPI metadata
