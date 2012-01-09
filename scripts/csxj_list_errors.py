@@ -34,7 +34,7 @@ class HTMLReport(object):
         
 
     def add_failure(self, url, e):
-        trace = traceback.format_stack()
+        trace = traceback.format_exc()
         new_result = {
             'success': False,
             'url': url,
@@ -70,8 +70,16 @@ def reprocess_errors(db_root, sources):
 
 
 def try_reprocessing(source, url):
-    article_data, html_content = source.extract_article_data(url)
-    print article_data.title, article_data.links
+    try:
+        article_data, html_content = source.extract_article_data(url)
+        if article_data:
+            print article_data.title, article_data.links
+        else:
+            print 'no article found for that url'
+    except Exception as e:
+        trace = traceback.format_exc()
+        print trace
+
 
 
 def list_errors(db_root, sources):
@@ -88,9 +96,9 @@ def list_errors(db_root, sources):
                     print source.SOURCE_NAME, date_string, time
                     for err in errors:
                         print "\t", err.url
-                        for line in err.stacktrace:
-                            print "\t", line
-                        #try_reprocessing(source, err.url)
+                        #for line in err.stacktrace:
+                        #    print "\t", line
+                        try_reprocessing(source, err.url)
                     print
         res[source.SOURCE_NAME] = count
 
@@ -99,8 +107,8 @@ def list_errors(db_root, sources):
         print "{0}: {1} errors".format(name, error_count)
 
 def main(db_root):
-    list_errors(db_root, [lesoir, rtlinfo, sudpresse, lalibre, dhnet])
-                    
+    #list_errors(db_root, [lesoir, rtlinfo, sudpresse, lalibre, dhnet])
+    list_errors(db_root, [dhnet])
 
 if __name__=="__main__":
     main("/Users/sevas/Documents/juliette/json_db_0_5")

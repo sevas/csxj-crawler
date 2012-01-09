@@ -207,7 +207,7 @@ class ArticleQueueDownloader(object):
                     # this is for logging errors while parsing the dom. If it fails,
                     # we should get an AttributeError at some point. We'll keep
                     # that in a log, and save the html for future processing.
-                    stacktrace = traceback.format_stack()
+                    stacktrace = traceback.format_exc()
                     new_error = make_error_log_entry(url, stacktrace, self.db_root)
                     errors.append(new_error)
                 else:
@@ -216,7 +216,7 @@ class ArticleQueueDownloader(object):
                         raise e
                     else:
                         # but in production, log everything
-                        stacktrace = traceback.format_stack()
+                        stacktrace = traceback.format_exc()
                         new_error = make_error_log_entry(url, stacktrace, self.db_root)
                         errors.append(new_error)
 
