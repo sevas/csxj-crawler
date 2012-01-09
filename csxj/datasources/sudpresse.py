@@ -7,7 +7,7 @@ from itertools import chain
 import urllib
 from BeautifulSoup import Tag
 from common.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
-from common.utils import extract_plaintext_urls_from_text, remove_text_formatting_markup
+from common.utils import extract_plaintext_urls_from_text
 from common.utils import remove_text_formatting_markup_from_fragments
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
 from csxj.db.article import ArticleData
@@ -86,7 +86,8 @@ def extract_text_and_links_from_paragraph(paragraph):
         tags.update(['in text'])
         tagged_urls.append(make_tagged_url(url, title, tags))
 
-    text = ''.join(remove_text_formatting_markup(p) for p in paragraph.contents)
+    text  = remove_text_formatting_markup_from_fragments(paragraph.contents)
+
 
     plaintext_urls = extract_plaintext_urls_from_text(text)
     for url in plaintext_urls:
@@ -348,12 +349,21 @@ def test_sample_data():
 
         for link in article_data.links:
             print link.title
-        
 
+        print article_data.intro
+        print article_data.content
+
+
+def download_one_article():
+    url = 'http://www.sudpresse.be/regions/liege/2012-01-09/liege-un-mineur-d-age-et-un-majeur-apprehendes-pour-un-viol-collectif-930314.shtml'
+
+    article_data, raw_html = extract_article_data(url)
+    article_data.print_summary()
+
+
+    print article_data.intro
+    print article_data.content
 
 
 if __name__=='__main__':
-    toc, blogs = get_frontpage_toc()
-    print toc
-    #show_frontpage_articles()
-    #test_sample_data()
+    download_one_article()

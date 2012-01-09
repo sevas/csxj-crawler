@@ -10,7 +10,7 @@ import codecs
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
 from csxj.db.article import ArticleData
 from common.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
-from common.utils import remove_text_formatting_markup, extract_plaintext_urls_from_text
+from common.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
 from common import constants
 
 
@@ -49,7 +49,8 @@ def sanitize_paragraph(paragraph):
     """
     Removes image links, removes paragraphs, formatting
     """
-    return ''.join([remove_text_formatting_markup(fragment) for fragment in paragraph.contents])
+    return  remove_text_formatting_markup_from_fragments(paragraph)
+    #return ''.join([remove_text_formatting_markup(fragment) for fragment in paragraph.contents])
 
 
 
@@ -362,27 +363,11 @@ def get_frontpage_articles_data():
 
 
 
+def dowload_one_article():
+    url = "http://www.lesoir.be/sports/sports_mecaniques/2012-01-07/pas-de-grand-prix-de-spa-francorchamps-en-2013-888811.php"
+    art, raw_html = extract_article_data(url)
+    print art.intro
+    print art.content
 
 if __name__ == '__main__':
-    articles, blogpost_links, errors = get_frontpage_articles_data()
-    
-    for article_data in articles:
-        article_data.print_summary()
-
-        for (url, title, tags) in article_data.internal_links:
-            print u'{0} -> {1} {2}'.format(url, title, tags)
-
-        for (url, title, tags) in article_data.external_links:
-            print u'{0} -> {1} {2}'.format(url, title, tags)
-
-        print '-' * 80
-        
-    print 'blogposts: '
-    print '\n'.join([title for (title, url) in blogpost_links])
-
-    if errors:
-        print 'errors: '
-        print '\n'.join(errors)
-    
-
-    print '\n articles : {0} \t blogposts : {1} \t errors : {2}'.format(len(articles), len(blogpost_links), len(errors))
+    dowload_one_article()

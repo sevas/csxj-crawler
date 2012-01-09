@@ -3,7 +3,7 @@ from datetime import datetime, time
 import locale
 from itertools import chain
 import codecs
-from common.utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, remove_text_formatting_markup
+from common.utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
 from common.utils import extract_plaintext_urls_from_text
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
 from csxj.db.article import ArticleData
@@ -218,7 +218,7 @@ def extract_article_data(source):
 
     
 def extract_frontpage_title_and_url(link):
-    title = ''.join([remove_text_formatting_markup(c.strip()) for c in link.contents])
+    title = remove_text_formatting_markup_from_fragments(link, ' ')
     return title, link.get('href')
 
 
