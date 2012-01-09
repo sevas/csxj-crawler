@@ -40,7 +40,7 @@ def extract_plaintext_urls_from_text(some_text):
 
 TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span', 'sub', 'sup', 'p' ]
 
-def remove_text_formatting_markup(formatted_text_fragment):
+def remove_text_formatting_markup(formatted_text_fragment, strip_chars):
     """
     Returns the plain text version of a chunk of text formatted with HTML tags.
     Unsupported tags are ignored.
@@ -51,18 +51,18 @@ def remove_text_formatting_markup(formatted_text_fragment):
     if isinstance(formatted_text_fragment, Tag):
         # If it's the former, we remove the tag and clean up all its children
         if formatted_text_fragment.name in TEXT_MARKUP_TAGS:
-            return u''.join([remove_text_formatting_markup(f) for f in formatted_text_fragment.contents])
+            return u''.join([remove_text_formatting_markup(f, strip_chars) for f in formatted_text_fragment.contents])
         # sometimes we get embedded <objects>, just ignore it
         else:
             return u''
-    # If it's a plain string, there is nothing else to do
+    # If it's a plain string, we just strip
     else:
-        return formatted_text_fragment
+        return formatted_text_fragment.strip(strip_chars)
 
 
 
-def remove_text_formatting_markup_from_fragments(fragments):
+def remove_text_formatting_markup_from_fragments(fragments, strip_chars=''):
     """
     cleans up the html markup from a collection of fragments
     """
-    return u''.join(remove_text_formatting_markup(f) for f in fragments)
+    return u''.join(remove_text_formatting_markup(f, strip_chars) for f in fragments)

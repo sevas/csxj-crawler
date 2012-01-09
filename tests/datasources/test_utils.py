@@ -100,6 +100,10 @@ class HTMLCleanupTestCases(unittest.TestCase):
         self.assertEquals(clean_fragments, u"\nFirst paragraph.\nSecond paragraph.\n")
 
 
+    def test_string_stripping(self):
+        html_fragments = make_fragments("\n  \tI'm formatting from word, bitch!\n\n\n")
+        clean_fragments = remove_text_formatting_markup_from_fragments(html_fragments, "\n\t ")
+        self.assertEquals(clean_fragments, "I'm formatting from word, bitch!")
 
 if __name__ == '__main__':
     unittest.main()
