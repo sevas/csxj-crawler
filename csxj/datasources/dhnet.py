@@ -9,7 +9,7 @@ import re
 import urlparse
 from BeautifulSoup import Tag
 from common.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
-from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
+from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 from common import constants
 
@@ -113,7 +113,7 @@ def extract_and_tag_in_text_links(article_text):
 
 
 
-def extract_text_content_and_links_from_articletext(article_text):
+def extract_text_content_and_links_from_articletext(article_text, has_intro=True):
     """
     Cleans up the text from html tags, extracts and tags all
     links (clickable _and_ plaintext).
@@ -130,22 +130,13 @@ def extract_text_content_and_links_from_articletext(article_text):
 
     children = filter_out_useless_fragments(article_text.contents)
     # first child is the intro paragraph, discard it
-    children = children[1:]
+    if has_intro:
+        children = children[1:]
 
     # the rest might be a list of paragraphs, but might also just be the text, sometimes with
     # formatting.
-    TEXT_MARKUP_TAGS = ['b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5',  ]
-    cleaned_up_text_fragments = []
-    
-    for child in children:
-        if isinstance(child, Tag):
-            if child.name in TEXT_MARKUP_TAGS:
-                cleaned_up_text_fragments.append(remove_text_formatting_markup_from_fragments(child.contents))
-            elif child.name == 'p':
-                cleaned_up_text_fragments.append(remove_text_formatting_markup_from_fragments(child.contents))
-        else:
-            cleaned_up_text_fragments.append(child)
 
+    cleaned_up_text_fragments = remove_text_formatting_markup_from_fragments(children, '\n\t ')
 
     all_plaintext_urls = []
     for text in cleaned_up_text_fragments:
@@ -158,17 +149,22 @@ def extract_text_content_and_links_from_articletext(article_text):
 
 
 
+def article_has_intro(article_text):
+    return article_text.p
+
 
 def extract_intro_from_articletext(article_text):
     """
     Finds the introduction paragraph, returns a string with the text
     """
     # intro text seems to always be in the first paragraph.
-    intro_paragraph = article_text.p
+    if article_has_intro(article_text):
+        intro_paragraph = article_text.p
+        return remove_text_formatting_markup_from_fragments(intro_paragraph.contents)
+    # but sometimes there is no intro. What the hell.
+    else:
+        return u''
 
-    intro_text =  remove_text_formatting_markup_from_fragments(intro_paragraph.contents)
-
-    return intro_text
 
 
 
@@ -333,7 +329,7 @@ def extract_article_data(source):
 
     main_content = soup.find('div', {'id':'maincontent'})
 
-    if main_content:
+    if main_content and main_content.h1:
         title = remove_text_formatting_markup_from_fragments(main_content.h1.contents)
         pub_date, pub_time = extract_date_from_maincontent(main_content)
         category = extract_category_from_maincontent(main_content)
@@ -341,11 +337,15 @@ def extract_article_data(source):
 
 
         article_text = main_content.find('div', {'id':'articleText'})
-        intro = extract_intro_from_articletext(article_text)
-        text, in_text_urls = extract_text_content_and_links_from_articletext(article_text)
+        if article_has_intro(article_text):
+            intro = extract_intro_from_articletext(article_text)
+            text, in_text_urls = extract_text_content_and_links_from_articletext(article_text)
+        else:
+            intro = u""
+            text, in_text_urls = extract_text_content_and_links_from_articletext(article_text, False)
         associated_urls = extract_associated_links_from_maincontent(main_content)
 
-
+        # TODO: better url extraction
         embedded_content = main_content.find('div', {'class':'embedContents'})
         embedded_content_urls = []
         #if embedded_content:
@@ -435,25 +435,15 @@ def get_frontpage_toc():
 
 if __name__ == "__main__":
     import json
-    url = "http://www.dhnet.be/sports/basket/article/378224/spirous-de-charleroi-satisfaction-et-regrets.html"
-    url = "http://www.dhnet.be/sports/anderlecht/article/378221/jacobs-si-de-sutter-part-j-aurai-besoin-d-un-remplacant.html"
-    url = "http://www.dhnet.be/cine-tele/television/article/378217/koh-lanta-martin-a-saisi-sa-chance.html"
-    url = "http://www.dhnet.be/sports/formule-1/article/378259/le-francais-romain-grosjean-en-f1-la-saison-prochaine.html"
-    url = "http://www.dhnet.be/infos/faits-divers/article/378214/proces-sheikh-le-verdict-attendu-ce-vendredi.html"
-    url = "http://www.dhnet.be/infos/elections-2010/article/378213/un-gouvernement-francophone-et-taxateur.html"
-    url = "http://www.dhnet.be/infos/societe/article/378212/un-enfant-sur-trois-victime-du-web.html"
-    url = "http://www.dhnet.be/sports/standard/article/378222/le-standard-evitera-les-deux-manchester.html"
-    url = "http://www.dhnet.be/people/show-biz/article/378218/miss-france-est-une-paysanne.html"
-    url = "http://www.dhnet.be/sports/football/article/378256/les-catalans-sont-des-piranhas.html"
-    url = "http://www.dhnet.be/sports/cyclisme/article/378225/elisez-le-coureur-belge-de-la-saison-2011.html"
-    url = "http://www.dhnet.be/people/show-biz/article/378219/lindsay-lohan-nue-la-couverture.html"
-    url = "http://www.dhnet.be/sports/tennis/article/378226/clijsters-wimbledon-d-abord-l-australie.html"
-    url = "http://www.dhnet.be/infos/buzz/article/378300/caro-fait-son-show.html"
-    #url = "http://www.dhnet.be/cine-tele/multimedia/article/376450/quand-samsung-raille-apple.html"
+
+    #url = "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html"
+    #url = "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html"
+    url = "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html"
     article, html = extract_article_data(url)
 
-    article.print_summary()
-    print article.links
-    print article.to_json()
-    print article.title
-    
+    if article:
+        article.print_summary()
+        print article.links
+        print article.to_json()
+        print article.title
+        print article.content
