@@ -1,55 +1,62 @@
 import os
 import sys
 import traceback
+import shutil
 from jinja2 import Template, Environment, FileSystemLoader
 from csxj.db import Provider, get_all_provider_names
 from csxj.datasources import lesoir, rtlinfo, sudpresse, lalibre, dhnet
 
-
+from collections import defaultdict
 
 
 class HTMLReport(object):
     def __init__(self):
-        self.results = []
+        self.results = defaultdict(list)
 
 
     def process_error(self, date, hour, source, url):
         try:
             article, html = source.extract_article_data(url)
-            self.add_success(url, article)
+            self.add_success(url, article, source)
         except Exception as e:
-            self.add_failure(url, e)
+            self.add_failure(url, e, source)
 
 
-    def add_success(self, url, article):
+    def add_success(self, url, article, source):
         new_result = {
             'success': True,
             'url': url,
+            'title': article.title,
             'date':  article.pub_date,
             'internal_link_count': len(article.internal_links),
             'external_link_count': len(article.external_links)
         }
-        self.results.append(new_result)
+        self.results[source.SOURCE_NAME].append(new_result)
 
         
 
-    def add_failure(self, url, e):
+    def add_failure(self, url, e, source):
         trace = traceback.format_exc()
         new_result = {
             'success': False,
             'url': url,
-            'trace': trace,
+            'trace': trace.split('\n'),
             'message': e.message
         }
-        self.results.append(new_result)
+        self.results[source.SOURCE_NAME].append(new_result)
 
 
 
-    def write_html_to_file(self, filename):
-        ENV = Environment( loader=FileSystemLoader(os.path.join(os.path.dirname(__file__),'templates')))
+    def write_html_to_file(self, outdir):
+        ENV = Environment( loader=FileSystemLoader(os.path.join(os.path.dirname(__file__),'../templates')))
 
-        with open(os.path.join(page_directory_out, filename), 'w') as f:
-            template = ENV.get_template(os.path.join('error_report.html'))
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+            shutil.copytree(os.path.join(os.path.dirname(__file__),"../templates/blueprint"), outdir)
+
+        filename = "reprocessed_errors_report.html"
+        with open(os.path.join(outdir, filename), 'w') as f:
+            template = ENV.get_template('error_report.html')
             html_content = template.render(results=self.results)
             f.write(html_content)
 
@@ -63,10 +70,10 @@ def reprocess_errors(db_root, sources):
             errors = provider_db.get_errors_per_batch(date_string)
             for (time, errors) in errors:
                 if errors:
-                    for err in errors[:1]:
+                    for err in errors:
                         report.process_error(date_string, time, source, err.url)
 
-    report.write_html_to_file("reprocessed_errors_report.html")
+    report.write_html_to_file("../error_report")
 
 
 def try_reprocessing(source, url):
@@ -76,9 +83,11 @@ def try_reprocessing(source, url):
             print article_data.title, article_data.links
         else:
             print 'no article found for that url'
+        return True
     except Exception as e:
         trace = traceback.format_exc()
         print trace
+        return False
 
 
 
@@ -87,28 +96,38 @@ def list_errors(db_root, sources):
 
     for source in sources:
         provider_db = Provider(db_root, source.SOURCE_NAME)
-        count = 0
+        error_count_before = 0
+        error_count_after = 0
+        succesfully_reprocessd_articles = 0
+
         for date_string in provider_db.get_all_days():
             errors_by_batch = provider_db.get_errors_per_batch(date_string)
             for (time, errors) in errors_by_batch:
                 if errors:
-                    count += len(errors)
+                    error_count_before += len(errors)
                     print source.SOURCE_NAME, date_string, time
                     for err in errors:
                         print "\t", err.url
-                        #for line in err.stacktrace:
-                        #    print "\t", line
-                        try_reprocessing(source, err.url)
-                    print
-        res[source.SOURCE_NAME] = count
+
+                        success = try_reprocessing(source, err.url)
+                        if success:
+                            succesfully_reprocessd_articles += 1
+                        else:
+                            error_count_after += 1
+
+        res[source.SOURCE_NAME] = (error_count_before, error_count_after, succesfully_reprocessd_articles)
 
     print "\n" * 4
-    for (name, error_count) in res.items():
-        print "{0}: {1} errors".format(name, error_count)
+    for (name, (error_count_before, error_count_after, succesfully_reprocessd_articles)) in res.items():
+        print "{0}: Had {1} errors, Reprocessed {2}, still {3}".format(name,
+            error_count_before,
+            succesfully_reprocessd_articles,
+            error_count_after)
 
 def main(db_root):
-    #list_errors(db_root, [lesoir, rtlinfo, sudpresse, lalibre, dhnet])
-    list_errors(db_root, [dhnet])
+    list_errors(db_root, [lesoir, rtlinfo, sudpresse, lalibre, dhnet])
+    #list_errors(db_root, [lalibre])
+    #reprocess_errors(db_root, [lesoir, rtlinfo, sudpresse, lalibre, dhnet])
 
 if __name__=="__main__":
     main("/Users/sevas/Documents/juliette/json_db_0_5")

@@ -2,23 +2,54 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <title></title>
+    <title>{{ title }}</title>
+    <link type="text/css" rel="stylesheet" href="blueprint/screen.css"  media="screen, projection"/>
+    <link type="text/css" rel="stylesheet" href="blueprint/plugins/buttons/screen.css" media="screen, projection"/>
+    <link rel="stylesheet" href="blueprint/print.css" type="text/css" media="print"/>
+    <!--[if  IE ]>
+    <link rel="stylesheet" href="/stylesheets/blueprint/ie.css" type="text/css" media="screen, projection"/>
+    <![endif]-->
+
 </head>
 <body>
 
-{% for result in results %}
+<div class="container">
+    <!--Site logo & stuff-->
+    <div class="span-24 last">
+      <div id="banner">
+          <strong><a href="/"> CSxJ Errors</a></strong>
+      </div>
+      <hr/>
+    </div>
 
-    {% if result.success  %}
-        <div style="background-color: #adff2f;">
-            
-        </div>
-    {% else %}
-        <div style="background-color: orange;">
 
-        </div>
-    {% endif %}
+    <div class="span-15 colborder">
 
-{% endfor %}
+        {% for result in results %}
+
+            {% if result.success  %}
+                <div class="box">
+                    <a href="{{ result.url }}">{{ result.title }}</a> <br/>
+                    {{ result.internal_link_count }} <br/>
+                    {{ result.external_link_count }}
+                </div>
+            {% else %}
+                <div class="error">
+                    {{ result.url }} <br/>
+                    <code>
+                        {% for line in result.trace %}
+                            {{ line }} <br/><br/>
+                        {% endfor %}
+                    </code>
+                </div>
+            {% endif %}
+            <br/><br/>
+        {% endfor %}
+    </div>
+
+
+
+</div>
 
 </body>
 </html>
