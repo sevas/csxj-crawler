@@ -137,7 +137,7 @@ def extract_associated_links(article):
 
         def extract_url_and_title(item):
             url = item.a.get('href')
-            title = ''.join(remove_text_formatting_markup(c) for c in  item.a.contents)
+            title = remove_text_formatting_markup_from_fragments(item.a.contents)
 
             tags = set()
             if not title:
@@ -161,6 +161,12 @@ def extract_associated_links(article):
         return []
 
 
+def is_page_error_404(soup):
+
+    return soup.head.title.contents[0] == '404'
+
+
+
 def extract_article_data(source):
     """
     """
@@ -172,25 +178,28 @@ def extract_article_data(source):
     soup = make_soup_from_html_content(html_content)
 
 
-    content = soup.find('div', {'id':'content'})
-    category = extract_category(content)
+    if is_page_error_404(soup):
+        return None, html_content
+    else:
+        content = soup.find('div', {'id':'content'})
+        category = extract_category(content)
 
-    article = soup.find('div', {'id':'article'})
-    title = extract_title(article)
-    pub_date, pub_time = extract_date(article)
-    author = extract_author_name(article)
+        article = soup.find('div', {'id':'article'})
+        title = extract_title(article)
+        pub_date, pub_time = extract_date(article)
+        author = extract_author_name(article)
 
-    fetched_datetime = datetime.today()
-    
-    intro, intro_links = extract_intro_and_links(article)
-    content, content_links = extract_content_and_links(article)
+        fetched_datetime = datetime.today()
 
-    associated_links = extract_associated_links(article)
+        intro, intro_links = extract_intro_and_links(article)
+        content, content_links = extract_content_and_links(article)
 
-    return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                       intro_links + content_links + associated_links,
-                       category, author,
-                       intro, content), html_content
+        associated_links = extract_associated_links(article)
+
+        return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
+                           intro_links + content_links + associated_links,
+                           category, author,
+                           intro, content), html_content
 
 
 
@@ -356,14 +365,16 @@ def test_sample_data():
 
 def download_one_article():
     url = 'http://www.sudpresse.be/regions/liege/2012-01-09/liege-un-mineur-d-age-et-un-majeur-apprehendes-pour-un-viol-collectif-930314.shtml'
-
+    url = 'http://sudpresse.be/actualite/dossiers/2012-01-02/le-stage-du-standard-a-la-manga-infos-photos-tweets-928836.shtml'
+    #url = 'http://sudpresse.be/%3C!--%20error:%20linked%20page%20doesn\'t%20exist:...%20--%3E'
     article_data, raw_html = extract_article_data(url)
-    article_data.print_summary()
 
-
-    print article_data.intro
-    print article_data.content
-
+    if article_data:
+        article_data.print_summary()
+        print article_data.intro
+        print article_data.content
+    else:
+        print 'no article found'
 
 if __name__=='__main__':
     download_one_article()
