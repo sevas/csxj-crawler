@@ -79,6 +79,11 @@ def sanitize_fragment(fragment):
         return fragment
 
 
+def separate_no_target_links(links):
+    no_target_links = [(target, title) for (target, title) in links if not target]
+    other_links = list(set(links) - set(no_target_links))
+    return [('', title) for (target, title) in no_target_links], other_links
+
     
 def separate_keyword_links(all_links):
     keyword_links = [l for l in all_links if l[0].startswith('/sujet')]
@@ -98,9 +103,16 @@ def extract_and_tag_in_text_links(article_text):
     links = [extract_link_and_title(link)
              for link in article_text.findAll('a', recursive=True)]
 
-    keyword_links, other_links = separate_keyword_links(links)
-    tagged_urls = (classify_and_make_tagged_url(keyword_links, additional_tags=set(['keyword', 'in text'])) +
-                   classify_and_make_tagged_url(other_links, additional_tags=set(['in text'])))
+
+
+    no_target_links, target_links = separate_no_target_links(links)
+    keyword_links, other_links = separate_keyword_links(target_links)
+
+    tagged_urls = (
+        classify_and_make_tagged_url(keyword_links, additional_tags=set(['keyword', 'in text'])) +
+        classify_and_make_tagged_url(other_links, additional_tags=set(['in text'])) +
+        classify_and_make_tagged_url(no_target_links, additional_tags=set(['in text', 'no target']))
+    )
 
     return tagged_urls
 
@@ -292,7 +304,7 @@ def get_frontpage_toc():
 
 def test_sample_data():
     url = "http://www.lalibre.be/economie/actualite/article/704138/troisieme-belgian-day-a-wall-street.html"
-
+    url = "http://www.lalibre.be/culture/selection-culturelle/article/707244/ou-sortir-ce-week-end.html"
     article_data, html_content = extract_article_data(url)
 
     if article_data:
