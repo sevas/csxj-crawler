@@ -86,9 +86,16 @@ def filter_out_useless_fragments(text_fragments):
 
 
 
+def separate_no_target_links(links):
+    no_target_links = [(target, title) for (target, title) in links if not target]
+    other_links = list(set(links) - set(no_target_links))
+    return [('', title) for (target, title) in no_target_links], other_links
+
+
 def separate_keyword_links(all_links):
     keyword_links = [l for l in all_links if l[0].startswith('/sujet')]
     other_links = list(set(all_links) - set(keyword_links))
+
     return keyword_links, other_links
 
 
@@ -100,14 +107,19 @@ def extract_and_tag_in_text_links(article_text):
     Returns a list of TaggedURL objects.
     """
     def extract_link_and_title(link):
-            return link.get('href'),  remove_text_formatting_markup_from_fragments(link.contents)
+        return link.get('href'),  remove_text_formatting_markup_from_fragments(link.contents)
+
     links = [extract_link_and_title(link)
              for link in article_text.findAll('a', recursive=True)]
 
-    keyword_links, other_links = separate_keyword_links(links)
+    no_target_links, target_links = separate_no_target_links(links)
+    keyword_links, other_links = separate_keyword_links(target_links)
 
-    tagged_urls = (classify_and_make_tagged_url(keyword_links, additional_tags=set(['keyword', 'in text'])) +
-                   classify_and_make_tagged_url(other_links, additional_tags=set(['in text'])))
+    tagged_urls = (
+        classify_and_make_tagged_url(keyword_links, additional_tags=set(['keyword', 'in text'])) +
+        classify_and_make_tagged_url(other_links, additional_tags=set(['in text'])) +
+        classify_and_make_tagged_url(no_target_links, additional_tags=set(['in text', 'no target']))
+        )
 
     return tagged_urls
 
@@ -438,7 +450,9 @@ if __name__ == "__main__":
 
     #url = "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html"
     #url = "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html"
-    url = "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html"
+    #url = "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html"
+    url = "http://www.dhnet.be/cine-tele/divers/article/378363/sois-belge-et-poile-toi.html"
+    url = "http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html"
     article, html = extract_article_data(url)
 
     if article:
