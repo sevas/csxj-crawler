@@ -22,8 +22,8 @@ RTLINFO_INTERNAL_SITES = {
     'blogs.rtlinfo.be':['internal', 'blog'],
 }
 
-SOURCE_TITLE = "RTL Info"
-SOURCE_NAME = "rtlinfo"
+SOURCE_TITLE = u"RTL Info"
+SOURCE_NAME = u"rtlinfo"
 
 def extract_title(main_article):
     left_column = main_article.find('div', {'id':'leftCol'})

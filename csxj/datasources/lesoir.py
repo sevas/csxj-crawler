@@ -20,8 +20,8 @@ if sys.platform in ['linux2', 'cygwin']:
 elif sys.platform in [ 'darwin']:
     locale.setlocale(locale.LC_TIME, 'fr_FR')
 
-SOURCE_TITLE = "Le Soir"
-SOURCE_NAME = "lesoir"
+SOURCE_TITLE = u"Le Soir"
+SOURCE_NAME = u"lesoir"
 
 LESOIR_INTERNAL_BLOGS = {
     'blog.lesoir.be':['internal blog', 'internal'],
@@ -365,9 +365,12 @@ def get_frontpage_articles_data():
 
 def dowload_one_article():
     url = "http://www.lesoir.be/sports/sports_mecaniques/2012-01-07/pas-de-grand-prix-de-spa-francorchamps-en-2013-888811.php"
+    url = "http://www.lesoir.be/actualite/belgique/elections_2010/2012-01-10/budget-2012-chastel-appele-a-s-expliquer-cet-apres-midi-889234.php"
+    url = "http://www.lesoir.be/actualite/france/2012-01-10/free-defie-les-telecoms-francais-avec-un-forfait-illimite-a-19-99-euros-889276.php"
     art, raw_html = extract_article_data(url)
     print art.intro
-    print art.content
+    print '/'.join(art.category)
+    print art.links
 
 if __name__ == '__main__':
     dowload_one_article()

@@ -16,8 +16,8 @@ LALIBRE_ASSOCIATED_SITES = {
 
 LALIBRE_NETLOC = 'www.lalibre.be'
 
-SOURCE_TITLE = "La Libre"
-SOURCE_NAME = "lalibre"
+SOURCE_TITLE = u"La Libre"
+SOURCE_NAME = u"lalibre"
 
 def is_on_same_domain(url):
     """

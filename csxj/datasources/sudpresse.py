@@ -26,8 +26,8 @@ SUDPRESSE_INTERNAL_SITES = {
 
 SUDPRESSE_OWN_NETLOC = 'sudpresse.be'
 
-SOURCE_TITLE = "Sud Presse"
-SOURCE_NAME = "sudpresse"
+SOURCE_TITLE = u"Sud Presse"
+SOURCE_NAME = u"sudpresse"
 
 def extract_category(content):
     breadcrumbs = content.find('p', {'class':'ariane'})

@@ -27,8 +27,8 @@ DHNET_INTERNAL_SITES = {
 
 DHNET_NETLOC = 'www.dhnet.be'
 
-SOURCE_TITLE = "DHNet"
-SOURCE_NAME = "dhnet"
+SOURCE_TITLE = u"DHNet"
+SOURCE_NAME = u"dhnet"
 
 def is_on_same_domain(url):
     """
@@ -309,7 +309,7 @@ def extract_date_from_maincontent(main_content):
 def extract_links_from_embedded_content(embedded_content):
     if embedded_content.iframe:
         url = embedded_content.iframe.get('src')
-        title = "Embedded content"
+        title = u"Embedded content"
         all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
         return [make_tagged_url(url, title, all_tags | set(['embedded']))]
     else:
