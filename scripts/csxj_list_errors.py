@@ -11,7 +11,7 @@ from collections import defaultdict
 
 class HTMLReport(object):
     def __init__(self):
-        self.results = defaultdict(list)
+        self.results = list() #defaultdict(list)
 
 
     def process_error(self, date, hour, source, url):
@@ -31,7 +31,8 @@ class HTMLReport(object):
             'internal_link_count': len(article.internal_links),
             'external_link_count': len(article.external_links)
         }
-        self.results[source.SOURCE_NAME].append(new_result)
+        #self.results[source.SOURCE_NAME].append(new_result)
+        self.results.append(new_result)
 
         
 
@@ -43,8 +44,8 @@ class HTMLReport(object):
             'trace': trace.split('\n'),
             'message': e.message
         }
-        self.results[source.SOURCE_NAME].append(new_result)
-
+        #self.results[source.SOURCE_NAME].append(new_result)
+        self.results.append(new_result)
 
 
     def write_html_to_file(self, outdir):
@@ -58,6 +59,8 @@ class HTMLReport(object):
         with open(os.path.join(outdir, filename), 'w') as f:
             template = ENV.get_template('error_report.html')
             html_content = template.render(results=self.results)
+            pos = 3625
+            print html_content[pos-10:pos+10]
             f.write(html_content)
 
 
@@ -127,7 +130,7 @@ def list_errors(db_root, sources):
 def main(db_root):
     list_errors(db_root, [lesoir, rtlinfo, sudpresse, lalibre, dhnet])
     #list_errors(db_root, [lalibre])
-    #reprocess_errors(db_root, [lesoir, rtlinfo, sudpresse, lalibre, dhnet])
+    #reprocess_errors(db_root, [lalibre])
 
 if __name__=="__main__":
-    main("/Users/sevas/Documents/juliette/json_db_0_5")
+    main("/Users/sevas/Documents/juliette/json_db_0_4")
