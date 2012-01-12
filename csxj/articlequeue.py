@@ -15,6 +15,7 @@ LOG_PATH = "logs"
 ARTICLES_FILENAME = 'articles.json'
 BLOGPOSTS_FILENAME = 'blogposts.json'
 ERRORS_FILENAME = 'errors.json'
+DELETED_ARTICLES_FILENAME = 'deleted_articles.json'
 RAW_DATA_DIR = 'raw_data'
 
 
@@ -177,13 +178,13 @@ class ArticleQueueDownloader(object):
                 for (i, batch) in enumerate(batches):
                     batch_hour_string, items = batch
                     self.log.info(self.make_log_message("Downloading {0} articles for batch#{1} ({2})".format(len(items['articles']), i, batch_hour_string)))
-                    urls = [url for (title, url) in items['articles']]
-                    articles, errors, raw_data = self.download_batch(urls)
+
+                    articles, deleted_articles, errors, raw_data = self.download_batch(items['articles'])
 
                     self.log_info("Found data for {0} articles ({1} errors)".format(len(articles),
                                                                                     len(errors)))
                     batch_output_directory = os.path.join(day_directory, batch_hour_string)
-                    self.save_articles_to_db(articles, errors, items['blogposts'], batch_output_directory)
+                    self.save_articles_to_db(articles, deleted_articles, errors, items['blogposts'], batch_output_directory)
                     self.save_raw_data_to_db(raw_data, batch_output_directory)
                     self.update_provider_stats(os.path.join(self.db_root, self.source_name), articles, errors)
 
@@ -194,14 +195,16 @@ class ArticleQueueDownloader(object):
 
 
 
-    def download_batch(self, urls):
-        articles, errors, raw_data = list(), list(), list()
-        for url in urls:
+    def download_batch(self, items):
+        articles, deleted_articles, errors, raw_data = list(), list(), list(), list()
+        for title, url in items:
             try:
                 article_data, html_content = self.source.extract_article_data(url)
                 if article_data:
                     articles.append(article_data)
                     raw_data.append((url, html_content))
+                else:
+                    deleted_articles.append((title, url))
             except Exception as e:
                 if e.__class__ in [AttributeError]:
                     # this is for logging errors while parsing the dom. If it fails,
@@ -220,20 +223,26 @@ class ArticleQueueDownloader(object):
                         new_error = make_error_log_entry(url, stacktrace, self.db_root)
                         errors.append(new_error)
 
-        return articles, errors, raw_data
+        return articles, deleted_articles, errors, raw_data
 
 
 
-    def save_articles_to_db(self, articles, errors, blogposts, outdir):
+    def save_articles_to_db(self, articles, deleted_articles, errors, blogposts, outdir):
         all_data = {'articles':[art.to_json() for art in  articles],
                     'errors':errors}
 
-        self.log_info("Writing articles {0}".format(os.path.join(outdir, ARTICLES_FILENAME)))
+        self.log_info("Writing {0} articles to {1}".format(len(articles), os.path.join(outdir, ARTICLES_FILENAME)))
         write_dict_to_file(all_data, outdir, ARTICLES_FILENAME)
+
         blogposts_data = {'blogposts':blogposts}
-        self.log_info("Writing blogposts {0}".format(os.path.join(outdir, BLOGPOSTS_FILENAME)))
+        self.log_info("Writing {0} blogpost links to {1}".format(len(blogposts), os.path.join(outdir, BLOGPOSTS_FILENAME)))
         write_dict_to_file(blogposts_data, outdir, BLOGPOSTS_FILENAME)
-        self.log_info("Writing errors {0}".format(os.path.join(outdir, ERRORS_FILENAME)))
+
+        deleted_articles_data = {'deleted_articles':deleted_articles}
+        self.log_info("Writing {0} links to deleted articles to {1}".format(len(deleted_articles), os.path.join(outdir, DELETED_ARTICLES_FILENAME)))
+        write_dict_to_file(deleted_articles_data, outdir, DELETED_ARTICLES_FILENAME)
+
+        self.log_info("Writing {0} errors to {1}".format(len(errors), os.path.join(outdir, ERRORS_FILENAME)))
         write_dict_to_file({'errors':errors}, outdir, ERRORS_FILENAME)
 
 
@@ -272,10 +281,11 @@ class ArticleQueueDownloader(object):
             current_stats.n_dumps += 1
             current_stats.end_date = datetime.today()
             current_stats.n_links += sum([(len(art.external_links) + len(art.internal_links)) for art in articles])
+            current_stats.save_to_file(stats_filename)
         except Exception as e:
             self.log_info(e.message)
 
-        current_stats.save_to_file(stats_filename)
+
 
         
 
