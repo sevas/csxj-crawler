@@ -78,7 +78,10 @@ def extract_text_and_links_from_paragraph(paragraph):
         else:
             return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
 
-    urls_and_titles = [extract_url_and_title(link) for link in paragraph.findAll('a', recursive=False)]
+    # Why do we filter on link.contents? Because sometimes there
+    # are <a id="more"></a> links which point to nothing.
+    # Awesome.
+    urls_and_titles = [extract_url_and_title(link) for link in paragraph.findAll('a', recursive=False) if link.contents]
 
     tagged_urls = list()
     for url, title in urls_and_titles:
@@ -367,6 +370,7 @@ def download_one_article():
     url = 'http://www.sudpresse.be/regions/liege/2012-01-09/liege-un-mineur-d-age-et-un-majeur-apprehendes-pour-un-viol-collectif-930314.shtml'
     url = 'http://sudpresse.be/actualite/dossiers/2012-01-02/le-stage-du-standard-a-la-manga-infos-photos-tweets-928836.shtml'
     #url = 'http://sudpresse.be/%3C!--%20error:%20linked%20page%20doesn\'t%20exist:...%20--%3E'
+    url = "http://sudpresse.be/actualite/faits_divers/2012-01-10/un-enfant-de-4-ans-orphelin-sa-mere-a-saute-sur-les-voies-pour-recuperer-son-gsm-930520.shtml"
     article_data, raw_html = extract_article_data(url)
 
     if article_data:
