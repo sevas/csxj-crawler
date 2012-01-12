@@ -25,26 +25,32 @@
 
     <div class="span-15 colborder">
 
-        {% for result in results %}
-
-            {% if result.success  %}
-                <div class="box">
-                    <a href="{{ result.url }}">{{ result.title }}</a> <br/>
-                    {{ result.internal_link_count }} <br/>
-                    {{ result.external_link_count }}
-                </div>
-            {% else %}
-                <div class="error">
-                    {{ result.url }} <br/>
-                    <code>
-                        {% for line in result.trace %}
-                            {{ line }} <br/><br/>
-                        {% endfor %}
-                    </code>
-                </div>
-            {% endif %}
+        {# % for source_name, source_results in results %#}
+            <h3>{{ source_name }}</h3>
+            {% for result in results %}
+    
+                {% if result.success  %}
+                    <div class="box">
+                        <a href="{{ result.url }}">{{ result.title }}</a> <br/>
+                        {{ result.internal_link_count }} <br/>
+                        {{ result.external_link_count }}
+                    </div>
+                {% else %}
+                    <div class="error">
+                        {{ result.url }} <br/>
+                        <code>
+                            {% for line in result.trace %}
+                                {{ line }} <br/><br/>
+                            {% endfor %}
+                        </code>
+                    </div>
+                {% endif %}
+                <br/><br/>
+            {% endfor %}
             <br/><br/>
-        {% endfor %}
+            <hr>
+            <br/><br/>
+        {# % endfor % #}
     </div>
 
 
