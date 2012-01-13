@@ -289,28 +289,28 @@ class ArticleQueueDownloader(object):
 
         
 
-def test_filler():
+def test_filler(json_db):
     from datasources import lesoir, lalibre
     ArticleQueueFiller.setup_logging()
     for source in [lesoir, lalibre]:
-        queue_filler = ArticleQueueFiller(source, source.SOURCE_NAME, "testing")
+        queue_filler = ArticleQueueFiller(source, source.SOURCE_NAME, json_db)
         queue_filler.fetch_newest_article_links()
         queue_filler.update_global_queue()
     
 
 
-def test_downloader():
+def test_downloader(json_db):
     ArticleQueueDownloader.setup_logging()
     from datasources import rtlinfo
     for source in [rtlinfo]:
-        queue_downloader = ArticleQueueDownloader(source, source.SOURCE_NAME, "/Users/sevas/Documents/juliette/json_db_0_5/")
+        queue_downloader = ArticleQueueDownloader(source, source.SOURCE_NAME, json_db)
         queue_downloader.download_all_articles_in_queue()
 
 
-def show_queue_info():
+def show_queue_info(json_db):
     from datasources import rtlinfo, sudpresse, lesoir, lalibre, dhnet
     for source in [sudpresse]:
-        p = Provider("/Users/sevas/Documents/juliette/json_db_0_5/", source.SOURCE_NAME)
+        p = Provider(json_db, source.SOURCE_NAME)
 
         batches_by_day = p.get_queued_batches_by_day()
 
@@ -322,10 +322,10 @@ def show_queue_info():
             print day, queued_item_count
 
 
-def try_download_queue():
+def try_download_queue(json_db):
     from datasources import rtlinfo, sudpresse, lesoir, lalibre, dhnet
-    for source in [sudpresse]:
-        p = Provider("/Users/sevas/Documents/juliette/json_db_0_5/", source.SOURCE_NAME)
+    for source in [lesoir]:
+        p = Provider(, source.SOURCE_NAME)
         batches_by_day = p.get_queued_batches_by_day()
         print source.SOURCE_NAME
         for day, batches in batches_by_day:
@@ -345,4 +345,4 @@ if __name__ == "__main__":
     #test_filler()
     #test_downloader()
     #show_queue_info()
-    try_download_queue()
+    try_download_queue("/Users/sevas/Documents/juliette/json_db_0_5/")
