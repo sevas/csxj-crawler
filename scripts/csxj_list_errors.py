@@ -155,4 +155,9 @@ def main(db_root):
     #reprocess_errors(db_root, [lalibre])
 
 if __name__=="__main__":
-    main("/Users/sevas/Documents/juliette/json_db_0_4")
+    import argparse
+    parser = argparse.ArgumentParser(description='Utility functions to list and reprocess errors')
+    parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='json db root directory')
+    args = parser.parse_args()
+    
+    main(args.jsondb)
