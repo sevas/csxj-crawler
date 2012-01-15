@@ -6,12 +6,10 @@ from jinja2 import Template, Environment, FileSystemLoader
 from csxj.db import Provider, get_all_provider_names
 from csxj.datasources import lesoir, rtlinfo, sudpresse, lalibre, dhnet
 
-from collections import defaultdict
-
 
 class HTMLReport(object):
     def __init__(self):
-        self.results = list() #defaultdict(list)
+        self.results = list()
 
 
     def process_error(self, date, hour, source, url):
@@ -94,7 +92,7 @@ def try_reprocessing(source, url):
 
 
 
-def list_errors(db_root, sources):
+def list_and_reprocess_errors(db_root, sources):
     res = dict()
 
     for source in sources:
@@ -126,6 +124,30 @@ def list_errors(db_root, sources):
             error_count_before,
             succesfully_reprocessd_articles,
             error_count_after)
+
+
+def list_errors(db_root, sources):
+    res = dict()
+
+    for source in sources:
+        provider_db = Provider(db_root, source.SOURCE_NAME)
+        error_count = 0
+
+        for date_string in provider_db.get_all_days():
+            errors_by_batch = provider_db.get_errors_per_batch(date_string)
+            for (time, errors) in errors_by_batch:
+                if errors:
+                    error_count += len(errors)
+                    print source.SOURCE_NAME, date_string, time
+                    for err in errors:
+                        print "\t", err.url
+        res[source.SOURCE_NAME] = error_count
+
+    print "\n" * 4
+    for name, error_count in res.items():
+        print "{0}: Had {1} errors".format(name, error_count)
+
+
 
 def main(db_root):
     list_errors(db_root, [lesoir, rtlinfo, sudpresse, lalibre, dhnet])
