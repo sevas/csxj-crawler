@@ -4,7 +4,8 @@ from csxj.datasources import rtlinfo, sudpresse, lesoir, lalibre, dhnet
 
 
 def show_queue_info(json_db):
-    for source in [sudpresse]:
+    sources = [rtlinfo, sudpresse, lesoir, lalibre, dhnet]
+    for source in sources:
         p = Provider(json_db, source.SOURCE_NAME)
 
         batches_by_day = p.get_queued_batches_by_day()
@@ -18,8 +19,8 @@ def show_queue_info(json_db):
 
 
 def try_download_queue(json_db):
-
-    for source in [lalibre]:
+    sources = [rtlinfo, sudpresse, lesoir, lalibre, dhnet]
+    for source in sources:
         p = Provider(json_db, source.SOURCE_NAME)
         batches_by_day = p.get_queued_batches_by_day()
         print source.SOURCE_NAME
@@ -34,15 +35,20 @@ def try_download_queue(json_db):
                     print "\t\t\t\t got {0} links".format(len(art.links))
 
 
-def main(json_db):
-    #show_queue_info(json_db)
-    try_download_queue(json_db)
-
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Utility functions to troubleshoot queue management')
     parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='json db root directory')
-    args = parser.parse_args()
+    #('--show-only', type=bool, dest='show_queue', )
 
-    main(args.jsondb)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--download-queue',  action='store_true')
+    group.add_argument('--show-queue', action='store_true')
+
+    args = parser.parse_args()
+    print args
+    if args.download_queue:
+        try_download_queue(args.jsondb)
+    elif args.show_queue:
+        show_queue_info(args.jsondb)
