@@ -271,8 +271,11 @@ def extract_headlines_from_column_1(column):
 
 
 def extract_headlines_from_column_3(column):
-
     stories = column.findAll('div', {'class':'octetFun'})
+
+    last_story = column.findAll('div', {'class':'octetFun noborder'})
+    if last_story:
+        stories.append(last_story[0])
 
     headlines = list()
     for story in stories:
@@ -381,4 +384,5 @@ def download_one_article():
         print 'no article found'
 
 if __name__=='__main__':
-    download_one_article()
+    get_frontpage_toc()
+    #download_one_article()
