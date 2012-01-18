@@ -40,9 +40,8 @@ class HTMLReport(object):
             'success': False,
             'url': url,
             'trace': trace.split('\n'),
-            'message': e.message
+            'message': str(e)
         }
-        #self.results[source.SOURCE_NAME].append(new_result)
         self.results.append(new_result)
 
 
@@ -159,5 +158,5 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Utility functions to list and reprocess errors')
     parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='json db root directory')
     args = parser.parse_args()
-    
+
     main(args.jsondb)

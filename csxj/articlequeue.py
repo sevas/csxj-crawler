@@ -283,7 +283,7 @@ class ArticleQueueDownloader(object):
             current_stats.n_links += sum([(len(art.external_links) + len(art.internal_links)) for art in articles])
             current_stats.save_to_file(stats_filename)
         except Exception as e:
-            self.log_info(e.message)
+            self.log_info(str(e))
 
 
 
