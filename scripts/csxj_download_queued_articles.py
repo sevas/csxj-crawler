@@ -19,12 +19,12 @@ def download_all_queued_articles(db_root):
             try:
                 csxj.crawler.download_queued_articles(source, db_root)
             except Exception as e:
-                print e.message
+                print e
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download, analyze and store all the queued articles in the csxj json database')
-    parser.add_argument('--outdir', type=str, dest='outdir', required=True, help='directory to dump the json db in')
+    parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='directory to dump the json db in')
     args = parser.parse_args()
 
-    download_all_queued_articles(args.outdir)
+    download_all_queued_articles(args.jsondb)
