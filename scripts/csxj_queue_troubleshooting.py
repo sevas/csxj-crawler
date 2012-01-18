@@ -43,7 +43,7 @@ def try_download_queue(json_db):
                     if art:
                         print "\t\t\t\t got {0} links".format(len(art.links))
                     else:
-                        print "no article found"
+                        print "\t\t\t\t no article found"
 
 
 if __name__ == "__main__":
