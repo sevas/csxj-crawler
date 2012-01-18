@@ -18,7 +18,7 @@ def show_queue_info(json_db):
             for batch, items in batches:
                 queued_item_count += len(items['articles'])
 
-            print day, queued_item_count
+            print "\t\t", queued_item_count, "items"
             total_item_count += queued_item_count
         res[source.SOURCE_NAME] = (total_item_count, len(batches_by_day))
 
@@ -40,8 +40,10 @@ def try_download_queue(json_db):
                 for title, url in articles:
                     print "\t\t\tDownloading {0}".format(url)
                     art, html = source.extract_article_data(url)
-                    print "\t\t\t\t got {0} links".format(len(art.links))
-
+                    if art:
+                        print "\t\t\t\t got {0} links".format(len(art.links))
+                    else:
+                        print "no article found"
 
 
 if __name__ == "__main__":
