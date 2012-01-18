@@ -24,7 +24,7 @@ def update_all_queues(db_root):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Fetch pages from news sources, dumps interesting data')
     parser.add_argument('--debug', dest='debug', action='store_true', help="run crawler in debug mode")
-    parser.add_argument('--outdir', type=str, dest='outdir', required=True, help='directory to dump the json db in')
+    parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='directory to dump the json db in')
     args = parser.parse_args()
     
-    update_all_queues(args.outdir)
+    update_all_queues(args.jsondb)
