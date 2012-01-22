@@ -9,7 +9,7 @@ from providerstats import ProviderStats
 from provider import Provider
 import utils
 from csxj.common.decorators import deprecated
-
+from constants import *
 
 def get_all_provider_names(db_root):
     """
@@ -61,7 +61,7 @@ def get_latest_fetched_articles(db_root):
 
         fetched_date = utils.make_date_time_from_string(last_day, last_hour)
 
-        filename = os.path.join(last_day_dir, last_hour, 'articles.json')
+        filename = os.path.join(last_day_dir, last_hour, ARTICLES_FILENAME)
 
         dump = get_provider_dump(filename)
 

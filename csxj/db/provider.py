@@ -29,7 +29,7 @@ import shutil
 import utils
 from article import ArticleData
 from csxj.common.decorators import deprecated
-
+from constants import *
 
 
 
@@ -79,7 +79,7 @@ class Provider(object):
         Returns a list of (title, url) for the items fetched on the last query.
         """
         provider_dir = self.directory
-        filename = os.path.join(provider_dir, 'last_frontpage_list.json')
+        filename = os.path.join(provider_dir, LAST_STORIES_FILENAME)
         if os.path.exists(filename):
             with open(filename, 'r') as f:
                 last_stories_fetched = [tuple(i) for i in  json.load(f)]
@@ -92,7 +92,7 @@ class Provider(object):
         """
         Returns a sorted list of all the dates (formatted as: YYYY-MM-DD) for which there is data available
         """
-        all_days = [d for d in utils.get_subdirectories(self.directory) if d != "queue"]
+        all_days = [d for d in utils.get_subdirectories(self.directory) if d != QUEUE_DIR]
         all_days.sort()
         return all_days
 
@@ -105,7 +105,7 @@ class Provider(object):
         The list is sorted on the date (earlier date at the front)
         """
 
-        all_days = [d for d in utils.get_subdirectories(self.directory) if d != "queue"]
+        all_days = [d for d in utils.get_subdirectories(self.directory) if d != QUEUE_DIR]
         all_days.sort()
         result = list()
         for date_string in all_days:
@@ -146,7 +146,7 @@ class Provider(object):
         """
         batch_dir = os.path.join(self.directory, date_string, batch_time_string)
         if os.path.exists(batch_dir):
-            json_filepath = os.path.join(batch_dir, 'articles.json')
+            json_filepath = os.path.join(batch_dir, ARTICLES_FILENAME)
             with open(json_filepath, 'r') as f:
                 json_content = json.load(f)
                 articles = [ArticleData.from_json(json_string) for json_string in json_content['articles']]
@@ -161,7 +161,7 @@ class Provider(object):
     def get_errors_from_batch(self, date_string, batch_time_string):
         batch_dir = os.path.join(self.directory, date_string, batch_time_string)
         if os.path.exists(batch_dir):
-            json_filepath = os.path.join(batch_dir, 'articles.json')
+            json_filepath = os.path.join(batch_dir, ERRORS_FILENAME)
             with open(json_filepath, 'r') as f:
                 json_content = json.load(f)
 
@@ -288,7 +288,7 @@ class Provider(object):
     def remove_all_cached_metainfo(self):
         for date_string in self.get_all_days():
             day_directory = os.path.join(self.directory, date_string)
-            cached_metainfo_file = os.path.join(day_directory, 'cached_metainfo.json')
+            cached_metainfo_file = os.path.join(day_directory, METAINFO_FILENAME)
             if os.path.exists(cached_metainfo_file):
                 os.remove(cached_metainfo_file)
 
@@ -316,7 +316,7 @@ class Provider(object):
         Removes the queued items for a certain date. Should be called only after
         a successfull crawling session.
         """
-        day_queue_directory = os.path.join(self.directory, "queue", day_string)
+        day_queue_directory = os.path.join(self.directory, QUEUE_DIR, day_string)
         if os.path.exists(day_queue_directory):
             shutil.rmtree(day_queue_directory)
 
@@ -329,7 +329,7 @@ class Provider(object):
 
         Under the 'queue' directory,
         """
-        queue_directory = os.path.join(self.directory, "queue")
+        queue_directory = os.path.join(self.directory, QUEUE_DIR)
         batched_days = utils.get_subdirectories(queue_directory)
         batches_by_day = list()
         for day_string in batched_days:
@@ -367,7 +367,7 @@ class Provider(object):
 
 
     def get_queued_items_count(self):
-        queue_directory = os.path.join(self.directory, "queue")
+        queue_directory = os.path.join(self.directory, QUEUE_DIR)
         batched_days = utils.get_subdirectories(queue_directory)
         item_count = 0
         for day_string in batched_days:
