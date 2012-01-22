@@ -1,10 +1,19 @@
-import urllib
-from BeautifulSoup import BeautifulSoup, Tag
+import urllib2
 import re
+import random
+from BeautifulSoup import BeautifulSoup, Tag
+from useragents import USER_AGENT_STRINGS
+
+
+def pick_random_ua_string():
+    index = random.randint(0, len(USER_AGENT_STRINGS))
+    return USER_AGENT_STRINGS[index]
 
 
 def fetch_content_from_url(url):
-    response = urllib.urlopen(url)
+    request = urllib2.Request(url)
+    request.add_header('User-agent', pick_random_ua_string())
+    response = urllib2.urlopen(request)
     return response.read()
 
 
