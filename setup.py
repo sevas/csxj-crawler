@@ -12,7 +12,8 @@ setup(name='csxj',
                'scripts/csxj_cleanup_cached_metainfo.py',
                'scripts/csxj_update_metainfo.py',
                'scripts/csxj_list_errors.py',
-               'scripts/csxj_queue_troubleshooting.py'],
+               'scripts/csxj_queue_troubleshooting.py',
+               'scripts/csxj_process_errors.py'],
       version=csxj.__version__,
 
       #PyPI metadata
