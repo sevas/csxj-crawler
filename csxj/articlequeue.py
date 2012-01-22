@@ -201,7 +201,7 @@ class ArticleQueueDownloader(object):
                     # we should get an AttributeError at some point. We'll keep
                     # that in a log, and save the html for future processing.
                     stacktrace = traceback.format_exc()
-                    new_error = make_error_log_entry(url, stacktrace, self.db_root)
+                    new_error = make_error_log_entry2(url, title, stacktrace)
                     errors.append(new_error)
                 else:
                     if self.debug_mode:
@@ -219,7 +219,7 @@ class ArticleQueueDownloader(object):
 
     def save_articles_to_db(self, articles, deleted_articles, errors, blogposts, outdir):
         all_data = {'articles':[art.to_json() for art in  articles],
-                    'errors':errors}
+                    'errors':[]}
 
         self.log_info("Writing {0} articles to {1}".format(len(articles), os.path.join(outdir, ARTICLES_FILENAME)))
         write_dict_to_file(all_data, outdir, ARTICLES_FILENAME)
@@ -232,8 +232,8 @@ class ArticleQueueDownloader(object):
         self.log_info("Writing {0} links to deleted articles to {1}".format(len(deleted_articles), os.path.join(outdir, DELETED_ARTICLES_FILENAME)))
         write_dict_to_file(deleted_articles_data, outdir, DELETED_ARTICLES_FILENAME)
 
-        self.log_info("Writing {0} errors to {1}".format(len(errors), os.path.join(outdir, ERRORS_FILENAME)))
-        write_dict_to_file({'errors':errors}, outdir, ERRORS_FILENAME)
+        self.log_info("Writing {0} errors to {1}".format(len(errors), os.path.join(outdir, ERRORS2_FILENAME)))
+        write_dict_to_file({'errors':errors}, outdir, ERRORS2_FILENAME)
 
 
 
@@ -252,7 +252,7 @@ class ArticleQueueDownloader(object):
                 f.write(html_content)
             references.append((url, outfilename))
 
-        with open(os.path.join(raw_data_dir, 'references.json'), 'w') as f:
+        with open(os.path.join(raw_data_dir, RAW_DATA_INDEX_FILENAME), 'w') as f:
             json.dump(references, f)
 
 
