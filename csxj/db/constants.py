@@ -9,6 +9,7 @@ ERRORS2_FILENAME = 'errors2.json'
 DELETED_ARTICLES_FILENAME = 'deleted_articles.json'
 METAINFO_FILENAME = 'cached_metainfo.json'
 RAW_DATA_INDEX_FILENAME = 'references.json'
+REPROCESSED_DIR_PREFIX = 'reprocessed'
 
 RAW_DATA_DIR = 'raw_data'
 QUEUE_DIR = 'queue'
