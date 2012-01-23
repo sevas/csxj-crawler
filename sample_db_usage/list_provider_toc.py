@@ -8,15 +8,18 @@ def log_message(s, tab_count=0):
 
 
 if __name__ == "__main__":
-    providers = db.get_all_provider_names("out/")
-    lesoir = db.Provider("out/", "lesoir")
+    db_root = "/Users/sevas/Documents/juliette/json_db_0_5_reprocess"
+    providers = db.get_all_provider_names(db_root)
+    lesoir = db.Provider(db_root, "lesoir")
 
-
+    total = 0
     for date in lesoir.get_all_days():
         log_message(date)
-        batches = lesoir.get_articles_per_batch(date)
 
-        for batch_hour, articles in batches:
-            log_message(batch_hour, 1)
-            for a in articles:
-                log_message(a.title, 2)
+        for batch_time in lesoir.get_all_batch_hours(date):
+            reprocessed_articles = lesoir.get_reprocessed_batch_content(date, batch_time)
+            if reprocessed_articles:
+                for ((reprocessed_date, reprocessed_time), articles) in reprocessed_articles:
+                    print "\t on {0} at {1}: {2} articles reprocessed".format(reprocessed_date, reprocessed_time, len(articles))
+                    total += len(articles)
+    print total

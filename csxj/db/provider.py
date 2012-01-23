@@ -162,6 +162,32 @@ class Provider(object):
             raise NonExistentBatchError(self.name, date_string, batch_time_string)
 
 
+
+    def get_reprocessed_batch_content(self, date_string, batch_time_string):
+        """
+        Returns articles fetched during an error handling session
+        ((date, hour), [articles])
+        """
+        batch_dir = os.path.join(self.directory, date_string, batch_time_string)
+        if os.path.exists(batch_dir):
+            for reprocessed_data_dir in [i for i in utils.get_subdirectories(batch_dir) if i.startswith(REPROCESSED_DIR_PREFIX)]:
+                reprocessed_articles = list()
+                reprocessed_date = reprocessed_data_dir.split("_")[1]
+                reprocessed_time = reprocessed_data_dir.split("_")[2]
+                json_filepath = os.path.join(batch_dir, reprocessed_data_dir, ARTICLES_FILENAME)
+                with open(json_filepath, 'r') as f:
+                    json_content = json.load(f)
+                    articles = [ArticleData.from_json(json_string) for json_string in json_content['articles']]
+                    articles.sort(key=lambda art: art.url)
+                    reprocessed_articles.append(((reprocessed_date, reprocessed_time), articles))
+                return reprocessed_articles
+        else:
+            raise NonExistentBatchError(self.name, date_string, batch_time_string)
+
+
+
+
+
     @deprecated
     def get_errors_from_batch(self, date_string, batch_time_string):
         batch_dir = os.path.join(self.directory, date_string, batch_time_string)
@@ -289,12 +315,15 @@ class Provider(object):
 
         Current metainfo is:
             - article_count
-            - error_count
             - link_count
+            - error_count (not reprocessed yet)
+            - total_error_count (after reprocessing)
+            - reprocessed_article_count
+            _ reprocessed_articles_link_count
         """
         day_directory = os.path.join(self.directory, date_string)
         if os.path.exists(day_directory):
-            cached_metainfo_file = os.path.join(day_directory, 'cached_metainfo.json')
+            cached_metainfo_file = os.path.join(day_directory, METAINFO_FILENAME)
             if os.path.exists(cached_metainfo_file):
                 with open(cached_metainfo_file) as f:
                     cached_metainfo = json.load(f)
@@ -309,7 +338,7 @@ class Provider(object):
                     batch_link_count = sum(len(art.links) for art in articles)
                     link_count += batch_link_count
 
-                cached_metainfo_file = os.path.join(day_directory, 'cached_metainfo.json')
+                cached_metainfo_file = os.path.join(day_directory, METAINFO_FILENAME)
                 with open(cached_metainfo_file, 'w') as f:
                     metainfo = {
                         'article_count':article_count,
