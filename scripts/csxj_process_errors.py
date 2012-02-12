@@ -200,6 +200,10 @@ def save_raw_data(raw_data, batch_outdir):
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description='Try reprocessing previous errors')
+    parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='json db root directory')
+    args = parser.parse_args()
+
     sources = [dhnet, lesoir, lalibre, sudpresse, rtlinfo]
-    #sources = [sudpresse]
-    reprocess_errors("/Users/sevas/Documents/juliette/json_db_0_5_reprocess", sources)
+    reprocess_errors(args.jsondb, sources)
