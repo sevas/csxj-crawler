@@ -2,7 +2,9 @@
 import os.path
 from datetime import datetime
 from itertools import chain
+from collections import defaultdict
 import json
+
 
 from article import ArticleData
 from providerstats import ProviderStats
@@ -27,6 +29,61 @@ def get_provider_dump(filename):
     with open(filename, 'r') as f:
         json_content = f.read()
         return json.loads(json_content)
+
+
+def get_first_and_last_date(db_root):
+    source_names = get_all_provider_names(db_root)
+
+    p = Provider(db_root, source_names[0])
+    all_days = p.get_all_days()
+
+    return utils.make_date_from_string(all_days[0]), utils.make_date_from_string(all_days[-1])
+
+
+def get_summed_statistics_for_all_sources(db_root):
+    overall_metainfo = defaultdict(int)
+    for source_name in get_all_provider_names(db_root):
+        p = Provider(db_root, source_name)
+        source_metainfo = p.get_cached_metainfos()
+
+        for k, v in source_metainfo.items():
+            overall_metainfo[k] += v
+
+    return overall_metainfo
+
+
+
+def get_statistics_from_last_update_for_all_sources(db_root):
+    overall_metainfo = defaultdict(int)
+    for source_name in get_all_provider_names(db_root):
+        p = Provider(db_root, source_name)
+        last_day = utils.get_latest_day(p.get_all_days())
+        source_metainfo = p.get_cached_metainfos_for_day(last_day)
+
+        for k, v in source_metainfo.items():
+            overall_metainfo[k] += v
+
+    return overall_metainfo
+
+
+def get_summary_from_last_update_for_all_sources(db_root):
+    source_names = get_all_provider_names(db_root)
+
+    last_update = list()
+    for name in source_names:
+        p = Provider(db_root, name)
+        last_day = utils.get_latest_day(p.get_all_days())
+
+        summary = p.get_cached_metainfos_for_day(last_day)
+        last_update.append((name, utils.make_date_from_string(last_day), summary))
+
+    return last_update
+
+
+
+
+
+
 
 
 @deprecated
@@ -76,6 +133,9 @@ def get_latest_fetched_articles(db_root):
         last_errors[p] = errors
 
     return fetched_date, last_articles, last_errors
+
+
+
 
 
 @deprecated
@@ -130,53 +190,3 @@ def get_per_source_statistics(db_root):
         source_stats[source_name] = ProviderStats.load_from_file(stats_filename)
 
     return source_stats
-
-
-
-def get_first_and_last_date(db_root):
-    source_names = get_all_provider_names(db_root)
-
-    p = Provider(db_root, source_names[0])
-    all_days = p.get_all_days()
-
-    return utils.make_date_from_string(all_days[0]), utils.make_date_from_string(all_days[-1])
-
-
-
-def get_summed_statistics(db_root):
-    overall_metainfo = {'total_article_count':0, 'total_error_count':0, 'total_link_count':0}
-    for source_name in get_all_provider_names(db_root):
-        p = Provider(db_root, source_name)
-        source_metainfo = p.get_metainfo()
-
-        overall_metainfo['total_article_count'] += source_metainfo['article_count']
-        overall_metainfo['total_error_count'] += source_metainfo['error_count']
-        overall_metainfo['total_link_count'] += source_metainfo['link_count']
-    return overall_metainfo
-
-
-def get_statistics_from_last_update(db_root):
-    overall_metainfo = {'last_update_article_count':0, 'last_update_error_count':0, 'last_update_link_count':0}
-    for source_name in get_all_provider_names(db_root):
-        p = Provider(db_root, source_name)
-        last_day = utils.get_latest_day(p.get_all_days())
-        source_metainfo = p.get_metainfo_for_day(last_day)
-
-        overall_metainfo['last_update_article_count'] += source_metainfo['article_count']
-        overall_metainfo['last_update_error_count'] += source_metainfo['error_count']
-        overall_metainfo['last_update_link_count'] += source_metainfo['link_count']
-    return overall_metainfo
-
-
-def get_summary_from_last_update(db_root):
-    source_names = get_all_provider_names(db_root)
-
-    last_update = list()
-    for name in source_names:
-        p = Provider(db_root, name)
-        last_day = utils.get_latest_day(p.get_all_days())
-
-        summary = p.get_metainfo_for_day(last_day)
-        last_update.append((name, utils.make_date_from_string(last_day), summary))
-
-    return last_update

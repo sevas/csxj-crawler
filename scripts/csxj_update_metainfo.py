@@ -13,10 +13,15 @@ if __name__=='__main__':
         print(source_name)
         for day_string in p.get_all_days():
             print('\t{0}'.format(day_string))
-            metainfo = p.get_metainfo_for_day(day_string)
+            metainfo = p.get_cached_metainfos_for_day(day_string)
             for k,v in metainfo.items():
                 print('\t\t{0}:\t{1}'.format(k, v))
 
 
-    print csxjdb.get_summed_statistics(args.jsondb)
+    print "\n\n\n"
+    print "Summary:"
+    summed_stats = csxjdb.get_summed_statistics_for_all_sources(args.jsondb)
+    for k,v in summed_stats.items():
+        print('\t\t{0}:\t{1}'.format(k, v))
+
 
