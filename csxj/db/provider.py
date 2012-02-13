@@ -178,9 +178,12 @@ class Provider(object):
         batch_dir = os.path.join(self.directory, date_string, batch_time_string)
         if os.path.exists(batch_dir):
             json_filepath = os.path.join(batch_dir, ERRORS_FILENAME)
+            if not os.path.exists(json_filepath):
+                json_filepath = os.path.join(batch_dir, ERRORS2_FILENAME)
             with open(json_filepath, 'r') as f:
                 json_content = json.load(f)
                 return [ErrorLogEntry2(*error_data) for error_data in json_content['errors']]
+                
         else:
             raise NonExistentBatchError(self.name, date_string, batch_time_string)
 
