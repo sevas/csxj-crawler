@@ -9,7 +9,8 @@ def list_errors(db_root):
         error_count = 0
 
         for date_string in provider_db.get_all_days():
-            errors_by_batch = provider_db.get_errors_per_batch(date_string)
+            errors_by_batch = provider_db.get_errors2_per_batch(date_string)
+
             for (time, errors) in errors_by_batch:
                 if errors:
                     error_count += len(errors)

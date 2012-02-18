@@ -6,6 +6,7 @@ import argparse
 import csxj.crawler
 from csxj.datasources import lesoir, lalibre, dhnet, sudpresse, rtlinfo
 from csxj.articlequeue import ArticleQueueDownloader
+import traceback
 
 
 
@@ -19,7 +20,8 @@ def download_all_queued_articles(db_root):
             try:
                 csxj.crawler.download_queued_articles(source, db_root)
             except Exception as e:
-                print e
+                stacktrace = traceback.format_exc()
+                print stacktrace
 
 
 if __name__ == '__main__':
