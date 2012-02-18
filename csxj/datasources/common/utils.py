@@ -6,7 +6,7 @@ from useragents import USER_AGENT_STRINGS
 
 
 def pick_random_ua_string():
-    index = random.randint(0, len(USER_AGENT_STRINGS))
+    index = random.randint(0, len(USER_AGENT_STRINGS)-1)
     return USER_AGENT_STRINGS[index]
 
 
