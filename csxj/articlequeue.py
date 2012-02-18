@@ -6,7 +6,7 @@ import utils
 import logging
 import traceback
 
-from db import Provider, ProviderStats, make_error_log_entry
+from db import Provider, ProviderStats, make_error_log_entry2
 from db.constants import *
 
 
@@ -196,22 +196,11 @@ class ArticleQueueDownloader(object):
                 else:
                     deleted_articles.append((title, url))
             except Exception as e:
-                if e.__class__ in [AttributeError]:
-                    # this is for logging errors while parsing the dom. If it fails,
-                    # we should get an AttributeError at some point. We'll keep
-                    # that in a log, and save the html for future processing.
-                    stacktrace = traceback.format_exc()
-                    new_error = make_error_log_entry2(url, title, stacktrace)
-                    errors.append(new_error)
-                else:
-                    if self.debug_mode:
-                        # when developing, it's useful to not hide the exception
-                        raise e
-                    else:
-                        # but in production, log everything
-                        stacktrace = traceback.format_exc()
-                        new_error = make_error_log_entry(url, stacktrace, self.db_root)
-                        errors.append(new_error)
+                # log all the things
+                stacktrace = traceback.format_exc()
+                new_error = make_error_log_entry2(url, title, stacktrace)
+                errors.append(new_error)
+
 
         return articles, deleted_articles, errors, raw_data
 
