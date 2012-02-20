@@ -92,7 +92,9 @@ def extract_article_data(source):
     category = hxs.select("//div[@id='content']/*[1]/p/a/text()").extract()
 
     #extractc title
-    intro_h1s = hxs.select("//div[@id='content']/div[@class='span-3 article-detail ']//div[@id='intro']/h1/text()").extract()
+    article_detail_hxs = hxs.select("//div[@id='content']/div[starts-with(@class,'span-3 article-detail')]")
+    #intro_h1s = hxs.select("//div[@id='content']/div[@class='span-3 article-detail ']//div[@id='intro']/h1/text()").extract()
+    intro_h1s = article_detail_hxs.select(".//div[@id='intro']/h1/text()").extract()
     title = ''
     if len(intro_h1s) == 1:
         title = intro_h1s[0].strip()
@@ -100,27 +102,29 @@ def extract_article_data(source):
         return None
 
     # all the date stuff
-    raw_date = hxs.select("//div[@id='content']/div[@class='span-3 article-detail ']//div[@id='intro']//li[@id='liDate']/*").extract()
+    raw_date = article_detail_hxs.select(".//div[@id='intro']//li[@id='liDate']/*").extract()
     pub_date, pub_time = extract_publication_date(raw_date)
     fetched_datetime = datetime.today()
 
 
     #author(s)
-    raw_author = hxs.select("//div[@id='content']/div[@class='span-3 article-detail ']/div/ul/li[@class='author']/text()").extract()
+    raw_author = article_detail_hxs.select("./div/ul/li[@class='author']/text()").extract()
     author = None
     if raw_author:
         author = raw_author[0].strip()
 
     #intro
     intro = None
-    raw_intro = hxs.select("//div[@id='content']/div[@class='span-3 article-detail ']/div/div[@class='intro ']/text()").extract()
+    raw_intro = article_detail_hxs.select("./div/div[@class='intro']//text()").extract()
     if raw_intro:
-        intro = raw_intro[0].strip()
+        intro = ''.join([fragment.strip() for fragment in raw_intro])
+
+
 
     all_links = list()
 
     #content
-    article_body = hxs.select("//div[@id='content']/div[@class='span-3 article-detail ']/div/div[@class='article-body ']")
+    article_body = article_detail_hxs.select("./div/div[@class='article-body ']")
     content = article_body.select(".//p//text()").extract()
 
 
@@ -128,7 +132,7 @@ def extract_article_data(source):
 
 
     # associated sidebar links
-    sidebar_links = hxs.select("//div[@id='content']/div[@class='span-3 article-detail ']/div/div[@class='article-side']/div[@class='article-related']//li/a")
+    sidebar_links = article_detail_hxs.select("./div/div[@class='article-side']/div[@class='article-related']//li/a")
     all_links.extend(extract_sidebar_links(sidebar_links))
 
 
@@ -172,8 +176,10 @@ def get_frontpage_toc():
 def show_article():
     url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120219_003"
     url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120219_00120322"
+    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120220_00120722"
     article, raw_html = extract_article_data(url)
     article.print_summary()
+    print article.content
 
 
 def show_frontpage():
@@ -199,5 +205,5 @@ def show_frontpage_articles():
 
 
 if __name__ == "__main__":
-    show_article()
-    #show_frontpage_articles()
+    #show_article()
+    show_frontpage_articles()
