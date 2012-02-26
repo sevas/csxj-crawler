@@ -33,6 +33,8 @@ LAVENIR_INTERNAL_BLOGS = {}
 
 LAVENIR_NETLOC = 'www.lavenir.net'
 
+BLACKLIST = ["http://citysecrets.lavenir.net"]
+
 
 
 def extract_publication_date(raw_date):
@@ -49,20 +51,32 @@ def extract_links_from_article_body(article_body_hxs):
     links = list()
     # intext urls
     urls = article_body_hxs.select(".//p/a/@href").extract()
-    titles = [t.strip() for t in article_body_hxs.select(".//p/a//text").extract()]
+    titles = [t.strip() for t in article_body_hxs.select(".//p/a//text()").extract()]
+
     for title, url in izip(titles, urls):
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
         tags.add('in text')
-        links += make_tagged_url(url, title, tags)
+        links.append(make_tagged_url(url, title, tags))
 
     #plaintext text urls
-    raw_content = article_body_hxs.select(".//p").extract()
+    raw_content = article_body_hxs.select(".//p/text()").extract()
     content_as_text = ''.join(raw_content)
     plaintext_urls = extract_plaintext_urls_from_text(content_as_text)
+
     for url in plaintext_urls:
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
         tags.union(['in text', 'plaintext'])
         links.append(make_tagged_url(url, url, tags))
+
+
+    #embedded objects
+    iframe_sources = article_body_hxs.select(".//iframe/@src").extract()
+    for url in iframe_sources:
+        tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+        tags.union(['in text', 'embedded', 'iframe'])
+        links.append(make_tagged_url(url, url, tags))
+
+
 
     return links
 
@@ -115,9 +129,22 @@ def extract_article_data(source):
 
     #intro
     intro = None
-    raw_intro = article_detail_hxs.select("./div/div[@class='intro']//text()").extract()
+    raw_intro = article_detail_hxs.select("./div/div[@class='intro ']//text()").extract()
     if raw_intro:
         intro = ''.join([fragment.strip() for fragment in raw_intro])
+
+    # in photosets pages, the structure is a bit different
+    if not intro:
+        raw_intro = article_detail_hxs.select("./div/div[@class='intro']//text()").extract()
+    if raw_intro:
+        intro = ''.join([fragment.strip() for fragment in raw_intro])
+
+
+    #detect photoset
+    full_class = article_detail_hxs.select("./@class").extract()[0]
+    if 'article-with-photoset' in full_class.split(" "):
+        title = u"{0}|{1}".format("PHOTOSET", title)
+
 
 
 
@@ -169,17 +196,27 @@ def get_frontpage_toc():
     quote_titles = [u"\"{0}\"".format(title) for title in hxs.select("//div[@id='content']/div[2]/div/div[@class='span-3 border ']//div[@class='pullquote-full']//q/text()").extract()]
     quote_urls= hxs.select("//div[@id='content']/div[2]/div/div[@class='span-3 border ']//div[@class='pullquote-full']/a/@href").extract()
 
-    return zip(story_titles, story_urls) + zip(quote_titles, quote_urls)
+    titles_and_urls = zip(story_titles, story_urls)
+
+
+
+    return [(title, url) for (title, url) in titles_and_urls if url not in BLACKLIST] + zip(quote_titles, quote_urls)
 
 
 
 def show_article():
-    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120219_003"
-    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120219_00120322"
-    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120220_00120722"
-    article, raw_html = extract_article_data(url)
-    article.print_summary()
-    print article.content
+
+    normal_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120221_00121183"
+    photoset_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120224_00122366"
+    intro_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_002"
+    photoset_with_links = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120222_00121489"
+
+    #for url in [normal_url, photoset_url, intro_url, photoset_with_links]:
+    for url in [photoset_with_links]:
+        article, raw_html = extract_article_data(url)
+        article.print_summary()
+        for tagged_link in article.links:
+            print tagged_link.URL, tagged_link.title, tagged_link.tags
 
 
 def show_frontpage():
@@ -207,3 +244,4 @@ def show_frontpage_articles():
 if __name__ == "__main__":
     #show_article()
     show_frontpage_articles()
+    #show_frontpage()
