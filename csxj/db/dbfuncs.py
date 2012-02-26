@@ -57,11 +57,13 @@ def get_statistics_from_last_update_for_all_sources(db_root):
     overall_metainfo = defaultdict(int)
     for source_name in get_all_provider_names(db_root):
         p = Provider(db_root, source_name)
-        last_day = utils.get_latest_day(p.get_all_days())
-        source_metainfo = p.get_cached_metainfos_for_day(last_day)
+        all_days = p.get_all_days()
+        if all_days:
+            last_day = utils.get_latest_day(all_days)
+            source_metainfo = p.get_cached_metainfos_for_day(last_day)
 
-        for k, v in source_metainfo.items():
-            overall_metainfo[k] += v
+            for k, v in source_metainfo.items():
+                overall_metainfo[k] += v
 
     return overall_metainfo
 
@@ -72,10 +74,12 @@ def get_summary_from_last_update_for_all_sources(db_root):
     last_update = list()
     for name in source_names:
         p = Provider(db_root, name)
-        last_day = utils.get_latest_day(p.get_all_days())
+        all_days = p.get_all_days()
+        if all_days:
+            last_day = utils.get_latest_day(all_days)
 
-        summary = p.get_cached_metainfos_for_day(last_day)
-        last_update.append((name, utils.make_date_from_string(last_day), summary))
+            summary = p.get_cached_metainfos_for_day(last_day)
+            last_update.append((name, utils.make_date_from_string(last_day), summary))
 
     return last_update
 
@@ -190,3 +194,7 @@ def get_per_source_statistics(db_root):
         source_stats[source_name] = ProviderStats.load_from_file(stats_filename)
 
     return source_stats
+
+
+if __name__=="__main__":
+    print get_statistics_from_last_update_for_all_sources("/Users/sevas/Documents/juliette/jsondb_lavenir/")
