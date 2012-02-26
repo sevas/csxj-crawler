@@ -28,7 +28,7 @@ def classify_and_tag(url, own_netlog, associated_sites):
                 tags = associated_sites[netloc]
             else:
                 tags = ['external']
-    else:
+    elif url:
         tags = ['internal']
 
     return set(tags)

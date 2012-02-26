@@ -53,6 +53,14 @@ class URLClassificationTestCases(unittest.TestCase):
         self.assertEqual(tag_URL((url, title), tags), taggedURL)
 
 
+    def test_no_URL(self):
+        url = ''
+        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
+        self.assertEqual(tags, set())
+
+
+
+
         
 class JSONSerializationTestCases(unittest.TestCase):
     def setUp(self):
