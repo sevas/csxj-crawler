@@ -201,7 +201,7 @@ def get_frontpage_toc():
 
 
 
-    return [(title, url) for (title, url) in titles_and_urls if url not in BLACKLIST] + zip(quote_titles, quote_urls)
+    return [(title, url) for (title, url) in titles_and_urls if url not in BLACKLIST] + zip(quote_titles, quote_urls), []
 
 
 
