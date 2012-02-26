@@ -148,7 +148,9 @@ def extract_text_content_and_links_from_articletext(article_text, has_intro=True
     # the rest might be a list of paragraphs, but might also just be the text, sometimes with
     # formatting.
 
-    cleaned_up_text_fragments = remove_text_formatting_markup_from_fragments(children, '\n\t ')
+    cleaned_up_text_fragments = list()
+    for text_block in children:
+        cleaned_up_text_fragments.append(remove_text_formatting_markup_from_fragments(text_block, '\n\t '))
 
     all_plaintext_urls = []
     for text in cleaned_up_text_fragments:
@@ -453,6 +455,7 @@ if __name__ == "__main__":
     #url = "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html"
     url = "http://www.dhnet.be/cine-tele/divers/article/378363/sois-belge-et-poile-toi.html"
     url = "http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html"
+    url = "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html"
     article, html = extract_article_data(url)
 
     if article:
