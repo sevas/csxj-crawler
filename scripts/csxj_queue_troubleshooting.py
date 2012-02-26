@@ -1,10 +1,10 @@
 
 from csxj.db import Provider
-from csxj.datasources import rtlinfo, sudpresse, lesoir, lalibre, dhnet
+from csxj.datasources import rtlinfo, sudpresse, lesoir, lalibre, dhnet, lavenir
 
 
 def show_queue_info(json_db):
-    sources = [rtlinfo, sudpresse, lesoir, lalibre, dhnet]
+    sources = [rtlinfo, sudpresse, lesoir, lalibre, dhnet, lavenir]
     res = dict()
     for source in sources:
         p = Provider(json_db, source.SOURCE_NAME)

@@ -7,9 +7,9 @@ from jinja2 import Template, Environment, FileSystemLoader
 from csxj.db import Provider, get_all_provider_names, make_error_log_entry2
 from csxj.db.utils import convert_date_to_string, convert_hour_to_string
 from csxj.db.constants import *
-from csxj.datasources import lesoir, lalibre, dhnet, sudpresse, rtlinfo
+from csxj.datasources import lesoir, lalibre, dhnet, sudpresse, rtlinfo, lavenir
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 #class HTMLReport(object):
 #    def __init__(self):
@@ -205,5 +205,5 @@ if __name__ == "__main__":
     parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='json db root directory')
     args = parser.parse_args()
 
-    sources = [dhnet, lesoir, lalibre, sudpresse, rtlinfo]
+    sources = [dhnet, lesoir, lalibre, sudpresse, rtlinfo, lavenir]
     reprocess_errors(args.jsondb, sources)
