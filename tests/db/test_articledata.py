@@ -1,9 +1,7 @@
-__author__ = 'sevas'
-
 import unittest
 from datetime import datetime, date, time
 
-from csxj.db.article import classify_and_tag, tag_URL, TaggedURL
+from csxj.common.tagging import classify_and_tag, tag_URL, TaggedURL
 
 
 class URLClassificationTestCases(unittest.TestCase):

@@ -213,63 +213,9 @@ def extract_title_and_url(container):
         return link.contents[0].strip(), link.get('href')
 
 
-
-def extract_title_and_url_in_buzz(container):
-        if container.h2 and container.h2.a:
-            link = container.h2.a
-            return link.contents[0].strip(), link.get('href')
-
-
-
-def extract_headlines_from_buzz(column):
-    buzz_container = column.find('div', {'class':'buzz exergue clearfix'})
-    
-    main_buzzes = buzz_container.findAll('div')
-    buzz_stories = [extract_title_and_url_in_buzz(b) for b in main_buzzes]
-
-    def extract_title_and_url_from_list_item(item):
-        return item.a.contents[0].strip(), item.a.get('href')
-
-    buzz_list = buzz_container.ul.findAll('li')
-    buzz_stories.extend([extract_title_and_url_from_list_item(item) for item in buzz_list])
-
-    return buzz_stories
-
-
-def extract_headlines_from_wrap_columns(column):
-    wrap_columns = column.findAll('div', {'class':'wrap-columns clearfix'})
-    stories_by_column = [col.findAll('div', {'class':'article lt clearfix'}) for col in wrap_columns]
-    stories_by_column.extend([col.findAll('div', {'class':'article lt clearfix noborder'}) for col in wrap_columns])
-
-    # flatten the result list
-    all_stories = chain(*stories_by_column)
-
-    return [extract_title_and_url(story) for story in all_stories]
-
-
-
-def extract_main_headline(column):
-    main_headline = column.find('div', {'class':'article gd clearfix'})
-    return extract_title_and_url(main_headline)
-
-
-
-def extract_headlines_from_regular_stories(column):
-    regular_stories = column.findAll('div', {'class':'article md clearfix noborder'})
-    return [extract_title_and_url(story) for story in regular_stories]
-
-
-
-def extract_headlines_from_column_1(column):
-    all_headlines = list()
-
-
-    all_headlines.extend(extract_headlines_from_wrap_columns(column))
-    all_headlines.extend(extract_headlines_from_buzz(column))
-
-    return all_headlines
-
-
+def extract_title_url_from_hxs_a(link):
+    title = ''.join(link.select(".//text()").extract())
+    return title.strip(), link.select("@href").extract()[0]
 
 
 
@@ -278,14 +224,8 @@ def get_regional_toc():
     html_content = fetch_content_from_url(url)
 
     hxs = HtmlXPathSelector(text=html_content)
-
     links = hxs.select("//div[@class='first-content w630-300']//div[@class='bloc_section']//li/a")
-
-    def extract_title_url(link):
-        return link.select("text()").extract()[0], link.select("@href").extract()[0]
-
-    return [extract_title_url(link) for link in links]
-
+    return [extract_title_url_from_hxs_a(link) for link in links]
 
 
 def make_full_url(prefix, titles_and_urls):
@@ -296,18 +236,15 @@ def make_full_url(prefix, titles_and_urls):
 def get_frontpage_toc():
     BASE_URL = 'http://www.sudinfo.be/'
     html_content = fetch_content_from_url(BASE_URL)
-
     hxs = HtmlXPathSelector(text=html_content)
 
+    column1_headlines = hxs.select("//div[starts-with(@class, 'first-content')]//div[starts-with(@class, 'article')]//h2/a")
+    column3_headlines =  hxs.select("//div[@class='octetFun']/a/child::h3/..")
+    buzz_headlines = hxs.select("//div[@class='buzz exergue clearfix']//h2/a")
+    buzz_headlines.extend(hxs.select("//div[@class='buzz exergue clearfix']//li/a"))
 
-    column1_headlines = hxs.select("//div[starts-with(@class, 'first-content')]//div[starts-with(@class, 'article')]//h2/a/text()")
-
-
-    column3  = soup.find('div', {'class':'column col-03'})
-    headlines.extend(extract_headlines_from_column_3(column3))
-
-
-
+    all_link_selectors = chain(column1_headlines, column3_headlines, buzz_headlines)
+    headlines = [extract_title_url_from_hxs_a(link_selector) for link_selector in all_link_selectors]
 
     regional_headlines = get_regional_toc()
     headlines.extend(regional_headlines)
@@ -358,6 +295,15 @@ def download_one_article():
     else:
         print 'no article found'
 
+
+def show_frontpage_toc():
+    headlines, blogposts = get_frontpage_toc()
+
+    for title, url in headlines:
+        print u"{0} \t\t\t\t\t [{1}]".format(title, url)
+
+
+
 if __name__=='__main__':
-    get_frontpage_toc()
+    show_frontpage_toc()
     #download_one_article()
