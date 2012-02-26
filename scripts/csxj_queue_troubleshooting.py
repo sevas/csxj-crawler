@@ -1,6 +1,6 @@
 
 from csxj.db import Provider
-from csxj.datasources import rtlinfo, sudpresse, lesoir, lalibre, dhnet, lavenir
+from csxj.datasources import rtlinfo, sudinfo, lesoir, lalibre, dhnet, lavenir
 
 
 def show_queue_info(json_db):
