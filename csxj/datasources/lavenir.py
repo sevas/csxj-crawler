@@ -39,7 +39,7 @@ BLACKLIST = ["http://citysecrets.lavenir.net"]
 
 
 def extract_publication_date(raw_date):
-    date_string = raw_date[0].split(':')[1].strip().split("&")[0]
+    date_string = raw_date.split(':')[1].strip().split("&")[0]
     date_bytestring = codecs.encode(date_string, 'utf-8')
 
     datetime_published = datetime.strptime(date_bytestring, u"%A %d %B %Y %Hh%M")
@@ -117,7 +117,8 @@ def extract_article_data(source):
         return None
 
     # all the date stuff
-    raw_date = article_detail_hxs.select(".//div[@id='intro']//li[@id='liDate']/*").extract()
+    #raw_date = article_detail_hxs.select(".//div[@id='intro']//li[@id='liDate']/*").extract()
+    raw_date = ''.join([t.strip() for t in article_detail_hxs.select(".//div[@id='intro']//li[@id='liDate']//text()").extract()])
     pub_date, pub_time = extract_publication_date(raw_date)
     fetched_datetime = datetime.today()
 
@@ -199,8 +200,6 @@ def get_frontpage_toc():
 
     titles_and_urls = zip(story_titles, story_urls)
 
-
-
     return [(title, url) for (title, url) in titles_and_urls if url not in BLACKLIST] + zip(quote_titles, quote_urls), []
 
 
@@ -213,7 +212,7 @@ def show_article():
     photoset_with_links = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120222_00121489"
 
     #for url in [normal_url, photoset_url, intro_url, photoset_with_links]:
-    for url in [photoset_with_links]:
+    for url in ["http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_00123032"]:
         article, raw_html = extract_article_data(url)
         article.print_summary()
         for tagged_link in article.links:
@@ -229,7 +228,7 @@ def show_frontpage():
 
 
 def show_frontpage_articles():
-    toc = get_frontpage_toc()
+    toc, posts = get_frontpage_toc()
     for title, url in toc:
         print u"{0} [{1}]".format(title, url)
         try:
@@ -243,6 +242,6 @@ def show_frontpage_articles():
 
 
 if __name__ == "__main__":
-    #show_article()
-    show_frontpage_articles()
+    show_article()
+    #show_frontpage_articles()
     #show_frontpage()
