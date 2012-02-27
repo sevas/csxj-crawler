@@ -129,7 +129,7 @@ def reprocess_errors(db_root, sources):
         provider_db = Provider(db_root, source.SOURCE_NAME)
 
         for date_string in provider_db.get_all_days():
-            errors_by_batch = provider_db.get_errors_per_batch(date_string)
+            errors_by_batch = provider_db.get_errors2_per_batch(date_string)
             for (time, errors) in errors_by_batch:
                 if errors:
                     print source.SOURCE_NAME, date_string, time, "found {0} errors".format(len(errors))
