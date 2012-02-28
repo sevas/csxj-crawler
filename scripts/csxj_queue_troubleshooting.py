@@ -1,10 +1,10 @@
 
 from csxj.db import Provider
-from csxj.datasources import rtlinfo, sudinfo, lesoir, lalibre, dhnet, lavenir
+from csxj.datasources import rtlinfo, sudinfo, lesoir, lalibre, dhnet, lavenir, sudpresse
 
 
 def show_queue_info(json_db):
-    sources = [rtlinfo, sudpresse, lesoir, lalibre, dhnet, lavenir]
+    sources = [rtlinfo, lesoir, lalibre, dhnet, lavenir, sudinfo, sudpresse]
     res = dict()
     for source in sources:
         p = Provider(json_db, source.SOURCE_NAME)
@@ -27,7 +27,7 @@ def show_queue_info(json_db):
         print "{0}: {1} items for {2} days".format(name, item_count, day_count)
 
 def try_download_queue(json_db):
-    sources = [rtlinfo, sudpresse, lesoir, lalibre, dhnet]
+    sources = [rtlinfo, lesoir, lalibre, dhnet, lavenir]
     for source in sources:
         p = Provider(json_db, source.SOURCE_NAME)
         batches_by_day = p.get_queued_batches_by_day()
