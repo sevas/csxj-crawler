@@ -75,3 +75,16 @@ def remove_text_formatting_markup_from_fragments(fragments, strip_chars=''):
     cleans up the html markup from a collection of fragments
     """
     return u''.join(remove_text_formatting_markup(f, strip_chars) for f in fragments)
+
+
+
+def setup_locales():
+    import locale, sys
+    # for datetime conversions
+    if sys.platform in ['linux2', 'cygwin']:
+        locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
+    elif sys.platform in [ 'darwin']:
+        locale.setlocale(locale.LC_TIME, 'fr_FR')
+    elif sys.platform in [ 'win32']:
+        # locale string from: http://msdn.microsoft.com/en-us/library/cdax410z(v=VS.80).aspx
+        locale.setlocale(locale.LC_ALL, 'fra')
