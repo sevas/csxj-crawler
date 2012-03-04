@@ -42,8 +42,6 @@ def get_frontpage_toc():
 
     hxs = HtmlXPathSelector(text=html_data)
 
-
-
     featured_link = hxs.select("//div [@id='mainContent']//div [starts-with(@class, 'doubleContent sticky')]//div [@id='featured']/h2/a")
     sticky_right_links =  hxs.select("//div [@id='mainContent']//div [starts-with(@class, 'doubleContent sticky')]/div [@class='second']//h3//a")
     #itembox_links = hxs.select("//div [@id='mainContent']//div [starts-with(@class, 'doubleContent sticky')]//div[@class='viewer']//div [@class='illuBox']/h4/a")
@@ -59,16 +57,15 @@ def get_frontpage_toc():
 
     titles_and_urls += [extract_title_and_url_from_span_thing(link_hxs) for link_hxs in doublecontent_main_links]
 
-    return titles_and_urls
+    return titles_and_urls, []
 
 
 
 def show_frontpage():
-    frontpage_items = get_frontpage_toc()
+    frontpage_items, blogposts = get_frontpage_toc()
 
     for title, url in frontpage_items:
         print u"{0} \t\t [{1}]".format(title, url)
-
 
     print len(frontpage_items)
 
