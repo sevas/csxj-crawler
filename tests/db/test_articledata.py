@@ -19,6 +19,11 @@ class URLClassificationTestCases(unittest.TestCase):
         tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
         self.assertEqual(tags, set(['internal']))
 
+
+    def test_internal_url_with_netloc(self):
+        url = 'http://www.foo.com/this/is/just/a/path.php'
+        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
+        self.assertEqual(tags, set(['internal']))
     
 
     def test_external_url(self):
