@@ -4,7 +4,7 @@
 import os
 import argparse
 import csxj.crawler
-from csxj.datasources import lesoir, lalibre, dhnet, sudinfo, rtlinfo, lavenir
+from csxj.datasources import lesoir, lalibre, dhnet, sudinfo, rtlinfo, lavenir, rtbfinfo, levif, septsursept
 from csxj.articlequeue import ArticleQueueFiller
 
 
@@ -15,7 +15,7 @@ def update_all_queues(db_root):
         os.mkdir(db_root)
 
     ArticleQueueFiller.setup_logging()
-    all_providers = lesoir, dhnet, lalibre, sudinfo, rtlinfo, lavenir
+    all_providers = lesoir, dhnet, lalibre, sudinfo, rtlinfo, lavenir, rtbfinfo, levif, septsursept
     for provider in all_providers:
         csxj.crawler.put_articles_in_queue(provider, db_root)
 
