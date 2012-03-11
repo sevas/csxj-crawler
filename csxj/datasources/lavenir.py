@@ -9,22 +9,13 @@ from itertools import izip
 
 from scrapy.selector import HtmlXPathSelector
 
-from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
+from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
-from common.utils import fetch_html_content
-from common.utils import extract_plaintext_urls_from_text
-from common import constants
+from common.utils import fetch_html_content, fetch_rss_content
+from common.utils import extract_plaintext_urls_from_text, setup_locales
 
 
-
-# for datetime conversions
-if sys.platform in ['linux2', 'cygwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
-elif sys.platform in [ 'darwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR')
-elif sys.platform in [ 'win32']:
-    # locale string from: http://msdn.microsoft.com/en-us/library/cdax410z(v=VS.80).aspx
-    locale.setlocale(locale.LC_ALL, 'fra')
+setup_locales()
 
 SOURCE_TITLE = u"L'Avenir"
 SOURCE_NAME = u"lavenir"
@@ -174,14 +165,19 @@ def extract_article_data(source):
     return article_data, html_content
 
 
-def expand_full_urls(local_urls):
-    story_urls = list()
-    for url in local_urls:
-        if not url.startswith("http://"):
-            story_urls.append("http://{0}{1}".format(LAVENIR_NETLOC, url))
-        else:
-            story_urls.append(url)
-    return story_urls
+def expand_full_url(local_url):
+
+    if not local_url.startswith("http://"):
+        return "http://{0}{1}".format(LAVENIR_NETLOC, local_url)
+    else:
+        return local_url
+
+
+
+def extract_title_and_url(link_hxs):
+    url = expand_full_url(link_hxs.select("./@href").extract()[0])
+    title = link_hxs.select("./text()").extract()[0].strip()
+    return url, title
 
 
 def get_frontpage_toc():
@@ -190,17 +186,21 @@ def get_frontpage_toc():
 
     hxs = HtmlXPathSelector(text=html_data)
 
-    local_story_urls = hxs.select("//div[@id='content']/div[2]/div/div[@class='span-3 border ' or @class='span-2 last ']//h2/a/@href").extract()
-    story_urls = expand_full_urls(local_story_urls)
-    story_titles = [t.strip() for t in hxs.select("//div[@id='content']/div[2]/div/div[@class='span-3 border ' or @class='span-2 last ']//h2/a/text()").extract()]
+
+    local_story_links = hxs.select("//div[@id='content']//div/div[@class='span-3 border ' or @class='span-2 last ']//h2/a")
+    titles_and_urls = [extract_title_and_url(link_hxs) for link_hxs in local_story_links]
+    local_story_items = [(title, url) for (title, url) in titles_and_urls if url not in BLACKLIST]
+
+    today_image_link = hxs.select("//p[text()=\"\r\n    L'image du jour\r\n\"]/../div[@class='content']//div[@class='item-title']/a")
+
+    local_story_items.append(extract_title_and_url(today_image_link))
 
 
-    quote_titles = [u"\"{0}\"".format(title) for title in hxs.select("//div[@id='content']/div[2]/div/div[@class='span-3 border ']//div[@class='pullquote-full']//q/text()").extract()]
-    quote_urls= hxs.select("//div[@id='content']/div[2]/div/div[@class='span-3 border ']//div[@class='pullquote-full']/a/@href").extract()
+    #quote_links = hxs.select("//div[@id='content']//div[@class='span-3 border ']//div[@class='pullquote-full']/a")
+    #local_story_items.extend(extract_title_and_url(links_hxs) for link_hxs in quote_links)
 
-    titles_and_urls = zip(story_titles, story_urls)
 
-    return [(title, url) for (title, url) in titles_and_urls if url not in BLACKLIST] + zip(quote_titles, quote_urls), []
+    return  local_story_items, []
 
 
 
@@ -220,7 +220,7 @@ def show_article():
 
 
 def show_frontpage():
-    toc = get_frontpage_toc()
+    toc, blogposts = get_frontpage_toc()
     for title, url in toc:
         print u"{0} [{1}]".format(title, url)
 
@@ -242,6 +242,6 @@ def show_frontpage_articles():
 
 
 if __name__ == "__main__":
-    show_article()
+    #show_article()
     #show_frontpage_articles()
-    #show_frontpage()
+    show_frontpage()
