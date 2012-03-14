@@ -15,7 +15,7 @@ def download_all_queued_articles(db_root):
         print("no such database directory: {0}".format(db_root))
     else:
         ArticleQueueDownloader.setup_logging()
-        all_sources = lesoir, dhnet, lalibre, rtlinfo, lavenir
+        all_sources = lesoir, dhnet, lalibre, rtlinfo
         for source in all_sources:
             try:
                 csxj.crawler.download_queued_articles(source, db_root)
