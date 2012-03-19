@@ -173,11 +173,11 @@ def save_reprocessed_data(batch_directory, articles, deleted_articles, raw_data)
 def update_errors_file(batch_directory, errors):
     #todo: change this after first reproces
     if errors:
-        print "Writing {0} errors to {1}".format(len(errors), os.path.join(batch_directory, ERRORS_FILENAME))
+        print "Writing {0} errors to {1}".format(len(errors), os.path.join(batch_directory, ERRORS2_FILENAME))
     else:
-        print "Emptying all errors in {0}".format(os.path.join(batch_directory, ERRORS_FILENAME))
+        print "Emptying all errors in {0}".format(os.path.join(batch_directory, ERRORS2_FILENAME))
 
-    write_dict_to_file(dict(errors=errors), batch_directory, ERRORS_FILENAME)
+    write_dict_to_file(dict(errors=errors), batch_directory, ERRORS2_FILENAME)
 
 
 
