@@ -48,7 +48,7 @@ from constants import *
 
 
 ErrorLogEntry = namedtuple('ErrorLogEntry', 'url filename stacktrace')
-ErrorLogEntry2 = namedtuple('ErrorLogEntry', 'url title stacktrace')
+ErrorLogEntry2 = namedtuple('ErrorLogEntry2', 'url title stacktrace')
 
 def make_error_log_entry(url, stacktrace, outdir):
     """
@@ -177,15 +177,30 @@ class Provider(object):
         """
         batch_dir = os.path.join(self.directory, date_string, batch_time_string)
         if os.path.exists(batch_dir):
+            all_errors = list()
+
+            def extract_errors_from_file(ErrorKls, filename):
+                with open(filename, 'r') as f:
+                    json_content = json.load(f)
+                    return [ErrorKls(*error_data) for error_data in json_content['errors']]
+
             json_filepath = os.path.join(batch_dir, ERRORS_FILENAME)
-            if not os.path.exists(json_filepath):
-                json_filepath = os.path.join(batch_dir, ERRORS2_FILENAME)
-            with open(json_filepath, 'r') as f:
-                json_content = json.load(f)
-                return [ErrorLogEntry2(*error_data) for error_data in json_content['errors']]
-                
+            if os.path.exists(json_filepath):
+                all_errors.append(extract_errors_from_file(ErrorLogEntry, json_filepath))
+            else:
+                all_errors.append(list())
+
+
+            json_filepath = os.path.join(batch_dir, ERRORS2_FILENAME)
+            if os.path.exists(json_filepath):
+                all_errors.append(extract_errors_from_file(ErrorLogEntry2, json_filepath))
+            else:
+                all_errors.append(list())
+
+            return all_errors
         else:
             raise NonExistentBatchError(self.name, date_string, batch_time_string)
+
 
 
     def has_reprocessed_content(self, date_string, batch_time_string):
@@ -240,8 +255,8 @@ class Provider(object):
 
         articles = self.get_batch_articles(date_string, batch_time_string)
         article_count, link_count = compute_article_and_link_count(articles)
-        pending_error_count = len(self.get_pending_batch_errors(date_string, batch_time_string))
-
+        errors = self.get_pending_batch_errors(date_string, batch_time_string)
+        pending_error_count = len(errors[0]) + len(errors[1])
 
         reprocessed_articles = self.get_reprocessed_batch_articles(date_string, batch_time_string)
         reprocessed_article_count, reprocessed_link_count = 0, 0
@@ -569,18 +584,16 @@ class Provider(object):
 
 
 if __name__=="__main__":
-    db_root = "/Users/sevas/Documents/juliette/json_db_0_5_reprocess"
-    p = Provider(db_root, "lesoir")
+    db_root = "/Users/sevas/Documents/juliette/json_db_allfeeds"
+    p = Provider(db_root, "sudpresse")
     from pprint import pprint
 
-    day_string = "2012-01-05"
-    batches = p.get_articles_per_batch("2012-01-05")
+    day_string = "2012-02-22"
+    hour_string = "14.05.09"
 
 
-    for batch in  batches:
-        batch_hour = batch[0]
-        if p.has_reprocessed_content(day_string, batch_hour):
-            print batch_hour
-            print p.get_reprocessed_batch_content(day_string, batch_hour)
-            print "****"
+    errors = p.get_pending_batch_errors(day_string, hour_string)
 
+    metainfos = p.get_batch_metainfos(day_string, hour_string)
+
+    print metainfos
