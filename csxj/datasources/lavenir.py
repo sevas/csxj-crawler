@@ -57,7 +57,7 @@ def extract_links_from_article_body(article_body_hxs):
 
     for url in plaintext_urls:
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-        tags.union(['in text', 'plaintext'])
+        tags = tags.union(['in text', 'plaintext'])
         links.append(make_tagged_url(url, url, tags))
 
 
@@ -65,7 +65,7 @@ def extract_links_from_article_body(article_body_hxs):
     iframe_sources = article_body_hxs.select(".//iframe/@src").extract()
     for url in iframe_sources:
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-        tags.union(['in text', 'embedded', 'iframe'])
+        tags = tags.union(['in text', 'embedded', 'iframe'])
         links.append(make_tagged_url(url, url, tags))
 
 
@@ -83,7 +83,7 @@ def extract_sidebar_links(sidebar_links):
     titles_and_urls = [select_title_and_url(sidebar_link) for sidebar_link in sidebar_links]
     for (title, url) in titles_and_urls:
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-        tags.union(['sidebar'])
+        tags = tags.union(['sidebar'])
         links.append(make_tagged_url(url, title, tags))
 
     return links
@@ -186,37 +186,43 @@ def get_frontpage_toc():
 
     hxs = HtmlXPathSelector(text=html_data)
 
-
-    local_story_links = hxs.select("//div[@id='content']//div/div[@class='span-3 border ' or @class='span-2 last ']//h2/a")
-    titles_and_urls = [extract_title_and_url(link_hxs) for link_hxs in local_story_links]
-    local_story_items = [(title, url) for (title, url) in titles_and_urls if url not in BLACKLIST]
+    story_links = hxs.select("//div[@id='content']//div/div[@class='span-3 border ' or @class='span-2 last ']//h2/a")
+    story_items = [extract_title_and_url(link_hxs) for link_hxs in story_links]
 
     today_image_link = hxs.select("//p[text()=\"\r\n    L'image du jour\r\n\"]/../div[@class='content']//div[@class='item-title']/a")
 
-    local_story_items.append(extract_title_and_url(today_image_link))
+    story_items.append(extract_title_and_url(today_image_link))
 
-
-    #quote_links = hxs.select("//div[@id='content']//div[@class='span-3 border ']//div[@class='pullquote-full']/a")
-    #local_story_items.extend(extract_title_and_url(links_hxs) for link_hxs in quote_links)
-
-
-    return  local_story_items, []
+    return  [(url, title) for (url, title) in story_items if url not in BLACKLIST], []
 
 
 
-def show_article():
+def show_sample_articles():
 
     normal_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120221_00121183"
     photoset_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120224_00122366"
     intro_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_002"
     photoset_with_links = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120222_00121489"
 
-    #for url in [normal_url, photoset_url, intro_url, photoset_with_links]:
-    for url in ["http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_00123032"]:
+
+    norma_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582"
+    for url in [normal_url, photoset_url, intro_url, photoset_with_links]:
+    #for url in [normal_url]:
         article, raw_html = extract_article_data(url)
         article.print_summary()
         for tagged_link in article.links:
             print tagged_link.URL, tagged_link.title, tagged_link.tags
+
+
+def show_article():
+    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120326_023"
+    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582"
+    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120331_00140331"
+    article, raw_html = extract_article_data(url)
+    article.print_summary()
+    for tagged_link in article.links:
+        print tagged_link.URL, tagged_link.title, tagged_link.tags
+
 
 
 def show_frontpage():
@@ -229,19 +235,17 @@ def show_frontpage():
 
 def show_frontpage_articles():
     toc, posts = get_frontpage_toc()
-    for title, url in toc:
+    for url, title in toc:
         print u"{0} [{1}]".format(title, url)
-        try:
-            article_data, raw_html = extract_article_data(url)
-            article_data.print_summary()
-        except Exception as e:
-            print e.message
-            print "DELETED"
+
+        article_data, raw_html = extract_article_data(url)
+        article_data.print_summary()
+
         print "********\n\n"
 
 
 
 if __name__ == "__main__":
     #show_article()
-    #show_frontpage_articles()
-    show_frontpage()
+    show_frontpage_articles()
+    #show_frontpage()
