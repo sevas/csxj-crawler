@@ -61,15 +61,21 @@ def get_frontpage_toc():
 
 
 
+
 def show_frontpage():
     frontpage_items, blogposts = get_frontpage_toc()
 
+    print "NEWS ({0}):".format(len(frontpage_items))
     for title, url in frontpage_items:
         print u"{0} \t\t [{1}]".format(title, url)
 
-    print len(frontpage_items)
+    print "\n\nBLOGPOSTS ({0}):".format(len(blogposts))
+    for title, url in blogposts:
+        print u"{0} \t\t [{1}]".format(title, url)
 
 
+
+    print frontpage_items
 def main():
     show_frontpage()
 

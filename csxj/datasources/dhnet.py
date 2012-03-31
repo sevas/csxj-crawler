@@ -51,7 +51,7 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
     for url, title in urls_and_titles:
         tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
         if is_on_same_domain(url):
-            tags.union(['internal site', 'internal'])
+            tags = tags.union(['internal site', 'internal'])
         all_tags = tags.union(additional_tags)
         tagged_urls.append(make_tagged_url(url, title, all_tags))
     return tagged_urls
