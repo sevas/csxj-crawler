@@ -142,7 +142,7 @@ def extract_embedded_links_from_articlebody(article_body):
         url = embedded_video_frame.get('src')
         title = '[Video] {0}'.format(url)
         tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
-        tags.union(['in text', 'embedded'])
+        tags = tags.union(['in text', 'embedded'])
         embedded_links.append(make_tagged_url(url, title, tags))
         
     return embedded_links
@@ -163,7 +163,7 @@ def extract_links_and_text_content(main_article):
         plaintext_urls = extract_plaintext_urls_from_text(paragraph)
         for url in plaintext_urls:
             tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
-            tags.union(['in text', 'plaintext'])
+            tags = tags.union(['in text', 'plaintext'])
             all_plaintext_urls.append(make_tagged_url(url, url, tags))
 
         cleaned_up_paragraphs.append(paragraph)
