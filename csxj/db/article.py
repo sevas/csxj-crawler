@@ -84,8 +84,8 @@ class ArticleData(object):
 
 
     @property
-    def external_links(self):
-        return [l for l in self.links if 'external' in l.tags]
+    def other_links(self):
+        return [l for l in self.links if 'internal' not in l.tags]
 
 
     @property
