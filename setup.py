@@ -1,5 +1,4 @@
 from setuptools import setup
-import sys
 import csxj
 
 setup(name='csxj',
