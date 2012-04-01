@@ -99,7 +99,7 @@ class ArticleData(object):
         print 'publication date:', self.pub_date
         print 'publication time:', self.pub_time
         print 'fetched on:', self.fetched_datetime
-        print '# external links:', len(self.external_links)
+        print '# other links:', len(self.other_links)
         print '# internal links:', len(self.internal_links)
         print 'category:', '/'.join(self.category)
         print 'author:', self.author

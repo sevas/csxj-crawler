@@ -7,14 +7,13 @@ from itertools import chain
 import urllib
 import codecs
 
-from BeautifulSoup import Tag
 from scrapy.selector import HtmlXPathSelector
 
-from common.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
+from common.utils import fetch_content_from_url, fetch_html_content
 from common.utils import extract_plaintext_urls_from_text
-from common.utils import remove_text_formatting_markup_from_fragments
 from csxj.common.tagging import  classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
+
 
 
 # for datetime conversions
@@ -29,13 +28,20 @@ elif sys.platform in [ 'win32']:
 
 SUDINFO_INTERNAL_SITES = {
     'portfolio.sudinfo.be':['internal site', 'images', 'gallery'],
-    'portfolio.sudpresse.be':['internal site', 'images', 'gallery']
+    'portfolio.sudpresse.be':['internal site', 'images', 'gallery'],
+    'bassenge.blogs.sudinfo.be':['internal blog', 'blog'],
 }
 
-SUDINFO_OWN_NETLOC = 'sudinfo.be'
+SUDINFO_OWN_NETLOC = 'www.sudinfo.be'
+SUDINFO_OWN_DOMAIN = 'sudinfo.be'
 
 SOURCE_TITLE = u"Sud Info"
 SOURCE_NAME = u"sudinfo"
+
+
+
+
+
 
 
 def extract_date(hxs):
@@ -50,60 +56,71 @@ def extract_date(hxs):
     return datetime_published.date(), datetime_published.time()
 
 
-def extract_text_and_links_from_paragraph(paragraph):
-    def extract_url_and_title(link):
-        if isinstance(link.contents[0], Tag):
-            if link.contents[0].name == 'img':
-                img_target = link.contents[0].get('src')
-                return link.get('href'), '(img){0}'.format(img_target)
-            else:
-                title = remove_text_formatting_markup_from_fragments(link.contents)
-                return link.get('href'), title
-        else:
-            return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
 
-    # Why do we filter on link.contents? Because sometimes there
-    # are <a id="more"></a> links which point to nothing.
-    # Awesome.
-    urls_and_titles = [extract_url_and_title(link) for link in paragraph.findAll('a', recursive=False) if link.contents]
+def extract_title_and_url(link_hxs):
+    url = link_hxs.select("./@href").extract()[0]
+    title = link_hxs.select(".//text()").extract()[0].strip()
+    return title, url
+
+
+
+def extract_text_and_links_from_paragraph(paragraph_hxs):
+    links = paragraph_hxs.select("./a")
+    titles_and_urls = [extract_title_and_url(link) for link in links]
 
     tagged_urls = list()
-    for url, title in urls_and_titles:
+    for title, url in titles_and_urls:
         tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
         tags.update(['in text'])
         tagged_urls.append(make_tagged_url(url, title, tags))
 
-    text  = remove_text_formatting_markup_from_fragments(paragraph.contents)
+    text_fragments  = paragraph_hxs.select(".//text()").extract()
+    if text_fragments:
+        text = ' '.join(text_fragments)
+        plaintext_urls = extract_plaintext_urls_from_text(text)
+        for url in plaintext_urls:
+            tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+            tags.update(['plaintext', 'in text'])
 
-
-    plaintext_urls = extract_plaintext_urls_from_text(text)
-    for url in plaintext_urls:
-        tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-        tags.update(['plaintext', 'in text'])
-        tagged_urls.append(make_tagged_url(url, url, tags))
+            tagged_urls.append(make_tagged_url(url, url, tags))
+    else:
+        text = u""
+        tagged_urls = []
 
     return text, tagged_urls
 
 
 
 def extract_intro_and_links(hxs):
-    intro_container = hxs.select("//p[@class='chapeau']/text()")
+    intro_container = hxs.select("//div [@id='article']/p[starts-with(@class, 'chapeau')]/following-sibling::*[1]")
     intro_text, tagged_urls = extract_text_and_links_from_paragraph(intro_container)
     return intro_text, tagged_urls
 
 
 
-def extract_content_and_links(article):
-    all_paragraphs = article.findAll('p', recursive=False)
+def extract_content_and_links(hxs):
+    content_paragraphs_hxs = hxs.select("//div [@id='article']/p[starts-with(@class, 'publiele')]/following-sibling::p")
 
-    content_paragraphs = [p for p in all_paragraphs if p.get('class') not in ['ariane', 'chapeau', 'auteur', 'publiele']]
+    all_content_paragraphs, all_tagged_urls = list(), list()
 
-    all_content_paragraphs = list()
-    all_tagged_urls = list()
-    for p in content_paragraphs:
-        cleaned_up_text, tagged_urls = extract_text_and_links_from_paragraph(p)
-        all_content_paragraphs.append(cleaned_up_text)
+    # process paragraphs
+    for p in content_paragraphs_hxs:
+        text, tagged_urls = extract_text_and_links_from_paragraph(p)
+
+        all_content_paragraphs.append(text)
         all_tagged_urls.extend(tagged_urls)
+
+
+    #extract embedded videos
+    divs = hxs.select("//div [@id='article']/p[starts-with(@class, 'publiele')]/following-sibling::div/div [@class='bottomVideos']")
+
+    for div in divs:
+        urls = div.select("./div [contains(@class, 'emvideo-kewego')]//video/@poster").extract()
+        for url in urls:
+            tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+            tags.update(['bottom video', 'embedded video', 'embedded'])
+
+            all_tagged_urls.append(make_tagged_url(url, url, tags))
 
     return all_content_paragraphs, all_tagged_urls
 
@@ -138,26 +155,23 @@ def extract_associated_links(hxs, source_url):
         for item in links:
             url, title, tags = extract_url_and_title(item)
             tags.update(classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES))
-
             link_type = item.select('@class')
             if link_type and link_type[0] in LINK_TYPE_TO_TAG:
                 tags.update(LINK_TYPE_TO_TAG[link_type])
 
             all_tagged_urls.append(make_tagged_url(url, title, tags))
 
-
     media_links = hxs.select("//div[@id='picture']/descendant::div[@class='bloc-01 pf_article']//a")
 
     if media_links:
         for i, item in enumerate(media_links):
-            url = "{0}{1}".format(source_url, item)
-            title = "EMBEDDED MEDIA {0}".format(i)
+            url = u"{0}{1}".format(source_url, item)
+            title = u"EMBEDDED MEDIA {0}".format(i)
             tags = set(['media', 'embedded'])
-
-
-    print all_tagged_urls
+            all_tagged_urls.append(make_tagged_url(url, title, tags))
 
     return all_tagged_urls
+
 
 
 def is_page_error_404(hxs):
@@ -168,6 +182,8 @@ def is_page_error_404(hxs):
 def extract_article_data(source_url):
     """
     """
+    source_url = codecs.encode(source_url, 'utf-8')
+
     html_content = fetch_html_content(source_url)
     hxs = HtmlXPathSelector(text=html_content)
 
@@ -180,22 +196,20 @@ def extract_article_data(source_url):
         author = hxs.select("//p[@class='auteur']/text()").extract()[0]
         fetched_datetime = datetime.today()
 
-#        intro, intro_links = extract_intro_and_links(hxs)
-#        content, content_links = extract_content_and_links(article)
+        intro, intro_links = extract_intro_and_links(hxs)
+
+        content, content_links = extract_content_and_links(hxs)
 
         associated_links = extract_associated_links(hxs, source_url)
 
-        return ArticleData(source_url, title, pub_date, pub_time, fetched_datetime,
-                           intro_links + content_links + associated_links,
-                           category, author,
-                           intro, content), html_content
+        all_links = intro_links + content_links + associated_links
 
 
-
-def extract_title_and_url(container):
-    if container.h1 and container.h1.a:
-        link = container.h1.a
-        return link.contents[0].strip(), link.get('href')
+        return (ArticleData(source_url, title, pub_date, pub_time, fetched_datetime,
+                            all_links,
+                            category, author,
+                            intro, content),
+                html_content)
 
 
 
@@ -223,7 +237,7 @@ def make_full_url(prefix, titles_and_urls):
 
 
 def get_frontpage_toc():
-    BASE_URL = 'http://www.sudinfo.be/'
+    BASE_URL = u'http://www.sudinfo.be/'
     html_content = fetch_content_from_url(BASE_URL)
     hxs = HtmlXPathSelector(text=html_content)
 
@@ -246,13 +260,12 @@ def show_frontpage_articles():
     toc, blogs = get_frontpage_toc()
 
     print len(toc)
-    for title, url in toc[:]:
-        print
-        print url
+    for i, (title, url) in enumerate(toc[:]):
+        print ""
+        print u"----- [{0:02d}] -- {1}".format(i, url)
         article_data, html_content = extract_article_data(url)
-
         article_data.print_summary()
-        print article_data.to_json()
+        #print article_data.to_json()
 
 
 
@@ -273,12 +286,20 @@ def test_sample_data():
 def show_article():
     url = "http://www.sudinfo.be/336280/article/sports/foot-belge/anderlecht/2012-02-26/lierse-anderlecht-les-mauves-vont-ils-profiter-de-la-defaite-des-brugeois"
     url = "http://www.sudinfo.be/335985/article/sports/foot-belge/charleroi/2012-02-26/la-d2-en-direct-charleroi-gagne-en-l-absence-d-abbas-bayat-eupen-est-accro"
+    url = "http://www.sudinfo.be/361378/article/sports/foot-belge/standard/2012-03-31/jose-riga-apres-la-defaite-du-standard-a-gand-3-0-nous-n%E2%80%99avons-pas-a-rougir"
+    url = "http://www.sudinfo.be/361028/article/fun/people/2012-03-31/jade-foret-et-arnaud-lagardere-bientot-parents"
+    url = "http://www.sudinfo.be/361506/article/fun/insolite/2012-04-01/suppression-du-jour-ferie-le-1er-mai-sarkozy-qui-s’installe-en-belgique-attentio"
+    url = "http://www.sudinfo.be/359805/article/culture/medias/2012-03-29/gopress-le-premier-kiosque-digital-belge-de-la-presse-ecrite-avec-sudpresse"
+    url = "http://www.sudinfo.be/346549/article/regions/liege/actualite/2012-03-12/debordements-au-carnaval-de-glons-un-bus-tec-arrete-et-40-arrestationss"
     article_data, raw_html = extract_article_data(url)
 
     if article_data:
         article_data.print_summary()
         print article_data.intro
         print article_data.content
+
+        for tagged_url in article_data.links:
+            print u"{0} [{1}] {2!r}".format(*tagged_url)
     else:
         print 'no article found'
 
@@ -292,9 +313,11 @@ def show_frontpage_toc():
     for title, url in headlines:
         print u"{0} \t\t\t\t\t [{1}]".format(title, url)
 
+    print len(headlines)
 
 
 if __name__=='__main__':
+    #show_frontpage_toc()
     #download_one_article()
-    #show_frontpage_articles()
-    show_article()
+    show_frontpage_articles()
+    #show_article()
