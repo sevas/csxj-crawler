@@ -177,7 +177,7 @@ def expand_full_url(local_url):
 def extract_title_and_url(link_hxs):
     url = expand_full_url(link_hxs.select("./@href").extract()[0])
     title = link_hxs.select("./text()").extract()[0].strip()
-    return url, title
+    return title, url
 
 
 def get_frontpage_toc():
@@ -193,7 +193,7 @@ def get_frontpage_toc():
 
     story_items.append(extract_title_and_url(today_image_link))
 
-    return  [(url, title) for (url, title) in story_items if url not in BLACKLIST], []
+    return  [(title, url) for (title, url) in story_items if url not in BLACKLIST], []
 
 
 
