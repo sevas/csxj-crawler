@@ -176,7 +176,7 @@ class ArticleQueueDownloader(object):
                     batch_output_directory = os.path.join(day_directory, batch_hour_string)
                     self.save_articles_to_db(articles, deleted_articles, errors, items['blogposts'], batch_output_directory)
                     self.save_raw_data_to_db(raw_data, batch_output_directory)
-                    self.update_provider_stats(os.path.join(self.db_root, self.source_name), articles, errors)
+                    #self.update_provider_stats(os.path.join(self.db_root, self.source_name), articles, errors)
 
                 self.log_info("Removing queue directory")
                 provider_db.cleanup_queue(day_string)
@@ -259,7 +259,7 @@ class ArticleQueueDownloader(object):
             current_stats.n_errors += len(errors)
             current_stats.n_dumps += 1
             current_stats.end_date = datetime.today()
-            current_stats.n_links += sum([(len(art.external_links) + len(art.internal_links)) for art in articles])
+            current_stats.n_links += sum([(len(art.other_links) + len(art.internal_links)) for art in articles])
             current_stats.save_to_file(stats_filename)
         except Exception as e:
             self.log_info(str(e))
