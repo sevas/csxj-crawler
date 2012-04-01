@@ -20,7 +20,7 @@ SOURCE_NAME = u"septsursept"
 
 SEPTSURSEPT_INTERNAL_BLOGS = {}
 
-SEPTSURSEPT_NETLOC = "7sur7.be"
+SEPTSURSEPT_NETLOC = "www.7sur7.be"
 
 
 

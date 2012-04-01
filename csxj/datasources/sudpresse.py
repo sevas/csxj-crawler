@@ -24,7 +24,7 @@ SUDPRESSE_INTERNAL_SITES = {
     'portfolio.sudpresse.be':['internal site', 'images', 'gallery']
 }
 
-SUDPRESSE_OWN_NETLOC = 'sudpresse.be'
+SUDPRESSE_OWN_NETLOC = 'www.sudpresse.be'
 
 SOURCE_TITLE = u"Sud Presse"
 SOURCE_NAME = u"sudpresse"
