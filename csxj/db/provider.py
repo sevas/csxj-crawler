@@ -407,7 +407,7 @@ class Provider(object):
 
 
     def get_blogpost_titles_from_batch(self,  day_string, hour_string):
-        blogpost_filename = os.path.join(self.directory, day_string, hour_string)
+        blogpost_filename = os.path.join(self.directory, day_string, hour_string, BLOGPOSTS_FILENAME)
         if os.path.exists(blogpost_filename):
             with open(blogpost_filename) as f:
                 return json.load(f)
