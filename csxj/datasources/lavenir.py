@@ -208,7 +208,7 @@ def get_frontpage_toc():
     all_items = [extract_title_and_url(link_hxs) for link_hxs in all_links]
     news_items, blogpost_items = separate_blogposts(all_items)
 
-    return  [(title, expand_full_url(url)) for (title, url) in news_items if url not in BLACKLIST], blogpost_items
+    return  [(title, expand_full_url(url)) for (title, url) in news_items if url not in BLACKLIST], list(blogpost_items)
 
 
 
