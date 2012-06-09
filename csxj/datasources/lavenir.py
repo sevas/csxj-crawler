@@ -5,7 +5,7 @@ import sys
 import locale
 from datetime import datetime
 import codecs
-from itertools import izip
+from itertools import izip, chain
 
 from scrapy.selector import HtmlXPathSelector
 
@@ -27,6 +27,9 @@ LAVENIR_NETLOC = 'www.lavenir.net'
 
 BLACKLIST = ["http://citysecrets.lavenir.net"]
 
+
+def is_internal_url(url):
+    return url.startswith('/')
 
 
 def extract_publication_date(raw_date):
@@ -175,9 +178,18 @@ def expand_full_url(local_url):
 
 
 def extract_title_and_url(link_hxs):
-    url = expand_full_url(link_hxs.select("./@href").extract()[0])
+    url = link_hxs.select("./@href").extract()[0]
     title = link_hxs.select("./text()").extract()[0].strip()
     return title, url
+
+
+
+def separate_blogposts(all_items):
+    blogpost_items = set([(title, url)for title, url in all_items if not is_internal_url(url)])
+    print blogpost_items
+    news_items = set(all_items) - blogpost_items
+
+    return news_items, blogpost_items
 
 
 def get_frontpage_toc():
@@ -186,14 +198,17 @@ def get_frontpage_toc():
 
     hxs = HtmlXPathSelector(text=html_data)
 
-    story_links = hxs.select("//div[@id='content']//div/div[@class='span-3 border ' or @class='span-2 last ']//h2/a")
-    story_items = [extract_title_and_url(link_hxs) for link_hxs in story_links]
+    story_links = hxs.select("//div[@id='content']//div[starts-with(@class, 'fr-row')]//h3/a")
+    more_story_links = hxs.select("//div[@id='content']//div[starts-with(@class, 'fr-section')]//h3/a")
+    local_sport_links = hxs.select("//div[@id='content']//div[contains(@class, 'article-with-photo')]//h2/a")
+    nopic_story_list = hxs.select("//div[@id='content']//ul[@class='nobullets']//li//div[contains(@class, 'item-title')]//a")
 
-    today_image_link = hxs.select("//p[text()=\"\r\n    L'image du jour\r\n\"]/../div[@class='content']//div[@class='item-title']/a")
+    all_links = chain(story_links, more_story_links, local_sport_links, nopic_story_list)
 
-    story_items.append(extract_title_and_url(today_image_link))
+    all_items = [extract_title_and_url(link_hxs) for link_hxs in all_links]
+    news_items, blogpost_items = separate_blogposts(all_items)
 
-    return  [(title, url) for (title, url) in story_items if url not in BLACKLIST], []
+    return  [(title, expand_full_url(url)) for (title, url) in news_items if url not in BLACKLIST], blogpost_items
 
 
 
@@ -230,7 +245,10 @@ def show_frontpage():
     for title, url in toc:
         print u"{0} [{1}]".format(title, url)
 
-    print len(toc)
+    for title, url in blogposts:
+        print u"{0} [{1}]".format(title, url)
+
+    print len(toc), len(blogposts)
 
 
 def show_frontpage_articles():
@@ -247,5 +265,5 @@ def show_frontpage_articles():
 
 if __name__ == "__main__":
     #show_article()
-    show_frontpage_articles()
-    #show_frontpage()
+    #show_frontpage_articles()
+    show_frontpage()
