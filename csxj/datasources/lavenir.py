@@ -6,7 +6,7 @@ import locale
 from datetime import datetime
 import codecs
 from itertools import izip, chain
-
+from urlparse import urlparse
 from scrapy.selector import HtmlXPathSelector
 
 from csxj.common.tagging import classify_and_tag, make_tagged_url
@@ -29,7 +29,12 @@ BLACKLIST = ["http://citysecrets.lavenir.net"]
 
 
 def is_internal_url(url):
-    return url.startswith('/')
+    if url.startswith('/'):
+        return True
+    else:
+        parsed_url = urlparse(url)
+        scheme, netloc, path, params, query, fragments = parsed_url
+        return LAVENIR_NETLOC.endswith(netloc)
 
 
 def extract_publication_date(raw_date):
@@ -185,6 +190,7 @@ def extract_title_and_url(link_hxs):
 
 
 def separate_blogposts(all_items):
+    print all_items
     blogpost_items = set([(title, url)for title, url in all_items if not is_internal_url(url)])
     news_items = set(all_items) - blogpost_items
 
@@ -241,9 +247,11 @@ def show_article():
 
 def show_frontpage():
     toc, blogposts = get_frontpage_toc()
+    print "Articles:"
     for title, url in toc:
         print u"{0} [{1}]".format(title, url)
 
+    print "BLogposts:"
     for title, url in blogposts:
         print u"{0} [{1}]".format(title, url)
 
@@ -252,7 +260,8 @@ def show_frontpage():
 
 def show_frontpage_articles():
     toc, posts = get_frontpage_toc()
-    for url, title in toc:
+    print len(toc), len(posts)
+    for title, url in toc:
         print u"{0} [{1}]".format(title, url)
 
         article_data, raw_html = extract_article_data(url)
@@ -264,5 +273,5 @@ def show_frontpage_articles():
 
 if __name__ == "__main__":
     #show_article()
-    #show_frontpage_articles()
-    show_frontpage()
+    show_frontpage_articles()
+    #show_frontpage()
