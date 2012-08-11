@@ -4,16 +4,12 @@
 from datetime import datetime
 from articlequeue import ArticleQueueFiller, ArticleQueueDownloader
 
-DEBUG_MODE = True
-
-
 
 def put_articles_in_queue(provider, db_root):
     name = provider.SOURCE_NAME
     print("Enqueuing stories for {0}".format(name))
     queue_filler = ArticleQueueFiller(provider, name, db_root)
     queue_filler.fetch_newest_article_links()
-    queue_filler.update_global_queue()
 
 
 

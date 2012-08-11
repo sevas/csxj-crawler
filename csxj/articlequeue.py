@@ -6,6 +6,7 @@ import utils
 import logging
 import traceback
 
+from csxj.common.decorators import deprecated
 from db import Provider, ProviderStats, make_error_log_entry2
 from db.constants import *
 
@@ -76,23 +77,56 @@ class ArticleQueueFiller(object):
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
-        frontpage_toc, blogposts_toc = self.source.get_frontpage_toc()
-        self.log_info("Found {0} stories and {1} blogposts on frontpage".format(len(frontpage_toc),
-                                                                                 len(blogposts_toc)))
+        try:
+            frontpage_toc, blogposts_toc = self.source.get_frontpage_toc()
+            self.log_info("Found {0} stories and {1} blogposts on frontpage".format(len(frontpage_toc),
+                                                                                    len(blogposts_toc)))
 
-        last_stories_filename = os.path.join(self.db_root,
-                                             self.source_name,
-                                             LAST_STORIES_FILENAME)
-        last_blogposts_filename = os.path.join(self.db_root,
-                                               self.source_name,
-                                               LAST_BLOGPOSTS_FILENAME)
+            last_stories_filename = os.path.join(self.db_root,
+                                                 self.source_name,
+                                                 LAST_STORIES_FILENAME)
+            last_blogposts_filename = os.path.join(self.db_root,
+                                                   self.source_name,
+                                                   LAST_BLOGPOSTS_FILENAME)
 
-        self.new_stories = utils.filter_only_new_stories(frontpage_toc, last_stories_filename)
-        self.new_blogposts = utils.filter_only_new_stories(blogposts_toc, last_blogposts_filename)
+            self.new_stories = utils.filter_only_new_stories(frontpage_toc, last_stories_filename)
+            self.new_blogposts = utils.filter_only_new_stories(blogposts_toc, last_blogposts_filename)
 
-        self.log_info("Found {0} new stories and {1} new blogposts since last time".format(len(self.new_stories),
+            self.log_info("Found {0} new stories and {1} new blogposts since last time".format(len(self.new_stories),
                                                                                            len(self.new_blogposts)))
 
+            self.update_global_queue()
+
+
+        except Exception as e:
+            self.log_error("Something went wrong while fetching new frontpage headlines. Updating error log")
+            stacktrace = traceback.format_exc()
+            self.update_queue_error_log(stacktrace)
+
+
+    def update_queue_error_log(self, stacktrace):
+        """
+        """
+        error_log_file = os.path.join(self.root, QUEUE_ERROR_LOG_FILENAME)
+
+        if(os.path.exists(error_log_file)):
+            f = open(error_log_file, 'r')
+            queue_error_log = json.load(f)
+            f.close()
+        else:
+            queue_error_log = dict()
+
+        today = datetime.today()
+        day_str = today.strftime("%Y-%m-%d")
+        batch_hour_str = today.strftime("%H.%M.%S")
+
+        if day_str in queue_error_log:
+            queue_error_log[day_str][batch_hour_str] = stacktrace
+        else:
+            queue_error_log[day_str] = {batch_hour_str: stacktrace}
+
+        with open(error_log_file, 'w') as f:
+            json.dump(queue_error_log, f)
 
 
     def update_global_queue(self):
@@ -176,7 +210,7 @@ class ArticleQueueDownloader(object):
                     batch_output_directory = os.path.join(day_directory, batch_hour_string)
                     self.save_articles_to_db(articles, deleted_articles, errors, items['blogposts'], batch_output_directory)
                     self.save_raw_data_to_db(raw_data, batch_output_directory)
-                    #self.update_provider_stats(os.path.join(self.db_root, self.source_name), articles, errors)
+
 
                 self.log_info("Removing queue directory")
                 provider_db.cleanup_queue(day_string)
@@ -244,7 +278,7 @@ class ArticleQueueDownloader(object):
         with open(os.path.join(raw_data_dir, RAW_DATA_INDEX_FILENAME), 'w') as f:
             json.dump(references, f)
 
-
+    @deprecated
     def update_provider_stats(self, outdir, articles, errors):
         stats_filename = os.path.join(outdir, 'stats.json')
         if not os.path.exists(stats_filename):

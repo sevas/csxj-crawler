@@ -483,6 +483,25 @@ class Provider(object):
         return item_count
 
 
+    def get_queue_error_count(self):
+        """
+        """
+        queue_error_log = self.get_queue_errors()
+        return sum([len(logged_stacktraces.items()) for logged_stacktraces in queue_error_log.values()])
+
+
+    def get_queue_errors(self):
+        error_log_file = os.path.join(self.directory, QUEUE_ERROR_LOG_FILENAME)
+
+        queue_error_log = dict()
+        if(os.path.exists(error_log_file)):
+            f = open(error_log_file, 'r')
+            queue_error_log = json.load(f)
+            f.close()
+
+        return queue_error_log
+
+
 
     #OLD STUFF TO BE REMOVED SOME DAY:
     @deprecated
@@ -584,16 +603,7 @@ class Provider(object):
 
 
 if __name__=="__main__":
-    db_root = "/Users/sevas/Documents/juliette/json_db_allfeeds"
-    p = Provider(db_root, "sudpresse")
-    from pprint import pprint
+    db_root = "/Users/sevas/TEST_DB"
+    p = Provider(db_root, "rtbfinfo")
 
-    day_string = "2012-02-22"
-    hour_string = "14.05.09"
-
-
-    errors = p.get_pending_batch_errors(day_string, hour_string)
-
-    metainfos = p.get_batch_metainfos(day_string, hour_string)
-
-    print metainfos
+    print p.get_queue_error_count()
