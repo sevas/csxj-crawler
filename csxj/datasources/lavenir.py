@@ -190,7 +190,6 @@ def extract_title_and_url(link_hxs):
 
 
 def separate_blogposts(all_items):
-    print all_items
     blogpost_items = set([(title, url)for title, url in all_items if not is_internal_url(url)])
     news_items = set(all_items) - blogpost_items
 
