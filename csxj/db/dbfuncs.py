@@ -100,6 +100,17 @@ def get_summary_from_last_update_for_all_sources(db_root):
 
 
 
+def get_queue_error_count_for_all_sources(db_root):
+    source_names = get_all_provider_names(db_root)
+
+    all_errors = list()
+    for name in source_names:
+        p = Provider(db_root, name)
+        error_count = len(p.get_queue_errors())
+        if error_count:
+            all_errors.append((name, error_count))
+
+    return all_errors
 
 
 
