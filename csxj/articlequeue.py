@@ -82,20 +82,24 @@ class ArticleQueueFiller(object):
             self.log_info("Found {0} stories and {1} blogposts on frontpage".format(len(frontpage_toc),
                                                                                     len(blogposts_toc)))
 
-            last_stories_filename = os.path.join(self.db_root,
-                                                 self.source_name,
-                                                 LAST_STORIES_FILENAME)
-            last_blogposts_filename = os.path.join(self.db_root,
-                                                   self.source_name,
-                                                   LAST_BLOGPOSTS_FILENAME)
+            if len(frontpage_toc):
+                last_stories_filename = os.path.join(self.db_root,
+                                                     self.source_name,
+                                                     LAST_STORIES_FILENAME)
+                last_blogposts_filename = os.path.join(self.db_root,
+                                                       self.source_name,
+                                                       LAST_BLOGPOSTS_FILENAME)
 
-            self.new_stories = utils.filter_only_new_stories(frontpage_toc, last_stories_filename)
-            self.new_blogposts = utils.filter_only_new_stories(blogposts_toc, last_blogposts_filename)
+                self.new_stories = utils.filter_only_new_stories(frontpage_toc, last_stories_filename)
+                self.new_blogposts = utils.filter_only_new_stories(blogposts_toc, last_blogposts_filename)
 
-            self.log_info("Found {0} new stories and {1} new blogposts since last time".format(len(self.new_stories),
-                                                                                           len(self.new_blogposts)))
+                self.log_info("Found {0} new stories and {1} new blogposts since last time".format(len(self.new_stories),
+                                                                                               len(self.new_blogposts)))
 
-            self.update_global_queue()
+                self.update_global_queue()
+            else:
+                self.log_error("Found no headlines on the frontpage. Updating error log")
+                self.update_queue_error_log("*** No link were extracted from the frontpage")
 
 
         except Exception as e:
