@@ -42,20 +42,18 @@ def get_frontpage_toc():
 
     hxs = HtmlXPathSelector(text=html_data)
 
-    featured_link = hxs.select("//div [@id='mainContent']//div [starts-with(@class, 'doubleContent sticky')]//div [@id='featured']/h2/a")
-    sticky_right_links =  hxs.select("//div [@id='mainContent']//div [starts-with(@class, 'doubleContent sticky')]/div [@class='second']//h3//a")
-    #itembox_links = hxs.select("//div [@id='mainContent']//div [starts-with(@class, 'doubleContent sticky')]//div[@class='viewer']//div [@class='illuBox']/h4/a")
+    main_story = hxs.select("//div [@id='mainContent']//article//h2//a")
+    featured_stories = hxs.select("//div [@id='mainContent']//section/article//h3//a")
+    anchored_stories = hxs.select("//div [@id='mainContent']//div [starts-with(@class, 'anchor')]//ul//a")
 
-    doublecontent_list_links = hxs.select("//div [@id='mainContent']//div [starts-with(@class, 'doubleContent')]//ul//a")
+    chronic_title_hxs = hxs.select("//div [@id='mainContent']//div [@class='second chronic']/div [@class='illuBox']//p")
+    chronic_links = [chronic_hxs for chronic_hxs in chronic_title_hxs.select("../@href").extract()]
+    chronic_titles = [c.strip() for c in chronic_title_hxs.select(".//text()").extract()]
 
-    titles_and_urls = [extract_title_and_url(link_hxs) for link_hxs in chain(   featured_link,
-                                                                                sticky_right_links,
-                                                                                #itembox_links,
-                                                                                doublecontent_list_links)]
-    # Obviously, you could not let me have it.
-    doublecontent_main_links = hxs.select("//div [@id='mainContent']//div [starts-with(@class, 'doubleContent archiveContent')]/div/div[@class='illuBox']/a/span/..")
+    chronic_stories = zip(chronic_titles, chronic_links)
 
-    titles_and_urls += [extract_title_and_url_from_span_thing(link_hxs) for link_hxs in doublecontent_main_links]
+
+    titles_and_urls = [extract_title_and_url(link_hxs) for link_hxs in chain(main_story, featured_stories, anchored_stories)] + chronic_stories
 
     return titles_and_urls, []
 
@@ -67,15 +65,17 @@ def show_frontpage():
 
     print "NEWS ({0}):".format(len(frontpage_items))
     for title, url in frontpage_items:
-        print u"{0} \t\t [{1}]".format(title, url)
+        print u"{0} \t\t ({1})".format(title, url)
 
     print "\n\nBLOGPOSTS ({0}):".format(len(blogposts))
     for title, url in blogposts:
-        print u"{0} \t\t [{1}]".format(title, url)
+        print u"{0} \t\t ({1})".format(title, url)
 
 
 
-    print frontpage_items
+
+
+
 def main():
     show_frontpage()
 
