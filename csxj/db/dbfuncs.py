@@ -113,6 +113,19 @@ def get_queue_error_count_for_all_sources(db_root):
     return all_errors
 
 
+def get_queue_errors_for_all_sources(db_root):
+    source_names = get_all_provider_names(db_root)
+
+    all_errors = list()
+    for name in source_names:
+        p = Provider(db_root, name)
+        errors = p.get_queue_errors()
+        if len(errors):
+            all_errors.append((name, errors))
+
+    return all_errors
+
+
 
 
 #
@@ -223,5 +236,10 @@ def get_queue_error_count_for_all_sources(db_root):
 
 
 if __name__=="__main__":
-    for k, v in get_statistics_from_last_update_for_all_sources("/Users/sevas/Documents/juliette/json_db_allfeeds/").items():
-        print("{0}: {1}".format(k, v))
+#    for k, v in get_statistics_from_last_update_for_all_sources("/Users/sevas/Documents/juliette/json_db_allfeeds/").items():
+#        print("{0}: {1}".format(k, v))
+    from pprint import pprint
+    all_errors = get_queue_errors_for_all_sources("/Users/sevas/Documents/juliette/json_db_allfeeds/")
+    for name, errors in all_errors:
+        print name
+        pprint(errors)
