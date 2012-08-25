@@ -236,6 +236,32 @@ def extract_article_data(source):
     
 
 
+def extract_main_content_links(source):
+    if hasattr(source, 'read'):
+        html_content = source.read()
+    else:
+        html_content = fetch_html_content(source)
+
+    soup = make_soup_from_html_content(html_content)
+
+    # get maincontent div
+    story = soup.find('div', {'id':'story'})
+
+    all_links = soup.findAll('a', recursive=True)
+
+    def extract_url_and_title(item):
+        url = item.get('href')
+        if item.contents[0]:
+            title = item.contents[0]
+        else:
+            # yes, this happens
+            title = 'No Title found'
+        return url, title
+
+    return [extract_url_and_title(l) for l in all_links]
+
+
+
 def get_two_columns_stories(element):
     """
     Returns the two <li> with two 'two columns' stories.
@@ -367,10 +393,15 @@ def dowload_one_article():
     url = "http://www.lesoir.be/sports/sports_mecaniques/2012-01-07/pas-de-grand-prix-de-spa-francorchamps-en-2013-888811.php"
     url = "http://www.lesoir.be/actualite/belgique/elections_2010/2012-01-10/budget-2012-chastel-appele-a-s-expliquer-cet-apres-midi-889234.php"
     url = "http://www.lesoir.be/actualite/france/2012-01-10/free-defie-les-telecoms-francais-avec-un-forfait-illimite-a-19-99-euros-889276.php"
+    url = "http://www.lesoir.be/actualite/belgique/2012-08-21/guy-spitaels-est-decede-933203.php"
     art, raw_html = extract_article_data(url)
-    print art.intro
-    print '/'.join(art.category)
-    print art.links
+
+    maincontent_links = extract_main_content_links(url)
+    processed_links = art.links
+
+    for l in [l for l in maincontent_links if l not in processed_links]:
+        print l
+
 
 if __name__ == '__main__':
     dowload_one_article()
