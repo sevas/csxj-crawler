@@ -3,7 +3,7 @@ import re
 import random
 from BeautifulSoup import BeautifulSoup, Tag
 from useragents import USER_AGENT_STRINGS
-
+from datetime import datetime
 
 def pick_random_ua_string():
     index = random.randint(0, len(USER_AGENT_STRINGS)-1)
@@ -88,3 +88,16 @@ def setup_locales():
     elif sys.platform in [ 'win32']:
         # locale string from: http://msdn.microsoft.com/en-us/library/cdax410z(v=VS.80).aspx
         locale.setlocale(locale.LC_ALL, 'fra')
+
+
+
+def is_date_in_range(date_string, date_range):
+    start_date_string, end_date_string = date_range
+
+    start_date = datetime.strptime(start_date_string, "%Y-%m-%d")
+    end_date = datetime.strptime(end_date_string, "%Y-%m-%d")
+    date_to_test = datetime.strptime(date_string, "%Y-%m-%d")
+
+    return date_to_test >= start_date and date_to_test <= end_date
+
+
