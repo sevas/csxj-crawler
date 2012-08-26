@@ -396,11 +396,16 @@ def dowload_one_article():
     url = "http://www.lesoir.be/actualite/belgique/2012-08-21/guy-spitaels-est-decede-933203.php"
     art, raw_html = extract_article_data(url)
 
-    maincontent_links = extract_main_content_links(url)
-    processed_links = art.links
+    maincontent_links = set(extract_main_content_links(url))
+    processed_links = set([(l.URL, l.title) for l in art.links])
 
-    for l in [l for l in maincontent_links if l not in processed_links]:
-        print l
+
+    missing_links = maincontent_links - processed_links
+
+    print "total links: ", len(maincontent_links)
+    print "processed links: ", len(processed_links)
+    print "missing: ", len(missing_links)
+
 
 
 if __name__ == '__main__':
