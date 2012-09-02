@@ -11,8 +11,9 @@ from scrapy.selector import HtmlXPathSelector
 
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
-from common.utils import fetch_html_content, fetch_rss_content
+from common.utils import fetch_html_content
 from common.utils import extract_plaintext_urls_from_text, setup_locales
+from common.utils import remove_text_formatting_markup_from_fragments
 
 
 setup_locales()
@@ -76,25 +77,27 @@ def extract_links_from_article_body(article_body_hxs):
         tags = tags.union(['in text', 'embedded', 'iframe'])
         links.append(make_tagged_url(url, url, tags))
 
-
-
     return links
 
 
 def extract_sidebar_links(sidebar_links):
-    links = list()
+
     def select_title_and_url(selector):
         url = selector.select("./@href").extract()[0]
-        title = selector.select(".//text()").extract()[0]
-        return title, url
+        title = selector.select(".//text()").extract()
+        if title:
+            title =  remove_text_formatting_markup_from_fragments(title[0])
+            tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+            tags = tags.union(['sidebar'])
+        else:
+            tags = set(['sidebar', 'ghost link'])
+            title = '__GHOST_LINK__'
+        return make_tagged_url(url, title, tags)
 
-    titles_and_urls = [select_title_and_url(sidebar_link) for sidebar_link in sidebar_links]
-    for (title, url) in titles_and_urls:
-        tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-        tags = tags.union(['sidebar'])
-        links.append(make_tagged_url(url, title, tags))
+    tagged_urls = [select_title_and_url(sidebar_link) for sidebar_link in sidebar_links]
 
-    return links
+    return tagged_urls
+
 
 
 def extract_article_data(source):
@@ -145,9 +148,6 @@ def extract_article_data(source):
     full_class = article_detail_hxs.select("./@class").extract()[0]
     if 'article-with-photoset' in full_class.split(" "):
         title = u"{0}|{1}".format("PHOTOSET", title)
-
-
-
 
     all_links = list()
 
@@ -237,6 +237,12 @@ def show_article():
     url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120326_023"
     url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582"
     url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120331_00140331"
+    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199571"
+    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199563"
+    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00199041"
+    #url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199541"
+    #url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968"
+    #url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482"
     article, raw_html = extract_article_data(url)
     article.print_summary()
     for tagged_link in article.links:
@@ -271,6 +277,6 @@ def show_frontpage_articles():
 
 
 if __name__ == "__main__":
-    #show_article()
-    show_frontpage_articles()
+    show_article()
+    #show_frontpage_articles()
     #show_frontpage()
