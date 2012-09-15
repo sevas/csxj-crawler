@@ -30,6 +30,8 @@ SUDINFO_INTERNAL_SITES = {
     'portfolio.sudinfo.be':['internal site', 'images', 'gallery'],
     'portfolio.sudpresse.be':['internal site', 'images', 'gallery'],
     'bassenge.blogs.sudinfo.be':['internal blog', 'blog'],
+    'pdf.lameuse.be':['internal site', 'pdf newspaper'],
+
 }
 
 SUDINFO_OWN_NETLOC = 'www.sudinfo.be'
@@ -49,7 +51,14 @@ def extract_date(hxs):
 
     date_string = u"".join(hxs.select("//p[@class='publiele']//text()").extract())
     date_bytestring = codecs.encode(date_string, 'utf-8')
-    date_fmt = codecs.encode(u"Publié le %A %d %B %Y à %Hh%M", 'utf-8')
+
+
+    if date_string.startswith(u"Publié le "):
+        date_fmt = codecs.encode(u"Publié le %A %d %B %Y à %Hh%M", 'utf-8')
+    elif date_string.startswith(u"Mis à jour le "):
+        date_fmt = codecs.encode(u"Mis à jour le %A %d %B %Y à %Hh%M", 'utf-8')
+    else:
+        raise ValueError("Unsupported date format. Update your parser.")
 
     datetime_published = datetime.strptime(date_bytestring, date_fmt)
 
@@ -63,16 +72,34 @@ def extract_title_and_url(link_hxs):
     return title, url
 
 
+def extract_img_link_info(link_hxs):
+    url = link_hxs.select("./@href").extract()[0]
+    title = link_hxs.select("./img/@src").extract()[0].strip()
+    return title, url
+
+
 
 def extract_text_and_links_from_paragraph(paragraph_hxs):
+    def separate_img_and_text_links(links):
+        img_links = [l for l in links if l.select("./img")]
+        text_links = [l for l in links if l not in img_links]
+
+        return [extract_title_and_url(link) for link in text_links],  [extract_img_link_info(link) for link in img_links]
+
+
     links = paragraph_hxs.select("./a")
-    titles_and_urls = [extract_title_and_url(link) for link in links]
+    titles_and_urls, img_targets_and_urls = separate_img_and_text_links(links)
 
     tagged_urls = list()
     for title, url in titles_and_urls:
         tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
         tags.update(['in text'])
         tagged_urls.append(make_tagged_url(url, title, tags))
+
+    for img_target, url in img_targets_and_urls:
+        tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+        tags.update(['in text', 'embedded image'])
+        tagged_urls.append(make_tagged_url(url, img_target, tags))
 
     text_fragments  = paragraph_hxs.select(".//text()").extract()
     if text_fragments:
@@ -85,7 +112,7 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
             tagged_urls.append(make_tagged_url(url, url, tags))
     else:
         text = u""
-        tagged_urls = []
+
 
     return text, tagged_urls
 
@@ -121,6 +148,33 @@ def extract_content_and_links(hxs):
             tags.update(['bottom video', 'embedded video', 'embedded'])
 
             all_tagged_urls.append(make_tagged_url(url, url, tags))
+
+
+    new_media_items = hxs.select("//div [@class='digital-wally_digitalobject']//li")
+
+    for item in new_media_items:
+        media_type = item.select("./@class").extract()[0]
+        title = item.select('./h3/text()').extract()[0]
+        if  media_type == 'video':
+            url = item.select(".//div [contains(@class, 'emvideo-kewego')]//video/@poster").extract()
+            if url:
+                url = url[0]
+                tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+                tags.update(['bottom video', 'embedded video', 'embedded', 'kewego'])
+                all_tagged_urls.append(make_tagged_url(url, title, tags))
+            else:
+                raise ValueError("A unknown type of embedded video has been detected. Please update this parser.")
+        elif media_type == 'document':
+            embedded_frame = item.select(".//iframe")
+            if embedded_frame:
+                target_url = embedded_frame.select("./@src").extract()[0]
+                tags = classify_and_tag(target_url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+                tags.update(['embedded document', 'iframe'])
+                all_tagged_urls.append(make_tagged_url(target_url, title, tags))
+            else:
+                raise ValueError("This document does not embed an iframe. Please update this parser.")
+        else:
+            raise ValueError("Unknown media type ({}) detected. Please update this parser.".format(media_type))
 
     return all_content_paragraphs, all_tagged_urls
 
@@ -165,7 +219,8 @@ def extract_associated_links(hxs, source_url):
 
     if media_links:
         for i, item in enumerate(media_links):
-            url = u"{0}{1}".format(source_url, item)
+            item_id = item.select("./@href").extract()
+            url = u"{0}{1}".format(source_url, item_id)
             title = u"EMBEDDED MEDIA {0}".format(i)
             tags = set(['media', 'embedded'])
             all_tagged_urls.append(make_tagged_url(url, title, tags))
@@ -182,7 +237,7 @@ def is_page_error_404(hxs):
 def extract_article_data(source_url):
     """
     """
-    source_url = codecs.encode(source_url, 'utf-8')
+    #source_url = codecs.encode(source_url, 'utf-8')
 
     html_content = fetch_html_content(source_url)
     hxs = HtmlXPathSelector(text=html_content)
@@ -284,24 +339,30 @@ def test_sample_data():
 
 
 def show_article():
-    url = "http://www.sudinfo.be/336280/article/sports/foot-belge/anderlecht/2012-02-26/lierse-anderlecht-les-mauves-vont-ils-profiter-de-la-defaite-des-brugeois"
-    url = "http://www.sudinfo.be/335985/article/sports/foot-belge/charleroi/2012-02-26/la-d2-en-direct-charleroi-gagne-en-l-absence-d-abbas-bayat-eupen-est-accro"
-    url = "http://www.sudinfo.be/361378/article/sports/foot-belge/standard/2012-03-31/jose-riga-apres-la-defaite-du-standard-a-gand-3-0-nous-n%E2%80%99avons-pas-a-rougir"
-    url = "http://www.sudinfo.be/361028/article/fun/people/2012-03-31/jade-foret-et-arnaud-lagardere-bientot-parents"
-    url = "http://www.sudinfo.be/361506/article/fun/insolite/2012-04-01/suppression-du-jour-ferie-le-1er-mai-sarkozy-qui-s’installe-en-belgique-attentio"
-    url = "http://www.sudinfo.be/359805/article/culture/medias/2012-03-29/gopress-le-premier-kiosque-digital-belge-de-la-presse-ecrite-avec-sudpresse"
-    url = "http://www.sudinfo.be/346549/article/regions/liege/actualite/2012-03-12/debordements-au-carnaval-de-glons-un-bus-tec-arrete-et-40-arrestationss"
-    article_data, raw_html = extract_article_data(url)
+    urls = [
+        "http://www.sudinfo.be/336280/article/sports/foot-belge/anderlecht/2012-02-26/lierse-anderlecht-les-mauves-vont-ils-profiter-de-la-defaite-des-brugeois",
+        "http://www.sudinfo.be/335985/article/sports/foot-belge/charleroi/2012-02-26/la-d2-en-direct-charleroi-gagne-en-l-absence-d-abbas-bayat-eupen-est-accro",
+        "http://www.sudinfo.be/361378/article/sports/foot-belge/standard/2012-03-31/jose-riga-apres-la-defaite-du-standard-a-gand-3-0-nous-n%E2%80%99avons-pas-a-rougir",
+        "http://www.sudinfo.be/361028/article/fun/people/2012-03-31/jade-foret-et-arnaud-lagardere-bientot-parents",
+        "http://www.sudinfo.be/361506/article/fun/insolite/2012-04-01/suppression-du-jour-ferie-le-1er-mai-sarkozy-qui-s’installe-en-belgique-attentio",
+        "http://www.sudinfo.be/359805/article/culture/medias/2012-03-29/gopress-le-premier-kiosque-digital-belge-de-la-presse-ecrite-avec-sudpresse",
+        "http://www.sudinfo.be/346549/article/regions/liege/actualite/2012-03-12/debordements-au-carnaval-de-glons-un-bus-tec-arrete-et-40-arrestationss",
+        "http://www.sudinfo.be/522122/article/actualite/faits-divers/2012-09-15/victor-dutroux-michelle-martin-est-aussi-une-victime-de-marc-dont-je-ne-sais-pa",
+        "http://www.sudinfo.be/518865/article/actualite/belgique/2012-09-11/le-prince-laurent-n%E2%80%99est-pas-sur-qu%E2%80%99albert-est-reellement-son-pere-%E2%80%9D",
+        ]
 
-    if article_data:
-        article_data.print_summary()
-        print article_data.intro
-        print article_data.content
+    for url in urls[ :]:
+        article_data, raw_html = extract_article_data(url)
 
-        for tagged_url in article_data.links:
-            print u"{0} [{1}] {2!r}".format(*tagged_url)
-    else:
-        print 'no article found'
+        if article_data:
+            article_data.print_summary()
+            print article_data.intro
+            print article_data.content
+
+            for tagged_url in article_data.links:
+                print u"{0} [{1}] {2!r}".format(*tagged_url)
+        else:
+            print 'no article found'
 
 
 
@@ -319,5 +380,5 @@ def show_frontpage_toc():
 if __name__=='__main__':
     #show_frontpage_toc()
     #download_one_article()
-    show_frontpage_articles()
-    #show_article()
+    #show_frontpage_articles()
+    show_article()
