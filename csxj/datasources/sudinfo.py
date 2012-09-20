@@ -5,12 +5,14 @@ from datetime import datetime
 import locale
 from itertools import chain
 import urllib
+import urllib2
 import codecs
 
 from scrapy.selector import HtmlXPathSelector
 
 from common.utils import fetch_content_from_url, fetch_html_content
 from common.utils import extract_plaintext_urls_from_text
+from common.utils import convert_utf8_url_to_ascii
 from csxj.common.tagging import  classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 
@@ -31,6 +33,7 @@ SUDINFO_INTERNAL_SITES = {
     'portfolio.sudpresse.be':['internal site', 'images', 'gallery'],
     'bassenge.blogs.sudinfo.be':['internal blog', 'blog'],
     'pdf.lameuse.be':['internal site', 'pdf newspaper'],
+    'football.sudpresse.be':['sports', 'internal site'],
 
 }
 
@@ -125,6 +128,78 @@ def extract_intro_and_links(hxs):
 
 
 
+def extract_links_from_media_items(media_items):
+    """ Extract and tag links from the list of embedded items.
+    Returns a list of TaggedURL
+
+    Parameters:
+
+        @media_items: list of html selectors pointing to every list item (<li>)
+    """
+
+
+    def extract_and_tag_url_from_iframe(item):
+        embedded_frame = item.select(".//iframe")
+        if embedded_frame:
+            target_url = embedded_frame.select("./@src").extract()[0]
+            tags = classify_and_tag(target_url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+            tags.update(['embedded document', 'iframe'])
+            return make_tagged_url(target_url, title, tags)
+        else:
+            return None
+
+
+    tagged_urls = list()
+    for item in media_items:
+        media_type = item.select("./@class").extract()[0]
+        title = item.select('./h3/text()').extract()[0]
+        if  media_type == 'video':
+            if item.select(".//div [contains(@class, 'emvideo-kewego')]"):
+                url = item.select(".//div [contains(@class, 'emvideo-kewego')]//video/@poster").extract()
+                if url:
+                    url = url[0]
+                    tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+                    tags.update(['bottom video', 'embedded video', 'embedded', 'kewego'])
+                    tagged_urls.append(make_tagged_url(url, title, tags))
+                else:
+                    raise ValueError("There is a kewego video here somewhere, but we could not find the link.")
+            elif item.select(".//div [contains(@class, 'emvideo-youtube')]"):
+                url = item.select(".//div [contains(@class, 'emvideo-youtube')]//object/@data").extract()
+                if url:
+                    url = url[0]
+                    tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+                    tags.update(['bottom video', 'embedded video', 'embedded', 'youtube'])
+                    tagged_urls.append(make_tagged_url(url, title, tags))
+                else:
+                    raise ValueError("There is a youtube video here somewhere, but we could not find the link.")
+            else:
+                raise ValueError("A unknown type of embedded video has been detected. Please update this parser.")
+        elif media_type == 'document':
+            embedded_widget_url = extract_and_tag_url_from_iframe(item)
+            if embedded_widget_url:
+                tagged_urls.append(embedded_widget_url)
+            else:
+                raise ValueError("This document does not embed an iframe. Please update this parser.")
+        elif media_type == "links":
+            links = item.select("./span/a")
+            for l in links:
+                title, url = extract_title_and_url(l)
+                tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+                tagged_urls.append(make_tagged_url(url, title, tags))
+        elif media_type == "other":
+            embedded_widget_url = extract_and_tag_url_from_iframe(item)
+            if embedded_widget_url:
+                tagged_urls.append(embedded_widget_url)
+            else:
+                raise ValueError("The expected iframe object was not found. Please update this parser.")
+        else:
+            raise ValueError("Unknown media type ('{0}') detected. Please update this parser.".format(media_type))
+
+
+
+    return tagged_urls
+
+
 def extract_content_and_links(hxs):
     content_paragraphs_hxs = hxs.select("//div [@id='article']/p[starts-with(@class, 'publiele')]/following-sibling::p")
 
@@ -152,47 +227,7 @@ def extract_content_and_links(hxs):
 
     new_media_items = hxs.select("//div [@class='digital-wally_digitalobject']//li")
 
-    for item in new_media_items:
-        media_type = item.select("./@class").extract()[0]
-        title = item.select('./h3/text()').extract()[0]
-        if  media_type == 'video':
-            if item.select(".//div [contains(@class, 'emvideo-kewego')]"):
-                url = item.select(".//div [contains(@class, 'emvideo-kewego')]//video/@poster").extract()
-                if url:
-                    url = url[0]
-                    tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-                    tags.update(['bottom video', 'embedded video', 'embedded', 'kewego'])
-                    all_tagged_urls.append(make_tagged_url(url, title, tags))
-                else:
-                    raise ValueError("There is a kewego video here somewhere, but we could not find the link.")
-            elif item.select(".//div [contains(@class, 'emvideo-youtube')]"):
-                url = item.select(".//div [contains(@class, 'emvideo-youtube')]//object/@data").extract()
-                if url:
-                    url = url[0]
-                    tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-                    tags.update(['bottom video', 'embedded video', 'embedded', 'youtube'])
-                    all_tagged_urls.append(make_tagged_url(url, title, tags))
-                else:
-                    raise ValueError("There is a youtube video here somewhere, but we could not find the link.")
-            else:
-                raise ValueError("A unknown type of embedded video has been detected. Please update this parser.")
-        elif media_type == 'document':
-            embedded_frame = item.select(".//iframe")
-            if embedded_frame:
-                target_url = embedded_frame.select("./@src").extract()[0]
-                tags = classify_and_tag(target_url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-                tags.update(['embedded document', 'iframe'])
-                all_tagged_urls.append(make_tagged_url(target_url, title, tags))
-            else:
-                raise ValueError("This document does not embed an iframe. Please update this parser.")
-        elif media_type == 'links':
-            links = item.select("./span/a")
-            for l in links:
-                title, url = extract_title_and_url(l)
-                tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-                all_tagged_urls.append(make_tagged_url(url, title, tags))
-        else:
-            raise ValueError("Unknown media type ('{0}') detected. Please update this parser.".format(media_type))
+    all_tagged_urls.extend(extract_links_from_media_items(new_media_items))
 
     return all_content_paragraphs, all_tagged_urls
 
@@ -255,9 +290,16 @@ def is_page_error_404(hxs):
 def extract_article_data(source_url):
     """
     """
-    source_url = codecs.encode(source_url, 'utf-8')
+    source_url = convert_utf8_url_to_ascii(source_url)
 
-    html_content = fetch_html_content(source_url)
+    try:
+        html_content = fetch_html_content(source_url)
+    except urllib2.HTTPError as err:
+        if err.code == 404:
+            return None, "<html><head><title>404</title></head><body></body></html>"
+        else:
+            raise err
+
     hxs = HtmlXPathSelector(text=html_content)
 
     if is_page_error_404(hxs):
@@ -369,10 +411,12 @@ def show_article():
         u"http://www.sudinfo.be/518865/article/actualite/belgique/2012-09-11/le-prince-laurent-n%E2%80%99est-pas-sur-qu%E2%80%99albert-est-reellement-son-pere-%E2%80%9D",
         u"http://www.sudinfo.be/522313/article/regions/mons/2012-09-15/mons-accuse-de-viols-en-serie-le-malgache-n’a-avoue-qu’un-seul-fait",
         u"http://www.sudinfo.be/522322/article/regions/mouscron/2012-09-15/comines-john-verfaillie-champion-de-belgique-de-rummikub",
-        u"http://www.sudinfo.be/522139/article/regions/bruxelles/2012-09-15/victor-3-ans-s’echappe-de-son-ecole-et-se-retrouve-au-milieu-d’un-carrefour"
+        u"http://www.sudinfo.be/522139/article/regions/bruxelles/2012-09-15/victor-3-ans-s’echappe-de-son-ecole-et-se-retrouve-au-milieu-d’un-carrefour",
+        u"http://www.sudinfo.be/335985/article/sports/foot-belge/charleroi/2012-02-26/la-d2-en-direct-charleroi-gagne-en-l-absence-d-abbas-bayat-eupen-est-accro",
+        u"http://www.sudinfo.be/529977/article/sports/foot-belge/anderlecht/2012-09-18/ligue-des-champions-anderlecht-va-t-il-pouvoir-realiser-un-«truc»-dans-l’",
         ]
 
-    for url in urls[-1:]:
+    for url in urls[:]:
         article_data, raw_html = extract_article_data(url)
 
         if article_data:
