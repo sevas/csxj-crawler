@@ -1,9 +1,13 @@
+# coding=utf-8
+
 import urllib2
+import urlparse
 import re
 import random
 from BeautifulSoup import BeautifulSoup, Tag
 from useragents import USER_AGENT_STRINGS
 from datetime import datetime
+
 
 def pick_random_ua_string():
     index = random.randint(0, len(USER_AGENT_STRINGS)-1)
@@ -101,3 +105,46 @@ def is_date_in_range(date_string, date_range):
     return date_to_test >= start_date and date_to_test <= end_date
 
 
+
+def convert_utf8_url_to_ascii(url):
+    """
+    taken from http://stackoverflow.com/questions/804336/best-way-to-convert-a-unicode-url-to-ascii-utf-8-percent-escaped-in-python
+    """
+       # turn string into unicode
+    if not isinstance(url,unicode):
+        url = url.decode('utf8')
+
+    # parse it
+    parsed = urlparse.urlsplit(url)
+
+    # divide the netloc further
+    userpass,at,hostport = parsed.netloc.rpartition('@')
+    user,colon1,pass_ = userpass.partition(':')
+    host,colon2,port = hostport.partition(':')
+
+    # encode each component
+    scheme = parsed.scheme.encode('utf8')
+    user = urllib2.quote(user.encode('utf8'))
+    colon1 = colon1.encode('utf8')
+    pass_ = urllib2.quote(pass_.encode('utf8'))
+    at = at.encode('utf8')
+    host = host.encode('idna')
+    colon2 = colon2.encode('utf8')
+    port = port.encode('utf8')
+    path = '/'.join(  # could be encoded slashes!
+        urllib2.quote(urllib2.unquote(pce).encode('utf8'),'')
+        for pce in parsed.path.split('/')
+    )
+    query = urllib2.quote(urllib2.unquote(parsed.query).encode('utf8'),'=&?/')
+    fragment = urllib2.quote(urllib2.unquote(parsed.fragment).encode('utf8'))
+
+    # put it back together
+    netloc = ''.join((user,colon1,pass_,at,host,colon2,port))
+    return urlparse.urlunsplit((scheme,netloc,path,query,fragment))
+
+
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
