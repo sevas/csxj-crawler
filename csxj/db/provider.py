@@ -324,19 +324,12 @@ class Provider(object):
         return source_metainfos
 
 
-
-
-
-
     def remove_all_cached_metainfo(self):
         for date_string in self.get_all_days():
             day_directory = os.path.join(self.directory, date_string)
             cached_metainfo_file = os.path.join(day_directory, METAINFO_FILENAME)
             if os.path.exists(cached_metainfo_file):
                 os.remove(cached_metainfo_file)
-
-
-
 
 
     ### convenience functions: group things per batch
@@ -374,10 +367,6 @@ class Provider(object):
 
         else:
             raise NonExistentDayError(self.name, date_string)
-
-
-
-
 
 
     def get_data_per_batch(self, date_string, data_extractor_func):
