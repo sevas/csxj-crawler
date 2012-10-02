@@ -34,7 +34,8 @@ This is how a typical database looks like:
 This helper module enables programmatic access to this hierarchy. 
 """
 
-import os, os.path
+import os
+from datetime import datetime, timedelta
 from collections import namedtuple, defaultdict
 import json
 import shutil
@@ -479,6 +480,19 @@ class Provider(object):
         return sum([len(logged_stacktraces.items()) for logged_stacktraces in queue_error_log.values()])
 
 
+    def get_queue_error_count_for_last_days(self, day_count):
+        """
+        """
+        today = datetime.now()
+        def is_recent_enough(error_date_string):
+            error_date = datetime.strptime(error_date_string, "%Y-%m-%d")
+            return error_date > (today - timedelta(days=day_count))
+
+        queue_error_log = self.get_queue_errors()
+        recent_queue_errors = [(d, errors) for (d, errors) in queue_error_log.iteritems() if is_recent_enough(d)]
+        return sum([len(logged_stacktraces.items()) for (d, logged_stacktraces) in recent_queue_errors])
+
+
     def get_queue_errors(self):
         error_log_file = os.path.join(self.directory, QUEUE_ERROR_LOG_FILENAME)
 
@@ -595,4 +609,4 @@ if __name__=="__main__":
     db_root = "/Users/sevas/TEST_DB"
     p = Provider(db_root, "rtbfinfo")
 
-    print p.get_queue_error_count()
+    print p.get_queue_error_count_for_last_days(3)
