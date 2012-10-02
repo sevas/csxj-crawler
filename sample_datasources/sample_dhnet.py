@@ -27,7 +27,7 @@ def show_frontpage_articles():
         if article_data:
             article_data.print_summary()
 
-            for (title, url, tags) in article_data.external_links:
+            for (title, url, tags) in article_data.other_links:
                 print u'{0} -> {1} {2}'.format(title, url, tags)
 
             for (title, url, tags) in article_data.internal_links:
