@@ -71,7 +71,16 @@ def extract_date(hxs):
 
 def extract_title_and_url(link_hxs):
     url = link_hxs.select("./@href").extract()[0]
-    title = link_hxs.select(".//text()").extract()[0].strip()
+
+    print "***", url, link_hxs.select(".//text()").extract()
+    # sometimes, there are links only I can see.
+    if link_hxs.select(".//text()").extract():
+        title = link_hxs.select(".//text()").extract()[0].strip()
+        # maybe it was a space only string, which is not really interesting either
+        if not title:
+            title = "__GHOST_LINK__"
+    else:
+        title = "__GHOST_LINK__"
     return title, url
 
 
@@ -79,7 +88,6 @@ def extract_img_link_info(link_hxs):
     url = link_hxs.select("./@href").extract()[0]
     title = link_hxs.select("./img/@src").extract()[0].strip()
     return title, url
-
 
 
 def extract_text_and_links_from_paragraph(paragraph_hxs):
@@ -97,6 +105,8 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
     for title, url in titles_and_urls:
         tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
         tags.update(['in text'])
+        if title == "__GHOST_LINK__":
+            tags.update(['ghost link'])
         tagged_urls.append(make_tagged_url(url, title, tags))
 
     for img_target, url in img_targets_and_urls:
@@ -414,9 +424,12 @@ def show_article():
         u"http://www.sudinfo.be/522139/article/regions/bruxelles/2012-09-15/victor-3-ans-s’echappe-de-son-ecole-et-se-retrouve-au-milieu-d’un-carrefour",
         u"http://www.sudinfo.be/335985/article/sports/foot-belge/charleroi/2012-02-26/la-d2-en-direct-charleroi-gagne-en-l-absence-d-abbas-bayat-eupen-est-accro",
         u"http://www.sudinfo.be/529977/article/sports/foot-belge/anderlecht/2012-09-18/ligue-des-champions-anderlecht-va-t-il-pouvoir-realiser-un-«truc»-dans-l’",
+        u"http://www.sudinfo.be/534336/article/culture/medias/2012-09-25/eva-longoria-nue-tiffany-de-virgin-radio-va-le-faire-ainsi-que-toute-l’equipe-de",
+        u"http://www.sudinfo.be/534573/article/sports/foot-belge/standard/2012-09-25/jelle-van-damme-standard-menace-benjamin-deceuninck-en-direct-fais-gaffe-av",
+
         ]
 
-    for url in urls[:]:
+    for url in urls[-1:]:
         article_data, raw_html = extract_article_data(url)
 
         if article_data:
