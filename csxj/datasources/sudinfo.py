@@ -162,7 +162,13 @@ def extract_links_from_media_items(media_items):
     tagged_urls = list()
     for item in media_items:
         media_type = item.select("./@class").extract()[0]
-        title = item.select('./h3/text()').extract()[0]
+
+        title = item.select('./h3/text()').extract()
+        if title:
+            title = title[0]
+        else:
+            title = "__NO_TITLE__"
+
         if  media_type == 'video':
             if item.select(".//div [contains(@class, 'emvideo-kewego')]"):
                 url = item.select(".//div [contains(@class, 'emvideo-kewego')]//video/@poster").extract()
@@ -426,6 +432,7 @@ def show_article():
         u"http://www.sudinfo.be/529977/article/sports/foot-belge/anderlecht/2012-09-18/ligue-des-champions-anderlecht-va-t-il-pouvoir-realiser-un-«truc»-dans-l’",
         u"http://www.sudinfo.be/534336/article/culture/medias/2012-09-25/eva-longoria-nue-tiffany-de-virgin-radio-va-le-faire-ainsi-que-toute-l’equipe-de",
         u"http://www.sudinfo.be/534573/article/sports/foot-belge/standard/2012-09-25/jelle-van-damme-standard-menace-benjamin-deceuninck-en-direct-fais-gaffe-av",
+        u"http://www.sudinfo.be/534931/article/actualite/sante/2012-09-26/la-prescription-des-medicaments-bon-marche-continue-de-progresser",
 
         ]
 
