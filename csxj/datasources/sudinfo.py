@@ -6,6 +6,7 @@ import locale
 from itertools import chain
 import urllib
 import urllib2
+from urlparse import urlparse
 import codecs
 
 from scrapy.selector import HtmlXPathSelector
@@ -71,8 +72,6 @@ def extract_date(hxs):
 
 def extract_title_and_url(link_hxs):
     url = link_hxs.select("./@href").extract()[0]
-
-    print "***", url, link_hxs.select(".//text()").extract()
     # sometimes, there are links only I can see.
     if link_hxs.select(".//text()").extract():
         title = link_hxs.select(".//text()").extract()[0].strip()
@@ -98,7 +97,8 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
         return [extract_title_and_url(link) for link in text_links],  [extract_img_link_info(link) for link in img_links]
 
 
-    links = paragraph_hxs.select("./a")
+    links = paragraph_hxs.select(".//a")
+
     titles_and_urls, img_targets_and_urls = separate_img_and_text_links(links)
 
     tagged_urls = list()
@@ -224,7 +224,6 @@ def extract_content_and_links(hxs):
     # process paragraphs
     for p in content_paragraphs_hxs:
         text, tagged_urls = extract_text_and_links_from_paragraph(p)
-
         all_content_paragraphs.append(text)
         all_tagged_urls.extend(tagged_urls)
 
@@ -367,6 +366,16 @@ def make_full_url(prefix, titles_and_urls):
 
 
 
+def separate_blogposts_and_news(titles_and_urls):
+    def is_internal_url(url):
+        scehem, netloc, path, params, query, fragments = urlparse(url)
+        return not netloc
+    news_items = [(t, u) for t, u in titles_and_urls if is_internal_url(u)]
+    blogpost_items = [(t, u) for t, u in titles_and_urls if (t, u) not in news_items]
+    return news_items, blogpost_items
+
+
+
 def get_frontpage_toc():
     BASE_URL = u'http://www.sudinfo.be/'
     html_content = fetch_content_from_url(BASE_URL)
@@ -383,7 +392,8 @@ def get_frontpage_toc():
     regional_headlines = get_regional_toc()
     headlines.extend(regional_headlines)
 
-    return make_full_url(BASE_URL, headlines), []
+    news, blogposts = separate_blogposts_and_news(headlines)
+    return make_full_url(BASE_URL, news), blogposts
 
 
 
@@ -433,10 +443,12 @@ def show_article():
         u"http://www.sudinfo.be/534336/article/culture/medias/2012-09-25/eva-longoria-nue-tiffany-de-virgin-radio-va-le-faire-ainsi-que-toute-l’equipe-de",
         u"http://www.sudinfo.be/534573/article/sports/foot-belge/standard/2012-09-25/jelle-van-damme-standard-menace-benjamin-deceuninck-en-direct-fais-gaffe-av",
         u"http://www.sudinfo.be/534931/article/actualite/sante/2012-09-26/la-prescription-des-medicaments-bon-marche-continue-de-progresser",
+        u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/des-nus-partout-dans-bruxelles-qui-miment-l-acte-sexuel-l’incroyable-performance",
+        u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/schocking-in-brussles-des-hommes-nus-miment-l-acte-sexuel-au-palais-de-justice-a"
 
         ]
 
-    for url in urls[-1:]:
+    for url in urls[:]:
         article_data, raw_html = extract_article_data(url)
 
         if article_data:
@@ -459,8 +471,12 @@ def show_frontpage_toc():
     for title, url in headlines:
         print u"{0} \t\t\t\t\t [{1}]".format(title, url)
 
-    print len(headlines)
 
+
+    for title, url in blogposts:
+        print u"{0} \t\t\t\t\t [{1}]".format(title, url)
+
+    print len(headlines), len(blogposts)
 
 if __name__=='__main__':
     #show_frontpage_toc()
