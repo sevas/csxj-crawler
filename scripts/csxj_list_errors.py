@@ -11,7 +11,10 @@ def filter_identical_ErrorLogEntries(entries):
         for k, g in it.groupby(entries, key=keyfunc):
             splitted[k] = list(g)
 
-        out = splitted[ErrorLogEntry2]
+        out = list()
+
+        if ErrorLogEntry2 in splitted:
+            out = splitted[ErrorLogEntry2]
         out_urls = [e.url for e in out]
         if ErrorLogEntry in splitted:
             non_duplicates = [ErrorLogEntry2(url=e.url, title=e.filename, stacktrace=e.stacktrace) for e in splitted[ErrorLogEntry] if e.url not in out_urls]
