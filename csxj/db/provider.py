@@ -31,7 +31,7 @@ This is how a typical database looks like:
   - queue
     -
 
-This helper module enables programmatic access to this hierarchy. 
+This helper module enables programmatic access to this hierarchy.
 """
 
 import os
@@ -235,6 +235,26 @@ class Provider(object):
             raise NonExistentBatchError(self.name, date_string, batch_time_string)
 
 
+    def get_reprocessed_dates(self, date_string, batch_time_string):
+        """
+        Returns a list of (date, time) tuples for which we have reprocessed content
+
+        This allows external tools to rebuild the path and reprocessed the
+        raw html stored there
+        """
+        batch_dir = os.path.join(self.directory, date_string, batch_time_string)
+        if os.path.exists(batch_dir):
+            reprocessed_articles_dates = list()
+            for reprocessed_data_dir in [i for i in utils.get_subdirectories(batch_dir) if i.startswith(REPROCESSED_DIR_PREFIX)]:
+                reprocessed_date, reprocessed_time = reprocessed_data_dir.split("_")[1:]
+                reprocessed_articles_dates.append((reprocessed_date, reprocessed_time))
+            return reprocessed_articles_dates
+        else:
+            raise NonExistentBatchError(self.name, date_string, batch_time_string)
+
+
+
+
     def get_batch_metainfos(self, date_string, batch_time_string):
         """
         Returns a dictionnary with the metainfos associated to the
@@ -345,7 +365,7 @@ class Provider(object):
             for batch_time in all_batch_times:
                 articles = self.get_batch_articles(date_string, batch_time)
                 all_batches.append((batch_time, articles))
-                
+
             all_batches.sort(key=lambda x: x[0])
             return all_batches
         else:
@@ -415,7 +435,7 @@ class Provider(object):
         if os.path.exists(day_queue_directory):
             shutil.rmtree(day_queue_directory)
 
-            
+
 
     def get_queued_batches_by_day(self):
         """
