@@ -302,18 +302,21 @@ def is_page_error_404(hxs):
 
 
 
-def extract_article_data(source_url):
+def extract_article_data(source):
     """
     """
-    source_url = convert_utf8_url_to_ascii(source_url)
 
-    try:
-        html_content = fetch_html_content(source_url)
-    except urllib2.HTTPError as err:
-        if err.code == 404:
-            return None, "<html><head><title>404</title></head><body></body></html>"
-        else:
-            raise err
+    if hasattr(source, 'read'):
+        html_content = source.read()
+    else:
+        source_url = convert_utf8_url_to_ascii(source)
+        try:
+            html_content = fetch_html_content(source_url)
+        except urllib2.HTTPError as err:
+            if err.code == 404:
+                return None, "<html><head><title>404</title></head><body></body></html>"
+            else:
+                raise err
 
     hxs = HtmlXPathSelector(text=html_content)
 
