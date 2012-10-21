@@ -2,6 +2,22 @@ from csxj.db import Provider, get_all_provider_names
 from csxj.db import ErrorLogEntry, ErrorLogEntry2
 import itertools as it
 
+from csxj.datasources import lesoir, lalibre, dhnet, sudinfo, rtlinfo, lavenir, rtbfinfo, levif, septsursept, sudpresse
+
+
+NAME_TO_SOURCE_MODULE_MAPPING = {
+    'lesoir': lesoir,
+    'lalibre': lalibre,
+    'dhnet': dhnet,
+    'sudinfo': sudinfo,
+    'rtlinfo': rtlinfo,
+    'lavenir': lavenir,
+    'rtbfinfo': rtbfinfo,
+    'levif': levif,
+    'septsursept': septsursept,
+    'sudpresse': sudpresse
+}
+
 def filter_identical_ErrorLogEntries(entries):
     if entries:
         def keyfunc(a):
@@ -32,7 +48,10 @@ def list_errors(db_root):
     res = dict()
     source_names = get_all_provider_names(db_root)
     for source_name in source_names:
+        if source_name == 'sudpresse':
+            continue
         provider_db = Provider(db_root, source_name)
+        datasource = NAME_TO_SOURCE_MODULE_MAPPING[source_name]
         error_count = 0
 
         for date_string in provider_db.get_all_days():
@@ -47,6 +66,9 @@ def list_errors(db_root):
                     print source_name, date_string, batch_time
                 for e in errors:
                     print e.url
+                    print "*** Reprocessing: {0})".format(e.url)
+                    article_data, html = datasource.extract_article_data(e.url)
+                    article_data.print_summary()
 
         res[source_name] = error_count
 
