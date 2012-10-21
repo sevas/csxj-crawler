@@ -55,7 +55,7 @@ def list_errors(db_root, outfile):
                     #print source_name, date_string, batch_time
                     for e in errors:
                         new_item = ((u"{0}/{1}".format(date_string, batch_time)), (e.url, e.title, e.stacktrace))
-                        print u"+++ [{0}] {1}".format(new_item[0], new_item[1][1])
+                        print u"+++ [{0}] {1}   ({2})".format(new_item[0], new_item[1][1], new_item[1][0])
                         all_errors[source_name].append(new_item)
 #                       print "*** Reprocessing: {0})".format(e.url)
 #                       article_data, html = datasource.extract_article_data(e.url)
@@ -68,7 +68,7 @@ def list_errors(db_root, outfile):
         print "{0}: Had {1} errors".format(name, error_count)
         print "{0}: Had {1} errors".format(name, len(all_errors[name]))
 
-    pprint(all_errors)
+
     with open(outfile, 'w') as f:
             json.dump(all_errors, f, indent=4)
 
