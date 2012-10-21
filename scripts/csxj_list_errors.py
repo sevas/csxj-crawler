@@ -36,12 +36,12 @@ def list_errors(db_root):
             errors_by_batch = provider_db.get_errors2_per_batch(date_string)
 
             for (batch_time, errors) in errors_by_batch:
-                print source_name, date_string, batch_time
-
                 errors = flatten_list(errors)
                 errors = filter_identical_ErrorLogEntries(errors)
                 error_count += len(errors)
 
+                if errors:
+                    print source_name, date_string, batch_time
                 for e in errors:
                     print e.url
 
