@@ -42,7 +42,13 @@ def extract_publication_date(raw_date):
     date_string = raw_date.split(':')[1].strip().split("&")[0]
     date_bytestring = codecs.encode(date_string, 'utf-8')
 
-    datetime_published = datetime.strptime(date_bytestring, u"%A %d %B %Y %Hh%M")
+    date_component_count = len(date_bytestring.split(" "))
+    if date_component_count == 4:
+        datetime_published = datetime.strptime(date_bytestring, u"%A %d %B %Y")
+    elif date_component_count == 5:
+        datetime_published = datetime.strptime(date_bytestring, u"%A %d %B %Y %Hh%M")
+    else:
+        raise ValueError("Date has an unknown format: {0}".format(date_bytestring))
 
     return datetime_published.date(), datetime_published.time()
 
@@ -101,7 +107,11 @@ def extract_sidebar_links(sidebar_links):
 
 
 def extract_article_data(source):
-    html_content = fetch_html_content(source)
+    if hasattr(source, 'read'):
+        html_content = source.read()
+    else:
+        html_content = fetch_html_content(source)
+
 
     hxs = HtmlXPathSelector(text=html_content)
 
@@ -234,19 +244,21 @@ def show_sample_articles():
 
 
 def show_article():
-    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120326_023"
-    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582"
-    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120331_00140331"
-    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199571"
-    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199563"
-    url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00199041"
-    #url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199541"
-    #url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968"
-    #url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482"
-    article, raw_html = extract_article_data(url)
-    article.print_summary()
-    for tagged_link in article.links:
-        print tagged_link.URL, tagged_link.title, tagged_link.tags
+    urls = [  "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120326_023",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120331_00140331",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199571",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199563",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00199041",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199541",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482", ]
+
+    for url in urls[:]:
+        article, raw_html = extract_article_data(url)
+        article.print_summary()
+        for tagged_link in article.links:
+            print tagged_link.URL, tagged_link.title, tagged_link.tags
 
 
 
