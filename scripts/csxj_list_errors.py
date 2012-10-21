@@ -1,22 +1,11 @@
+import itertools as it
+import json
+from pprint import pprint
+
 from csxj.db import Provider, get_all_provider_names
 from csxj.db import ErrorLogEntry, ErrorLogEntry2
-import itertools as it
-
 from csxj.datasources import lesoir, lalibre, dhnet, sudinfo, rtlinfo, lavenir, rtbfinfo, levif, septsursept, sudpresse
 
-
-NAME_TO_SOURCE_MODULE_MAPPING = {
-    'lesoir': lesoir,
-    'lalibre': lalibre,
-    'dhnet': dhnet,
-    'sudinfo': sudinfo,
-    'rtlinfo': rtlinfo,
-    'lavenir': lavenir,
-    'rtbfinfo': rtbfinfo,
-    'levif': levif,
-    'septsursept': septsursept,
-    'sudpresse': sudpresse
-}
 
 def filter_identical_ErrorLogEntries(entries):
     if entries:
@@ -44,19 +33,19 @@ def flatten_list(entries):
     return [e[0] for e in entries if e]
 
 
-def list_errors(db_root):
+def list_errors(db_root, outfile):
     res = dict()
+    all_errors = dict()
     source_names = get_all_provider_names(db_root)
     for source_name in source_names:
-        if source_name == 'sudpresse':
-            continue
         provider_db = Provider(db_root, source_name)
-        datasource = NAME_TO_SOURCE_MODULE_MAPPING[source_name]
+#        datasource = NAME_TO_SOURCE_MODULE_MAPPING[source_name]
         error_count = 0
+        all_errors[source_name] = dict()
 
         for date_string in provider_db.get_all_days():
             errors_by_batch = provider_db.get_errors2_per_batch(date_string)
-
+            all_errors[source_name] = list()
             for (batch_time, errors) in errors_by_batch:
                 errors = flatten_list(errors)
                 errors = filter_identical_ErrorLogEntries(errors)
@@ -64,11 +53,16 @@ def list_errors(db_root):
 
                 if errors:
                     print source_name, date_string, batch_time
-                for e in errors:
-                    print e.url
-                    print "*** Reprocessing: {0})".format(e.url)
-                    article_data, html = datasource.extract_article_data(e.url)
-                    article_data.print_summary()
+
+                    for e in errors:
+                        print e.url
+                        new_item = (("{0}/{1}".format(date_string, batch_time)), (e.url, e.title, e.stacktrace))
+                        print "ADDING: {0}".format(new_item)
+                        all_errors[source_name].append(new_item)
+
+#                       print "*** Reprocessing: {0})".format(e.url)
+#                       article_data, html = datasource.extract_article_data(e.url)
+#                       article_data.print_summary()
 
         res[source_name] = error_count
 
@@ -76,15 +70,20 @@ def list_errors(db_root):
     for name, error_count in res.items():
         print "{0}: Had {1} errors".format(name, error_count)
 
+    pprint(all_errors)
+    with open(outfile, 'w') as f:
+            json.dump(all_errors, f, indent=4)
 
 
-def main(db_root):
-    list_errors(db_root)
+
+def main(db_root, outfile):
+    list_errors(db_root, outfile)
 
 if __name__=="__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Utility prgram to list errors')
     parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='json db root directory')
+    parser.add_argument('--outfile', type=str, dest='outfile', required=True, help='file to output json file')
     args = parser.parse_args()
 
-    main(args.jsondb)
+    main(args.jsondb, args.outfile)
