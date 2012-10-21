@@ -42,24 +42,21 @@ def list_errors(db_root, outfile):
 #        datasource = NAME_TO_SOURCE_MODULE_MAPPING[source_name]
         error_count = 0
         all_errors[source_name] = dict()
-
+        all_errors[source_name] = list()
         for date_string in provider_db.get_all_days():
             errors_by_batch = provider_db.get_errors2_per_batch(date_string)
-            all_errors[source_name] = list()
+
             for (batch_time, errors) in errors_by_batch:
                 errors = flatten_list(errors)
                 errors = filter_identical_ErrorLogEntries(errors)
                 error_count += len(errors)
 
                 if errors:
-                    print source_name, date_string, batch_time
-
+                    #print source_name, date_string, batch_time
                     for e in errors:
-                        print e.url
-                        new_item = (("{0}/{1}".format(date_string, batch_time)), (e.url, e.title, e.stacktrace))
-                        print "ADDING: {0}".format(new_item)
+                        new_item = ((u"{0}/{1}".format(date_string, batch_time)), (e.url, e.title, e.stacktrace))
+                        print u"+++ [{0}] {1}".format(new_item[0], new_item[1][1])
                         all_errors[source_name].append(new_item)
-
 #                       print "*** Reprocessing: {0})".format(e.url)
 #                       article_data, html = datasource.extract_article_data(e.url)
 #                       article_data.print_summary()
