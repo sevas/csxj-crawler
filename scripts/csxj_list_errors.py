@@ -69,6 +69,7 @@ def list_errors(db_root, outfile):
     print "\n" * 4
     for name, error_count in res.items():
         print "{0}: Had {1} errors".format(name, error_count)
+        print "{0}: Had {1} errors".format(name, len(all_errors[name]))
 
     pprint(all_errors)
     with open(outfile, 'w') as f:
