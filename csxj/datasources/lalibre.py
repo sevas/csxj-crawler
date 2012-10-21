@@ -275,12 +275,15 @@ def extract_article_data_from_html(html_content, source_url):
 
 
 
-def extract_article_data(source_url):
+def extract_article_data(source):
     """
     """
+    if hasattr(source, 'read'):
+        html_content = source.read()
+    else:
+        html_content = fetch_html_content(source)
 
-    html_content = fetch_html_content(source_url)
-    return extract_article_data_from_html(html_content, source_url)
+    return extract_article_data_from_html(html_content, source)
 
 
 
