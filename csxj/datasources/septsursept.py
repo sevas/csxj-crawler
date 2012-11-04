@@ -377,7 +377,9 @@ if __name__ == '__main__':
     url10 = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1520820/2012/10/20/Une-raclee-pour-Bruges-un-exploit-pour-Charleroi.dhtml"
     url11 = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1528304/2012/11/04/La-Marche-russe-des-ultra-nationalistes-reclame-le-depart-de-Poutine.dhtml"
     url12 = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1528304/2012/11/04/La-Marche-russe-des-ultra-nationalistes-reclame-le-depart-de-Poutine.dhtml"
-    urls = [url1, url2, url3, url4, url6, url7, url8, url9, url10, url11, url12]
+    url13 = "http://www.7sur7.be/7s7/fr/8024/Stars/photoalbum/detail/85121/1193441/0/Showbiz-en-images.dhtml"
+    url14 = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1527428/2012/11/02/La-robe-interactive-de-Nicole-Scherzinger.dhtml"
+    urls = [url1, url2, url3, url4, url6, url7, url8, url9, url10, url11, url12, url13]
     
     from pprint import pprint
 
@@ -390,15 +392,20 @@ if __name__ == '__main__':
 
 
 
-    frontpage = get_frontpage_toc()
-    for item in frontpage:
-        for title, url in item:
-            article_data, html = extract_article_data(url)
-            print article_data.title
-            print article_data.url
-            print len(article_data.links)
+    # frontpage = get_frontpage_toc()
+    # for item in frontpage:
+    #     for title, url in item:
+    #         print url
+    #         article_data, html = extract_article_data(url)
+    #         if article_data:
+    #             print article_data.title
+    #             print len(article_data.links)
 
-
+    article_data, html = extract_article_data(url14)
+    if article_data:
+        print article_data.title
+        pprint(article_data.links)
+        print len(article_data.links)
 
     
 
