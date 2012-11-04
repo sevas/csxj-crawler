@@ -189,14 +189,13 @@ def extract_links_from_sidebar_box(soup):
     tagged_urls = list()
     sidebar_box = soup.find(attrs = {"class" : "teas_article_306 mar10 clear clearfix relatedcomponents"})
     # there are links to articles
-    articles = sidebar_box.find_all(attrs = {"class" : "ARTICLE"}, recursive = True)
-    for article in articles:
-        links = article.find_all("a")
-        titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
-        for title, url, base_tags in titles_and_urls:
-            tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-            tags.add('sidebar box')
-            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+    articles = sidebar_box.find_all(attrs = {"class" : "clearfix"})
+    links = articles[0].find_all("a")
+    titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
+    for title, url, base_tags in titles_and_urls:
+        tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+        tags.add('sidebar box')
+        tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
     # and also links to thematic tags
     tags = sidebar_box.find_all(attrs = {"class" : "bt_meer_over clearfix"})
@@ -377,26 +376,27 @@ if __name__ == '__main__':
     url9 = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1520790/2012/10/20/Le-pacte-de-solidarite-signe-par-Onkelinx-tres-critique.dhtml"
     url10 = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1520820/2012/10/20/Une-raclee-pour-Bruges-un-exploit-pour-Charleroi.dhtml"
     url11 = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1528304/2012/11/04/La-Marche-russe-des-ultra-nationalistes-reclame-le-depart-de-Poutine.dhtml"
-    urls = [url1, url2, url3, url4, url6, url11]
+    url12 = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1528304/2012/11/04/La-Marche-russe-des-ultra-nationalistes-reclame-le-depart-de-Poutine.dhtml"
+    urls = [url1, url2, url3, url4, url6, url7, url8, url9, url10, url11, url12]
     
     from pprint import pprint
 
-    for url in urls:
-        article_data, html = extract_article_data(url)
-        print article_data.title
-        print article_data.url
-        pprint(article_data.links)
-        print len(article_data.links)
+    # for url in urls:
+    #     article_data, html = extract_article_data(url)
+    #     print article_data.title
+    #     print article_data.url
+    #     pprint(article_data.links)
+    #     print len(article_data.links)
 
 
 
-    # frontpage = get_frontpage_toc()
-    # for item in frontpage:
-    #     for title, url in item:
-    #         article_data, html = extract_article_data(url)
-    #         print article_data.title
-    #         print article_data.url
-    #         print article_data.links
+    frontpage = get_frontpage_toc()
+    for item in frontpage:
+        for title, url in item:
+            article_data, html = extract_article_data(url)
+            print article_data.title
+            print article_data.url
+            print len(article_data.links)
 
 
 
