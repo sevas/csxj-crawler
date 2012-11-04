@@ -7,7 +7,7 @@ import random
 from BeautifulSoup import BeautifulSoup, Tag
 from useragents import USER_AGENT_STRINGS
 from datetime import datetime
-
+import bs4
 
 def pick_random_ua_string():
     index = random.randint(0, len(USER_AGENT_STRINGS)-1)
@@ -61,7 +61,7 @@ def remove_text_formatting_markup(formatted_text_fragment, strip_chars):
 
     # A text fragment is either an HTML tag (with its own child text fragments)
     # or just a plain string.
-    if isinstance(formatted_text_fragment, Tag):
+    if isinstance(formatted_text_fragment, Tag) or isinstance(formatted_text_fragment, bs4.Tag):
         # If it's the former, we remove the tag and clean up all its children
         if formatted_text_fragment.name in TEXT_MARKUP_TAGS:
             return u''.join([remove_text_formatting_markup(f, strip_chars) for f in formatted_text_fragment.contents])
