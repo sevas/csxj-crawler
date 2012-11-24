@@ -238,17 +238,43 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
         tagged_urls = list()
         all_sections = multimedia_box.findAll("section")
         for section in all_sections:
+
             if 'photo' in section.attrs['class']:
                 continue
-            if 'snippet' in section.attrs['class']:
-                link = section.find('a')
-                if link:
-                    url = link.get('href')
-                    tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                    tags.add('embedded media')
-                    tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-                else:
-                    raise ValueError("There seems to be an embedded media but we couldnt find a link")
+
+            elif 'video' in section.attrs['class']:
+                video = section.find("iframe")
+                url = video.get("src")
+                tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                tags.add('embedded media')
+                tags.add('video')
+                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+
+            elif 'snippet' in section.attrs['class']:
+
+                # it might be a tweet
+                tweets = section.find_all(attrs = {"class" : "twitter-tweet"})
+                if tweets:
+                    if len(tweets) == 1:
+                        links = tweets[0].find_all("a")
+                        for link in links :
+                            if link.get("data-datetime"):
+                                url = link.get("href")
+                                tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                                tags.add('embedded media')
+                                tags.add('tweet')
+                                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+                    else:
+                        raise ValueError("There seems to be more than one embedded tweet in the SNIPPET, check this")  
+
+                # it might be an embedded javascript object that shows a twitter account or query
+                twitter_widget = section.find_all(attrs = {"class" : "tweet_widget"})
+                if twitter_widget:
+                    if len(twitter_widget) ==1:
+                        # the function that deals with twimg javascript should be added here
+                        continue
+                    else :
+                        raise ValueError("There seems to be more than one embedded twitter wdget in the SNIPPET, check this")  
 
             else:
                 raise ValueError("There seems to be an undefined embedded media here, you should check")
@@ -275,7 +301,6 @@ def extract_embedded_media(soup):
     if art_bottom:
         tagged_urls.extend(find_embedded_media_in_multimedia_box(art_bottom))
     
-
     return tagged_urls
         
 
