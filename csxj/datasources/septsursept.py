@@ -234,6 +234,26 @@ def extract_category(soup):
     links = category_box.findAll('a')
     return [utils.remove_text_formatting_markup_from_fragments(link.contents[0]) for link in links]
 
+def find_embedded_media_in_multimedia_box(multimedia_box):
+        tagged_urls = list()
+        all_sections = multimedia_box.findAll("section")
+        for section in all_sections:
+            if 'photo' in section.attrs['class']:
+                continue
+            if 'snippet' in section.attrs['class']:
+                link = section.find('a')
+                if link:
+                    url = link.get('href')
+                    tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                    tags.add('embedded media')
+                    tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+                else:
+                    raise ValueError("There seems to be an embedded media but we couldnt find a link")
+
+            else:
+                raise ValueError("There seems to be an undefined embedded media here, you should check")
+        return tagged_urls
+
 def extract_embedded_media(soup):
     tagged_urls = list()
     # extract embedded media from any iframe in the article container
@@ -248,24 +268,14 @@ def extract_embedded_media(soup):
     # some embedded media are not in iframe, but embedded in the art_aside container
     art_aside = soup.find(attrs = {"class" : "art_aside"})
     if art_aside:
-        all_sections = art_aside.findAll("section")
-        for section in all_sections:
-            if 'photo' in section.attrs['class']:
-                continue
-            if 'snippet' in section.attrs['class']:
-                print "that's another type of media"
-                link = section.find('a')
-                if link:
-                    url = link.get('href')
-                    tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                    tags.add('embedded media')
-                    tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-                else:
-                    raise ValueError("There seems to be an embedded media but we couldnt find a link")
+        tagged_urls.extend(find_embedded_media_in_multimedia_box(art_aside))
 
-            else:
-                raise ValueError("There seems to be an undefined embedded media here, you should check")
+    # same, but in the art_bottom container
+    art_bottom = soup.find(attrs = {"class" : "art_bottom"})
+    if art_bottom:
+        tagged_urls.extend(find_embedded_media_in_multimedia_box(art_bottom))
     
+
     return tagged_urls
         
 
@@ -379,6 +389,7 @@ if __name__ == '__main__':
     url12 = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1528304/2012/11/04/La-Marche-russe-des-ultra-nationalistes-reclame-le-depart-de-Poutine.dhtml"
     url13 = "http://www.7sur7.be/7s7/fr/8024/Stars/photoalbum/detail/85121/1193441/0/Showbiz-en-images.dhtml"
     url14 = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1527428/2012/11/02/La-robe-interactive-de-Nicole-Scherzinger.dhtml"
+    url15 = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1501041/2012/09/14/Une-traversee-des-Etats-Unis-avec-du-bacon-comme-seule-monnaie.dhtml"
     urls = [url1, url2, url3, url4, url6, url7, url8, url9, url10, url11, url12, url13]
     
     from pprint import pprint
