@@ -131,27 +131,27 @@ def extract_intro(soup):
         intro = ""
     return intro
 
-# doit être complété pour renvoyer aussi les liens
-def extract_text_content_and_links(soup):
-    content_box = soup.find(attrs = {"id" : "detail_content"})
-    text = content_box.find(attrs = {"class":"clear"}).find_all('p')
-    clean_text = utils.remove_text_formatting_markup_from_fragments(text, strip_chars = "\n")
-    
-    # extract plaintext urls
-    plaintext_urls = utils.extract_plaintext_urls_from_text(clean_text)
 
-    content_box = soup.find(attrs = {"id" : "detail_content"})
-    article_box = content_box.find_all("section", "clear")
+def extract_text_content_and_links(soup) :
     article_text = []
     inline_links = []
-    for fragment in article_box:
-        paragraphs = fragment.find_all("p")
+
+    content_box = soup.find(attrs = {"id" : "detail_content"})
+    text = content_box.find_all(attrs = {"class":"clear"})
+    for fragment in text :
+        paragraphs = fragment.find_all("p", recursive=False)
         clean_text = utils.remove_text_formatting_markup_from_fragments(paragraphs, strip_chars = "\n")
         article_text.append(clean_text)
-        #print paragraphs
         for p in paragraphs:
             link = p.find_all("a")
             inline_links.extend(link)
+
+    
+    plaintext_urls = []
+
+    for x in article_text:
+        plaintext_links = utils.extract_plaintext_urls_from_text(x)
+        plaintext_urls.extend(plaintext_links)
 
 
     titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
@@ -164,9 +164,9 @@ def extract_text_content_and_links(soup):
 
     for url in plaintext_urls:
         tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-        tags.union(['in text', 'plaintext'])
+        tags.add('in text')
+        tags.add('plaintext')
         tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-
 
     return article_text, tagged_urls
 
