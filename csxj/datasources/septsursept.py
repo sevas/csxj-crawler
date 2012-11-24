@@ -247,7 +247,6 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                 url = video.get("src")
                 tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
                 tags.add('embedded media')
-                tags.add('video')
                 tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
             elif 'snippet' in section.attrs['class']:
