@@ -12,6 +12,7 @@ from common.utils import fetch_html_content, make_soup_from_html_content, remove
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 from common import constants
+from common import twitter_utils
 
 # for datetime conversions
 if sys.platform in ['linux2', 'cygwin']:
@@ -81,7 +82,7 @@ def filter_out_useless_fragments(text_fragments):
             return text_fragment.name == 'br'
         else:
             return len(text_fragment.strip()) == 0
-    
+
     return [fragment for fragment in text_fragments if not is_linebreak(fragment)]
 
 
@@ -134,7 +135,7 @@ def extract_text_content_and_links_from_articletext(article_text, has_intro=True
     list of TaggedURL objects.
 
     Note: sometimes paragraphs are clearly marked with nice <p> tags. When it's not
-    the case, we consider linebreaks to be paragraph separators. 
+    the case, we consider linebreaks to be paragraph separators.
     """
 
     in_text_tagged_urls = extract_and_tag_in_text_links(article_text)
@@ -195,7 +196,7 @@ def extract_author_name_from_maincontent(main_content):
         return signature.contents[0].lstrip().rstrip()
     else:
         return constants.NO_AUTHOR_NAME
-    
+
 
 
 
@@ -208,7 +209,7 @@ def extract_category_from_maincontent(main_content):
     links = breadcrumbs.findAll('a', recursive=False)
 
     return [link.contents[0].rstrip().lstrip() for link in links]
-    
+
 
 
 icon_type_to_tags = {
@@ -260,9 +261,9 @@ def extract_associated_links_from_maincontent(main_content):
     else:
         return []
 
-    
 
-    
+
+
 DATE_MATCHER = re.compile('\(\d\d/\d\d/\d\d\d\d\)')
 def was_publish_date_updated(date_string):
     """
@@ -283,7 +284,7 @@ def make_time_from_string(time_string):
     return time(h, m)
 
 
-    
+
 def extract_date_from_maincontent(main_content):
     """
     Finds the publication date string, returns a datetime object
@@ -328,7 +329,68 @@ def extract_links_from_embedded_content(embedded_content):
 
 
 
+def extract_links_to_embedded_content(main_content):
+    """
 
+    Args:
+        main_content
+
+    Returns:
+
+    """
+    embedded_content_divs = main_content.findAll('div', {'class':'embedContents'})
+    tagged_urls = []
+    for div in embedded_content_divs:
+        if div.iframe:
+            url = div.iframe.get('src')
+            title = u"__EMBEDDED_CONTENT__"
+            all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+            tagged_urls.append(make_tagged_url(url, title, all_tags | set(['embedded'])))
+        else:
+            if div.find('div', {'class':'containerKplayer'}):
+                if len(div.findAll('div', recursive=False)) == 2:
+                    title_div = div.findAll('div', recursive=False)[1]
+                    title = remove_text_formatting_markup_from_fragments(title_div.contents)
+                else:
+                    title = u"__NO_TITLE__"
+
+                kplayer = div.find('div', {'class':'containerKplayer'})
+                kplayer_infos = kplayer.find('video')
+                url = kplayer_infos.get('data-src')
+
+                all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+                tagged_urls.append(make_tagged_url(url, title, all_tags | set(['video', 'embedded', 'kplayer'])))
+
+            elif div.find('script'):
+                # try to detect a twitter widget
+                if div.find('script').get('src'):
+                    script_url = div.find('script').get('src')
+                    if twitter_utils.is_twitter_widget_url(script_url):
+                        title, url, tags = twitter_utils.get_widget_type(div.findAll('script')[1].contents[0])
+                        tags |= classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+                        tags |= set(['script', 'embedded'])
+                        tagged_urls.append(make_tagged_url(url, title, tags))
+                    else:
+                        pass
+                elif div.find('noscript'):
+                    noscript = div.find('noscript')
+                    link = noscript.find('a')
+                    if link:
+                        url = link.get('href')
+                        title = remove_text_formatting_markup_from_fragments(link.contents)
+                        all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+                        all_tags |= set(['script', 'embedded'])
+                        tagged_urls.append(make_tagged_url(url, title, all_tags))
+                    else:
+                        print ValueError("No link was found in the <noscript> section")
+                else:
+                    print ValueError("Could not extract fallback noscript url for this embedded javascript object")
+            else:
+                print ValueError("Unknown media type with class: {0}".format(div.get('class')))
+
+
+    print tagged_urls
+    return tagged_urls
 
 
 def extract_article_data(source):
@@ -359,11 +421,8 @@ def extract_article_data(source):
             text, in_text_urls = extract_text_content_and_links_from_articletext(article_text, False)
         associated_urls = extract_associated_links_from_maincontent(main_content)
 
-        # TODO: better url extraction
-        embedded_content = main_content.find('div', {'class':'embedContents'})
-        embedded_content_urls = []
-        #if embedded_content:
-        #    embedded_content_urls = extract_links_from_embedded_content(embedded_content)
+        embedded_content_urls = extract_links_to_embedded_content(main_content)
+
 
         fetched_datetime = datetime.today()
 
@@ -385,7 +444,7 @@ def extract_title_and_link_from_item_box(item_box):
 
 
 def is_item_box_an_ad_placeholder(item_box):
-    # awesome heuristic : if children are iframes, then go to hell 
+    # awesome heuristic : if children are iframes, then go to hell
     return len(item_box.findAll('iframe')) != 0
 
 
@@ -441,7 +500,7 @@ def get_frontpage_toc():
         for announce_group in chain(first_announce_groups, announce_groups):
             titles_and_urls = extract_title_and_link_from_anounce_group(announce_group)
             all_titles_and_urls.extend(titles_and_urls)
-    
+
         return [(title, 'http://www.dhnet.be%s' % url) for (title, url) in  all_titles_and_urls], []
     else:
         return [], []
@@ -450,17 +509,26 @@ def get_frontpage_toc():
 if __name__ == "__main__":
     import json
 
-    #url = "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html"
-    #url = "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html"
-    #url = "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html"
-    url = "http://www.dhnet.be/cine-tele/divers/article/378363/sois-belge-et-poile-toi.html"
-    url = "http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html"
-    url = "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html"
-    article, html = extract_article_data(url)
+    urls = [
+        "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html",
+        "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html",
+        "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html",
+        "http://www.dhnet.be/cine-tele/divers/article/378363/sois-belge-et-poile-toi.html",
+        "http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html",
+        "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html",
+        "http://www.dhnet.be/infos/monde/article/413062/sandy-paralyse-le-nord-est-des-etats-unis.html",
+        "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
+        "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html"
 
-    if article:
-        article.print_summary()
-        print article.links
-        print article.to_json()
-        print article.title
-        print article.content
+    ]
+
+    for url in urls[-2:-1]:
+        article, html = extract_article_data(url)
+
+        if article:
+            article.print_summary()
+            print article.title
+            for tagged_url in article.links:
+                print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
+
+        print("\n"*4)
