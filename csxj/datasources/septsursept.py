@@ -442,20 +442,20 @@ if __name__ == '__main__':
     
     from pprint import pprint
     import json
-    # f = open("/Users/judemaey/code/2012-09-02/7sur7.json")
-    # urls = json.load(f)
+    f = open("/Users/judemaey/code/2012-09-02/7sur7.json")
+    urls = json.load(f)
 
-    # for x in urls:
-    #     for y in x[1]:
-    #         url = y[1]
-    #         article_data, html = extract_article_data(url)
-    #         print article_data.title
-    #         print article_data.url
-    #         pprint(article_data.links)
-    #         print len(article_data.links)
-    #         print "\n"
-    #         print "******************************"
-    #         print "\n"
+    for x in urls:
+        for y in x[1]:
+            url = y[1]
+            article_data, html = extract_article_data(url)
+            print article_data.title
+            print article_data.url
+            pprint(article_data.links)
+            print len(article_data.links)
+            print "\n"
+            print "******************************"
+            print "\n"
 
     # for url in urls:
     #     article_data, html = extract_article_data(url)
@@ -475,11 +475,11 @@ if __name__ == '__main__':
     #             print article_data.title
     #             print len(article_data.links)
 
-    article_data, html = extract_article_data(url15)
-    if article_data:
-        print article_data.title
-        pprint(article_data.links)
-        print len(article_data.links)
+    # article_data, html = extract_article_data(url15)
+    # if article_data:
+    #     print article_data.title
+    #     pprint(article_data.links)
+    #     print len(article_data.links)
 
     
 
