@@ -356,7 +356,6 @@ def extract_links_to_embedded_content(main_content):
 
                 kplayer = div.find('div', {'class':'containerKplayer'})
 
-                #methode 1
                 kplayer_flash = kplayer.find('div', {'class': 'flash_kplayer'})
                 url_part1 = kplayer_flash.object['data']
                 url_part2 = kplayer_flash.object.find('param', {'name' : 'flashVars'})['value']
