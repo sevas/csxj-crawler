@@ -377,25 +377,24 @@ def extract_links_to_embedded_content(main_content):
                         tags |= set(['script', 'embedded'])
                         tagged_urls.append(make_tagged_url(url, title, tags))
                     else:
-                        pass
-                elif div.find('noscript'):
-                    noscript = div.find('noscript')
-                    link = noscript.find('a')
-                    if link:
-                        url = link.get('href')
-                        title = remove_text_formatting_markup_from_fragments(link.contents)
-                        all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-                        all_tags |= set(['script', 'embedded'])
-                        tagged_urls.append(make_tagged_url(url, title, all_tags))
-                    else:
-                        print ValueError("No link was found in the <noscript> section")
+                        if div.find('noscript'):
+                            noscript = div.find('noscript')
+                            link = noscript.find('a')
+                            if link:
+                                url = link.get('href')
+                                title = remove_text_formatting_markup_from_fragments(link.contents)
+                                all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+                                all_tags |= set(['script', 'embedded'])
+                                tagged_urls.append(make_tagged_url(url, title, all_tags))
+                            else:
+                                raise ValueError("No link was found in the <noscript> section. Update the parser.")
+                        else:
+                            raise ValueError("Embedded script of unknown type was detected ('{0}'). Update the parser.".format(script_url))
                 else:
-                    print ValueError("Could not extract fallback noscript url for this embedded javascript object")
+                    raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
             else:
-                print ValueError("Unknown media type with class: {0}".format(div.get('class')))
+                raise ValueError("Unknown media type with class: {0}. Update the parser.".format(div.get('class')))
 
-
-    print tagged_urls
     return tagged_urls
 
 
