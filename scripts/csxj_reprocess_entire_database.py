@@ -100,12 +100,12 @@ def reprocess_raw_html(p, dest_root_dir):
 
     errors_by_day = dict()
     all_days = p.get_all_days()
-    n_days = len(all_days)
-    subset = int(float(n_days) * 0.05)
-    print("    total days: {0}".format(n_days))
-    print("    picking {0} random days".format(subset))
-    random.shuffle(all_days)
-    for day in all_days[:subset]:
+#    n_days = len(all_days)
+#    subset = int(float(n_days) * 0.05)
+#    print("    total days: {0}".format(n_days))
+#    print("    picking {0} random days".format(subset))
+#    random.shuffle(all_days)
+    for day in all_days[:]:
         errors_by_batch = dict()
         for batch_hour in p.get_all_batch_hours(day):
             batch_root_dir = os.path.join(p.directory, day, batch_hour)
@@ -173,15 +173,17 @@ def main(source_path, dest_path):
 
 
 if __name__ == "__main__":
-#    import argparse
-#    parser = argparse.ArgumentParser(description='Utility functions to troubleshoot queue management')
-#    parser.add_argument('--source_jsondb', type=str, dest='source_jsondb', required=True, help='source json db root directory')
-#    parser.add_argument('--dest_jsondb', type=str, dest='dest_jsondb', required=True, help='dest json db root directory')
-#
-#    args = parser.parse_args()
+    import argparse
+    parser = argparse.ArgumentParser(description='Utility functions to troubleshoot queue management')
+    parser.add_argument('--source_jsondb', type=str, dest='source_jsondb', required=True, help='source json db root directory')
+    parser.add_argument('--dest_jsondb', type=str, dest='dest_jsondb', required=True, help='dest json db root directory')
 
-    source_root = "/Users/sevas/Documents/juliette/json_db_0_5"
-    dest = "/Users/sevas/Documents/juliette/json_db_0_5_reprocess"
+    args = parser.parse_args()
+
+#    source_root = "/Users/sevas/Documents/juliette/json_db_0_5"
+#    dest = "/Users/sevas/Documents/juliette/json_db_0_5_reprocess"
+    source_root = args.source_jsondb
+    dest = args.dest_jsondb
 
     main(source_root, dest)
 
