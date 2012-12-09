@@ -9,6 +9,7 @@ import urlparse
 from scrapy.selector import HtmlXPathSelector
 import bs4
 from common import utils
+from common import twitter_utils
 from csxj.common import tagging
 from csxj.db.article import ArticleData
 
@@ -270,13 +271,36 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                 twitter_widget = section.find_all(attrs = {"class" : "tweet_widget"})
                 if twitter_widget:
                     if len(twitter_widget) ==1:
-                        # the function that deals with twimg javascript should be added here
-                        continue
+                        if twitter_widget[0].find('script').get('src'):
+                            script_url = twitter_widget[0].find('script').get('src')
+                            if twitter_utils.is_twitter_widget_url(script_url):
+                                title, url, tags = twitter_utils.get_widget_type(twitter_widget[0].findAll('script')[1].contents[0])
+                                tags |= tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                                tags |= set(['script', 'embedded'])
+                                tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+                            else:
+                                if twitter_widget[0].find('noscript'):
+                                    noscript = twitter_widget[0].find('noscript')
+                                    link = noscript.find('a')
+                                    if link:
+                                        url = link.get('href')
+                                        title = remove_text_formatting_markup_from_fragments(link.contents)
+                                        all_tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                                        all_tags |= set(['script', 'embedded'])
+                                        tagged_urls.append(tagging.make_tagged_url(url, title, all_tags))
+                                    else:
+                                        raise ValueError("No link was found in the <noscript> section. Update the parser.")
+                                else:
+                                    raise ValueError("Embedded script of unknown type was detected ('{0}'). Update the parser.".format(script_url))
+                        else:
+                            raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
+
                     else :
                         raise ValueError("There seems to be more than one embedded twitter wdget in the SNIPPET, check this")  
 
             else:
                 raise ValueError("There seems to be an undefined embedded media here, you should check")
+      
         return tagged_urls
 
 def extract_embedded_media(soup):
@@ -418,20 +442,20 @@ if __name__ == '__main__':
     
     from pprint import pprint
     import json
-    f = open("/Users/judemaey/code/2012-09-02/7sur7.json")
-    urls = json.load(f)
+    # f = open("/Users/judemaey/code/2012-09-02/7sur7.json")
+    # urls = json.load(f)
 
-    for x in urls:
-        for y in x[1]:
-            url = y[1]
-            article_data, html = extract_article_data(url)
-            print article_data.title
-            print article_data.url
-            pprint(article_data.links)
-            print len(article_data.links)
-            print "\n"
-            print "******************************"
-            print "\n"
+    # for x in urls:
+    #     for y in x[1]:
+    #         url = y[1]
+    #         article_data, html = extract_article_data(url)
+    #         print article_data.title
+    #         print article_data.url
+    #         pprint(article_data.links)
+    #         print len(article_data.links)
+    #         print "\n"
+    #         print "******************************"
+    #         print "\n"
 
     # for url in urls:
     #     article_data, html = extract_article_data(url)
@@ -451,11 +475,11 @@ if __name__ == '__main__':
     #             print article_data.title
     #             print len(article_data.links)
 
-    # article_data, html = extract_article_data(url14)
-    # if article_data:
-    #     print article_data.title
-    #     pprint(article_data.links)
-    #     print len(article_data.links)
+    article_data, html = extract_article_data(url15)
+    if article_data:
+        print article_data.title
+        pprint(article_data.links)
+        print len(article_data.links)
 
     
 
