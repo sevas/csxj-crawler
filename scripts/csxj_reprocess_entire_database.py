@@ -50,7 +50,7 @@ def reprocess_single_batch(datasource_parser, raw_data_dir):
         for url, raw_file in index:
             raw_filepath = os.path.join(raw_data_dir, raw_file)
             try:
-                print "    Reprocessing: {1} ({0})".format(url, raw_filepath)
+                print u"    Reprocessing: {1} ({0})".format(url, raw_filepath)
                 #reprocessed_articles.append(raw_filepath)
                 with open(raw_filepath, 'r') as raw_html:
                     article_data, html = datasource_parser.extract_article_data(raw_html)
@@ -58,7 +58,7 @@ def reprocess_single_batch(datasource_parser, raw_data_dir):
                     reprocessed_articles.append((article_data, html))
             except Exception as e:
                 stacktrace = traceback.format_exc()
-                print "!!! FAIL", e.message
+                print u"!!! FAIL", e.message
                 errors_encountered.append((url, raw_filepath, stacktrace))
 
     return reprocessed_articles, errors_encountered
@@ -69,7 +69,7 @@ def save_reprocessed_batch(dest_root_dir, source_name, day_string, batch_hour_st
     if not os.path.exists(batch_root_dir):
         os.makedirs(batch_root_dir)
 
-    print "+++ Saving {0} articles to {1}".format(len(articles), batch_root_dir)
+    print u"+++ Saving {0} articles to {1}".format(len(articles), batch_root_dir)
     articles_json_data = {"articles": [article.to_json() for article, raw_html in articles],
                           "errors": []}
     articles_filepath = os.path.join(batch_root_dir, csxjdb.constants.ARTICLES_FILENAME)
@@ -79,7 +79,7 @@ def save_reprocessed_batch(dest_root_dir, source_name, day_string, batch_hour_st
     if not os.path.exists(raw_data_dir):
         os.makedirs(raw_data_dir)
 
-    print "^^^ Saving raw html to {0}".format(raw_data_dir)
+    print u"^^^ Saving raw html to {0}".format(raw_data_dir)
     raw_data = [(a[0].url, a[1], "{0}.html".format(i)) for (i, a) in enumerate(articles)]
     for url, raw_html, raw_html_filename in raw_data:
         raw_filepath = os.path.join(raw_data_dir, raw_html_filename)
@@ -160,14 +160,9 @@ def main(source_path, dest_path):
     after = datetime.now()
     dt = after - before
 
-    print "Total time for {0} articles: {1} seconds".format(n_samples, dt.seconds)
+    print u"Total time for {0} articles: {1} seconds".format(n_samples, dt.seconds)
     avg_time = float(dt.seconds) / n_samples
-    print "Avg time per articles: {0} seconds".format(avg_time)
-
-    projected_article_count = 200000
-    projected_time = avg_time * projected_article_count
-
-    print "Projection for {0} articles:".format(projected_article_count), time.strftime("%H:%M:%S", time.gmtime(projected_time))
+    print u"Avg time per articles: {0} seconds".format(avg_time)
 
     write_dict_to_file(errors_by_source, os.path.join(dest, os.path.pardir), os.path.basename(dest) + "_errors.json")
 

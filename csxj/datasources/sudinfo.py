@@ -254,7 +254,7 @@ LINK_TYPE_TO_TAG = {
 }
 
 
-def extract_associated_links(hxs, source_url):
+def extract_associated_links(hxs):
     links = hxs.select("//div[@id='picture']/descendant::div[@class='bloc-01']//a")
 
     all_tagged_urls = []
@@ -485,4 +485,12 @@ if __name__=='__main__':
     #show_frontpage_toc()
     #download_one_article()
     #show_frontpage_articles()
-    show_article()
+
+    url = "/Volumes/Curst/json_db_0_5/sudinfo/2012-06-05/14.05.07/raw_data/18.html"
+    f = open(url,"r")
+
+    article_data, content_html = extract_article_data(f)
+    article_data.print_summary()
+
+
+
