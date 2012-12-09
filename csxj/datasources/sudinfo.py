@@ -288,7 +288,7 @@ def extract_associated_links(hxs, source_url):
     if media_links:
         for i, item in enumerate(media_links):
             item_id = item.select("./@href").extract()
-            url = u"{0}{1}".format(source_url, item_id)
+            url = item_id
             title = u"EMBEDDED MEDIA {0}".format(i)
             tags = set(['media', 'embedded'])
             all_tagged_urls.append(make_tagged_url(url, title, tags))
@@ -309,9 +309,9 @@ def extract_article_data(source):
     if hasattr(source, 'read'):
         html_content = source.read()
     else:
-        source_url = convert_utf8_url_to_ascii(source)
+        source = convert_utf8_url_to_ascii(source)
         try:
-            html_content = fetch_html_content(source_url)
+            html_content = fetch_html_content(source)
         except urllib2.HTTPError as err:
             if err.code == 404:
                 return None, "<html><head><title>404</title></head><body></body></html>"
@@ -333,12 +333,12 @@ def extract_article_data(source):
 
         content, content_links = extract_content_and_links(hxs)
 
-        associated_links = extract_associated_links(hxs, source_url)
+        associated_links = extract_associated_links(hxs)
 
         all_links = intro_links + content_links + associated_links
 
 
-        return (ArticleData(source_url, title, pub_date, pub_time, fetched_datetime,
+        return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             all_links,
                             category, author,
                             intro, content),

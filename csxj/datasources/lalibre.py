@@ -306,18 +306,23 @@ def get_frontpage_toc():
 
 
 def test_sample_data():
-    url = "http://www.lalibre.be/economie/actualite/article/704138/troisieme-belgian-day-a-wall-street.html"
-    url = "http://www.lalibre.be/culture/selection-culturelle/article/707244/ou-sortir-ce-week-end.html"
-    article_data, html_content = extract_article_data(url)
+    urls = [    "http://www.lalibre.be/economie/actualite/article/704138/troisieme-belgian-day-a-wall-street.html",
+                "http://www.lalibre.be/culture/selection-culturelle/article/707244/ou-sortir-ce-week-end.html",
+                "http://www.lalibre.be/actu/usa-2012/article/773294/obama-raille-les-chevaux-et-baionnettes-de-romney.html",
+                "http://www.lalibre.be/actu/international/article/774524/sandy-le-calme-avant-la-tempete.html",
+                "http://www.lalibre.be/sports/football/article/778966/suivez-anderlecht-milan-ac-en-live-des-20h30.html"
+            ]
 
-    if article_data:
-        article_data.print_summary()
+    for url in urls[-1:]:
+        article, html = extract_article_data(url)
 
-        print article_data.to_json()
-        for url in article_data.external_links:
-            print url
-    else:
-        print "article was removed"
+        if article:
+            article.print_summary()
+            print article.title
+            for tagged_url in article.links:
+                print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
+
+        print("\n"*4)
 
 
         

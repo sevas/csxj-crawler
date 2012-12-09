@@ -243,7 +243,7 @@ def show_sample_articles():
             print tagged_link.URL, tagged_link.title, tagged_link.tags
 
 
-def show_article():
+def show_sample_articles():
     urls = [  "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120326_023",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120331_00140331",
@@ -287,8 +287,7 @@ def show_frontpage_articles():
         print "********\n\n"
 
 
-
 if __name__ == "__main__":
-    show_article()
+    show_sample_articles()
     #show_frontpage_articles()
     #show_frontpage()
