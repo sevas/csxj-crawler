@@ -358,6 +358,10 @@ def show_frontpage_articles():
 def test_sample_data():
     filepath = '../../sample_data/sudpresse_some_error.html'
     filepath = '../../sample_data/sudpresse_associated_link_error.html'
+    filepath = "/Volumes/Curst/json_db_0_5/sudpresse/2012-01-09/11.05.13/raw_data/0.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_noTitle.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_noTitle2.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
         article_data.print_summary()
@@ -374,6 +378,8 @@ def download_one_article():
     url = 'http://sudpresse.be/actualite/dossiers/2012-01-02/le-stage-du-standard-a-la-manga-infos-photos-tweets-928836.shtml'
     #url = 'http://sudpresse.be/%3C!--%20error:%20linked%20page%20doesn\'t%20exist:...%20--%3E'
     url = "http://sudpresse.be/actualite/faits_divers/2012-01-10/un-enfant-de-4-ans-orphelin-sa-mere-a-saute-sur-les-voies-pour-recuperer-son-gsm-930520.shtml"
+
+
     article_data, raw_html = extract_article_data(url)
 
     if article_data:
@@ -384,5 +390,6 @@ def download_one_article():
         print 'no article found'
 
 if __name__=='__main__':
-    get_frontpage_toc()
+    #get_frontpage_toc()
     #download_one_article()
+    test_sample_data()

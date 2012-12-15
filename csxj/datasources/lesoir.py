@@ -201,6 +201,31 @@ def extract_category(story):
     category_stages = [a.contents[0] for a in breadcrumbs.findAll('a') ]
     return category_stages
 
+def extract_links_from_embedded_content(story):
+    tagged_urls = []
+
+    # generic iframes
+    iframe_items = story.findAll("iframe", recursive=True)
+    print iframe_items
+    for iframe in iframe_items:
+        url = iframe.get('src')
+        all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+        tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
+
+    # extract embedded storify
+    scripts = story.findAll('script', recursive=True)
+    for script in scripts :
+        url = script.get('src')
+        if url :
+            scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+            if netloc == "storify.com":
+                url = url.rstrip(".js")
+                all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+                tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
+
+    return tagged_urls
+
+
 
 
 def extract_article_data(source):
@@ -227,7 +252,10 @@ def extract_article_data(source):
 
     fetched_datetime = datetime.today()
 
-    all_links = sidebar_links + plaintext_links
+    embedded_content_links = extract_links_from_embedded_content(story)
+
+    all_links = sidebar_links + plaintext_links + embedded_content_links
+
 
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                               all_links,
@@ -394,6 +422,7 @@ def dowload_one_article():
     url = "http://www.lesoir.be/actualite/belgique/elections_2010/2012-01-10/budget-2012-chastel-appele-a-s-expliquer-cet-apres-midi-889234.php"
     url = "http://www.lesoir.be/actualite/france/2012-01-10/free-defie-les-telecoms-francais-avec-un-forfait-illimite-a-19-99-euros-889276.php"
     url = "http://www.lesoir.be/actualite/belgique/2012-08-21/guy-spitaels-est-decede-933203.php"
+    url = "../../sample_data/lesoir/lesoir_storify2.html"
     art, raw_html = extract_article_data(url)
 
     maincontent_links = set(extract_main_content_links(url))
@@ -406,7 +435,19 @@ def dowload_one_article():
     print "processed links: ", len(processed_links)
     print "missing: ", len(missing_links)
 
+def test_sample_data():
+    filepath = '../../sample_data/lesoir/lesoir_storify3.html'
 
+    with open(filepath) as f:
+        article_data, raw = extract_article_data(f)
+        article_data.print_summary()
+
+        for link in article_data.links:
+            print link.title
+            print link.tags
+
+        # print article_data.intro
+        # print article_data.content
 
 if __name__ == '__main__':
-    dowload_one_article()
+    test_sample_data()
