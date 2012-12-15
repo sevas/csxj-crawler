@@ -12,7 +12,7 @@ from common.utils import fetch_html_content, make_soup_from_html_content, remove
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 from common import constants
-from common import twitter_utils
+from common import ipm_utils
 
 # for datetime conversions
 if sys.platform in ['linux2', 'cygwin']:
@@ -338,63 +338,8 @@ def extract_links_to_embedded_content(main_content):
     Returns:
 
     """
-    embedded_content_divs = main_content.findAll('div', {'class':'embedContents'})
-    tagged_urls = []
-    for div in embedded_content_divs:
-        if div.iframe:
-            url = div.iframe.get('src')
-            title = u"__EMBEDDED_CONTENT__"
-            all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-            tagged_urls.append(make_tagged_url(url, title, all_tags | set(['embedded'])))
-        else:
-            if div.find('div', {'class':'containerKplayer'}):
-                if len(div.findAll('div', recursive=False)) == 2:
-                    title_div = div.findAll('div', recursive=False)[1]
-                    title = remove_text_formatting_markup_from_fragments(title_div.contents)
-                else:
-                    title = u"__NO_TITLE__"
-
-                kplayer = div.find('div', {'class':'containerKplayer'})
-
-                kplayer_flash = kplayer.find('div', {'class': 'flash_kplayer'})
-                url_part1 = kplayer_flash.object['data']
-                url_part2 = kplayer_flash.object.find('param', {'name' : 'flashVars'})['value']
-                if url_part1 is not None and url_part2 is not None:
-                    url = "%s?%s" % (url_part1, url_part2)
-                    all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-                    tagged_urls.append(make_tagged_url(url, title, all_tags | set(['video', 'embedded', 'kplayer'])))
-                else:
-                    raise ValueError("We couldn't find an URL in the flahs player, please check")
-
-            elif div.find('script'):
-                # try to detect a twitter widget
-                if div.find('script').get('src'):
-                    script_url = div.find('script').get('src')
-                    if twitter_utils.is_twitter_widget_url(script_url):
-                        title, url, tags = twitter_utils.get_widget_type(div.findAll('script')[1].contents[0])
-                        tags |= classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-                        tags |= set(['script', 'embedded'])
-                        tagged_urls.append(make_tagged_url(url, title, tags))
-                    else:
-                        if div.find('noscript'):
-                            noscript = div.find('noscript')
-                            link = noscript.find('a')
-                            if link:
-                                url = link.get('href')
-                                title = remove_text_formatting_markup_from_fragments(link.contents)
-                                all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-                                all_tags |= set(['script', 'embedded'])
-                                tagged_urls.append(make_tagged_url(url, title, all_tags))
-                            else:
-                                raise ValueError("No link was found in the <noscript> section. Update the parser.")
-                        else:
-                            raise ValueError("Embedded script of unknown type was detected ('{0}'). Update the parser.".format(script_url))
-                else:
-                    raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
-            else:
-                raise ValueError("Unknown media type with class: {0}. Update the parser.".format(div.get('class')))
-
-    return tagged_urls
+    items = main_content.findAll('div', {'class':'embedContents'})
+    return [ipm_utils.extract_tagged_url_from_embedded_item(item, DHNET_NETLOC, DHNET_INTERNAL_SITES) for item in items]
 
 
 def extract_article_data(source):
@@ -511,34 +456,30 @@ def get_frontpage_toc():
 
 
 if __name__ == "__main__":
-    # import json
+    import json
 
-    # urls = [
-    #     "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html",
-    #     "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html",
-    #     "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html",
-    #     "http://www.dhnet.be/cine-tele/divers/article/378363/sois-belge-et-poile-toi.html",
-    #     "http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html",
-    #     "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html",
-    #     "http://www.dhnet.be/infos/monde/article/413062/sandy-paralyse-le-nord-est-des-etats-unis.html",
-    #     "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
-    #     "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html"
+    urls = [
+         "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html",
+         "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html",
+         "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html",
+         "http://www.dhnet.be/cine-tele/divers/article/378363/sois-belge-et-poile-toi.html",
+         "http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html",
+         "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html",
+         "http://www.dhnet.be/infos/monde/article/413062/sandy-paralyse-le-nord-est-des-etats-unis.html",
+         "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
+         "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html"
 
-    # ]
+    ]
 
-    # for url in urls[-2:-1]:
-    #     article, html = extract_article_data(url)
+    for url in urls[:]:
+         article, html = extract_article_data(url)
 
-    #     if article:
-    #         article.print_summary()
-    #         print article.title
-    #         for tagged_url in article.links:
-    #             print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
+         if article:
+             article.print_summary()
+             print article.title
+             for tagged_url in article.links:
+                 print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
 
-    #     print("\n"*4)
-    url = "/Volumes/Curst/json_db_0_5/dhnet/2011-12-19/15.05.05/raw_data/1.html"
-    f = open(url,"r")
-
-    extract_article_data(f)
+         print("\n"*4)
 
 
