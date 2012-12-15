@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from csxj.common.tagging import classify_and_tag, make_tagged_url
-from common.utils import remove_text_formatting_markup_from_fragments
+from utils import remove_text_formatting_markup_from_fragments
 import twitter_utils
 import media_utils
 
