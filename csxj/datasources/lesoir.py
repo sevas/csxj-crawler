@@ -135,7 +135,7 @@ def extract_to_read_links_from_sidebar(sidebar):
     if to_read_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
                             for link in to_read_links_container.findAll('a')]
-        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['to read']))
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['siderbar box', 'to read']))
     else:
         return []
 
@@ -147,7 +147,7 @@ def extract_external_links_from_sidebar(sidebar):
     if external_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
                             for link in external_links_container.findAll('a')]
-        return classify_and_make_tagged_url(urls_and_titles)
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['sidebar box', 'web']))
     else:
         return []
 
@@ -169,7 +169,7 @@ def extract_recent_links_from_soup(soup):
     if recent_links_container:
         urls_and_titles = [extract_url_and_title(item)
                            for item in recent_links_container.findAll('a')]
-        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['recent']))
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['recent', 'sidebar box']))
     else:
         return []
 
