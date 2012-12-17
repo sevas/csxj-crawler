@@ -135,7 +135,7 @@ def extract_to_read_links_from_sidebar(sidebar):
     if to_read_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
                             for link in to_read_links_container.findAll('a')]
-        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['siderbar box', 'to read']))
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['sidebar box', 'to read']))
     else:
         return []
 
@@ -234,8 +234,6 @@ def extract_intro(story):
     text_fragments = [fragment for fragment in intro.contents if not isinstance(fragment, Tag)]
 
     return ''.join(text_fragments)
-
-
 
 def extract_category(story):
     breadcrumbs = story.find('div', {'id':'fil_ariane'})
@@ -476,7 +474,7 @@ def dowload_one_article():
     print "missing: ", len(missing_links)
 
 def test_sample_data():
-    filepath = '../../sample_data/lesoir/lesoir_storify4.html'
+    filepath = '../../sample_data/lesoir/lesoir_storify3.html'
 
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
