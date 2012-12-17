@@ -12,6 +12,7 @@ from csxj.db.article import ArticleData
 from common.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
 from common.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
 from common import constants
+from csxj.common import tagging
 
 
 # for datetime conversions
@@ -67,6 +68,22 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
         tagged_urls.append(make_tagged_url(url, title, tags|additional_tags))
     return tagged_urls
 
+def extract_title_and_url_from_bslink(link):
+    base_tags = []
+    if link.get('href'):
+        url = link.get('href')
+
+    else :
+        url = "__GHOST_LINK__"
+        base_tags.append("ghost link")
+        
+    if link.contents:
+        title = link.contents[0].strip()
+    else:
+        title = "__GHOST_LINK__"
+        base_tags.append("ghost link")
+
+    return title, url, base_tags
 
 def extract_text_content(story):
     """
@@ -75,14 +92,38 @@ def extract_text_content(story):
     """
     story = story.find('div', {'id':'story_body'})
     paragraphs = story.findAll('p', recursive=False)
-    clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
 
-    all_plaintext_urls = []
+    tagged_urls = list()
+
+    # extract regular, in text links
+    inline_links = list()
+    plaintext_urls = list()
+
+    for paragraph in paragraphs:
+        links = paragraph.findAll('a', recursive=True)
+        inline_links.extend(links)
+
+    titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
+    for title, url, base_tags in titles_and_urls:
+        tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+        tags.add('in text')
+        tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+
+
+    # extract story text
+    clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
+    
+    # extract plaintext links
+    plaintext_urls = []
     for text in clean_paragraphs:
-        all_plaintext_urls.extend(extract_plaintext_urls_from_text(text))
-    # plaintext urls are their own title
-    urls_and_titles = zip(all_plaintext_urls, all_plaintext_urls)
-    tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext url', 'in text']))
+        plaintext_urls.extend(extract_plaintext_urls_from_text(text))
+
+    for url in plaintext_urls:
+        tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+        tags.add('in text')
+        tags.add('plaintext')
+        tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+
 
     return clean_paragraphs, tagged_urls
     
@@ -206,7 +247,6 @@ def extract_links_from_embedded_content(story):
 
     # generic iframes
     iframe_items = story.findAll("iframe", recursive=True)
-    print iframe_items
     for iframe in iframe_items:
         url = iframe.get('src')
         all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
@@ -248,13 +288,13 @@ def extract_article_data(source):
     sidebar_links = extract_links(soup)
 
     intro = extract_intro(story)
-    content, plaintext_links = extract_text_content(story)
+    content, intext_links = extract_text_content(story)
 
     fetched_datetime = datetime.today()
 
     embedded_content_links = extract_links_from_embedded_content(story)
 
-    all_links = sidebar_links + plaintext_links + embedded_content_links
+    all_links = sidebar_links + intext_links + embedded_content_links
 
 
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -436,18 +476,18 @@ def dowload_one_article():
     print "missing: ", len(missing_links)
 
 def test_sample_data():
-    filepath = '../../sample_data/lesoir/lesoir_storify3.html'
+    filepath = '../../sample_data/lesoir/lesoir_storify4.html'
 
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
-        article_data.print_summary()
+        # article_data.print_summary()
 
         for link in article_data.links:
             print link.title
             print link.tags
 
-        # print article_data.intro
-        # print article_data.content
+        print article_data.intro
+        print article_data.content
 
 if __name__ == '__main__':
     test_sample_data()
