@@ -261,6 +261,21 @@ def extract_links_from_embedded_content(story):
                 all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
                 tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
 
+    # TO DO NEXT : reconstruc kplayer URL
+    kplayer = story.find('div', {'class':'containerKplayer'})
+    if kplayer:
+        kplayer_flash = kplayer.find('div', {'class': 'flash_kplayer'})
+        url_part1 = kplayer_flash.object['data']
+        url_part2 = kplayer_flash.object.find('param', {'name' : 'flashVars'})['value']
+        if url_part1 is not None and url_part2 is not None:
+            url = "%s?%s" % (url_part1, url_part2)
+            all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+            tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
+        else:
+            raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
+
+    for x in tagged_urls:
+        print x
     return tagged_urls
 
 
@@ -474,18 +489,19 @@ def dowload_one_article():
     print "missing: ", len(missing_links)
 
 def test_sample_data():
-    filepath = '../../sample_data/lesoir/lesoir_storify3.html'
+    filepath = '../../sample_data/lesoir/lesoir_storify2.html'
 
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
         # article_data.print_summary()
 
-        for link in article_data.links:
-            print link.title
-            print link.tags
+        # for link in article_data.links:
+        #     print link.title
+        #     print link.URL
+        #     print link.tags
 
-        print article_data.intro
-        print article_data.content
+        # print article_data.intro
+        # print article_data.content
 
 if __name__ == '__main__':
     test_sample_data()
