@@ -176,6 +176,20 @@ def extract_embedded_media_from_bottom(soup):
 
     return tagged_urls
 
+def extract_embedded_media_in_article(soup):
+    tagged_urls = list()
+    story = soup.find(attrs = {'class': 'article-body'})
+    scripts = story.findAll('script', recursive=True)
+    for script in scripts :
+        url = script.get('src')
+        if url :
+            scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+            if netloc == "storify.com":
+                url = url.rstrip(".js")
+                all_tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+                tagged_urls.append(tagging.make_tagged_url(url, url, all_tags | set(['embedded'])))
+    return tagged_urls
+
 def extract_article_data(url):
 
     request  = urllib.urlopen(url)
@@ -191,7 +205,8 @@ def extract_article_data(url):
     article_tags = extract_article_tags(soup)
     embedded_media_from_top_box = extract_embedded_media_from_top_box(soup)
     embedded_media_from_bottom = extract_embedded_media_from_bottom(soup)
-    print embedded_media_from_bottom
+    embedded_media_in_article = extract_embedded_media_in_article(soup)
+    print embedded_media_in_article
 
 if __name__ == '__main__':
 
@@ -203,6 +218,9 @@ if __name__ == '__main__':
     url = "http://www.lesoir.be/141646/article/actualite/regions/bruxelles/2012-12-20/stib-l-abonnement-scolaire-co%C3%BBtera-120-euros"
     url = "http://www.lesoir.be/141861/article/debats/chats/2012-12-20/11h02-relations-du-parti-islam-avec-l-iran-posent-question"
     url = "http://www.lesoir.be/141613/article/actualite/regions/bruxelles/2012-12-20/catteau-danse-contre-harc%C3%A8lement"
+    url = "http://www.lesoir.be/141854/article/debats/chats/2012-12-20/pol%C3%A9mique-sur-michelle-martin-%C2%ABne-confondons-pas-justice-et-vengeance%C2%BB"
+    url = "http://www.lesoir.be/142297/article/sports/football/2012-12-21/genk-anderlecht-en-direct-comment%C3%A9"
+    url = "http://www.lesoir.be/91779/article/actualite/belgique/2012-10-02/coupure-d%E2%80%99%C3%A9lectricit%C3%A9-%C3%A0-bruxelles-est-due-%C3%A0-un-incident-chez-elia"
     extract_article_data(url)
 
 
