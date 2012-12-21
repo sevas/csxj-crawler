@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 import urllib
 from datetime import datetime, time
 import sys
@@ -206,8 +205,11 @@ def extract_links_from_sidebar_box(soup):
         for title, url, base_tags in titles_and_urls:
             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
             tags.union(base_tags)
-            tags.add('sidebar tag')
+            tags.add('article tag')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+
+    for x in tagged_urls:
+        print x
 
     return tagged_urls
 
