@@ -147,13 +147,18 @@ def extract_embedded_media_from_top_box(soup):
             url = "%s?%s" % (url_part1, url_part2)
             tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
             if kplayer.next_sibling.name == "figcaption":
-                title = kplayer.next_sibling.contents[0]
-                tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded'])))
+                if len(kplayer.next_sibling) > 0 :
+                    title = kplayer.next_sibling.contents[0]
+                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded'])))
+                else :
+                    title = "__NO_TITLE__"
+                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded'])))
             else:
-                title = "“__NO_TITLE__”"
+                title = "__NO_TITLE__"
                 tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded'])))
         else:
             raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
+    print tagged_urls
     return tagged_urls
 
 def extract_article_data(url):
@@ -181,6 +186,7 @@ if __name__ == '__main__':
 #    url = "http://www.lesoir.be/140983/article/actualite/regions/bruxelles/2012-12-19/sacs-bleus-et-jaunes-sort-en-est-jet%C3%A9"
 #    url = "http://www.lesoir.be/141646/article/actualite/regions/bruxelles/2012-12-20/stib-l-abonnement-scolaire-co%C3%BBtera-120-euros"
     url = "http://www.lesoir.be/141861/article/debats/chats/2012-12-20/11h02-relations-du-parti-islam-avec-l-iran-posent-question"
+    url = "http://www.lesoir.be/141613/article/actualite/regions/bruxelles/2012-12-20/catteau-danse-contre-harc%C3%A8lement"
     extract_article_data(url)
 
 
