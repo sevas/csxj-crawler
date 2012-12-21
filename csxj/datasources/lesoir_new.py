@@ -158,7 +158,22 @@ def extract_embedded_media_from_top_box(soup):
                 tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded'])))
         else:
             raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
-    print tagged_urls
+    return tagged_urls
+
+def extract_embedded_media_from_bottom(soup):
+    tagged_urls = list()
+    article_body = soup.find(attrs = {'class': 'article-body'})
+    bottom_box = article_body.find(attrs = {'class' : 'related-media'})
+    if bottom_box :
+        embedded_media = bottom_box.find("iframe")
+        if embedded_media:
+            url = embedded_media.get("src")
+            tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+            tags.add('embedded')
+            tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+        else:
+            raise ValueError("There seems to be an embedded media at the bottom of the article but we could not identify it. Update the parser")
+
     return tagged_urls
 
 def extract_article_data(url):
@@ -174,8 +189,9 @@ def extract_article_data(url):
     category = extract_category(soup)
     sidebar_links = extract_links_from_sidebar_box(soup)
     article_tags = extract_article_tags(soup)
-    embedded_media = extract_embedded_media_from_top_box(soup)
-
+    embedded_media_from_top_box = extract_embedded_media_from_top_box(soup)
+    embedded_media_from_bottom = extract_embedded_media_from_bottom(soup)
+    print embedded_media_from_bottom
 
 if __name__ == '__main__':
 
@@ -183,8 +199,8 @@ if __name__ == '__main__':
     url = "http://www.lesoir.be/142193/article/debats/cartes-blanches/2012-12-21/g%C3%A9rard-depardieu-l%E2%80%99arbre-qui-cache-for%C3%AAt"
     url = "http://www.lesoir.be/142176/article/actualite/belgique/2012-12-21/van-rompuy-%C2%AB-etre-premier-en-belgique-c%E2%80%99est-frustrant-%C2%BB"
     url = "http://www.lesoir.be/142265/article/actualite/belgique/2012-12-21/quatre-militantes-anti-poutine-interpell%C3%A9es-%C3%A0-bruxelles"
-#    url = "http://www.lesoir.be/140983/article/actualite/regions/bruxelles/2012-12-19/sacs-bleus-et-jaunes-sort-en-est-jet%C3%A9"
-#    url = "http://www.lesoir.be/141646/article/actualite/regions/bruxelles/2012-12-20/stib-l-abonnement-scolaire-co%C3%BBtera-120-euros"
+    url = "http://www.lesoir.be/140983/article/actualite/regions/bruxelles/2012-12-19/sacs-bleus-et-jaunes-sort-en-est-jet%C3%A9"
+    url = "http://www.lesoir.be/141646/article/actualite/regions/bruxelles/2012-12-20/stib-l-abonnement-scolaire-co%C3%BBtera-120-euros"
     url = "http://www.lesoir.be/141861/article/debats/chats/2012-12-20/11h02-relations-du-parti-islam-avec-l-iran-posent-question"
     url = "http://www.lesoir.be/141613/article/actualite/regions/bruxelles/2012-12-20/catteau-danse-contre-harc%C3%A8lement"
     extract_article_data(url)
