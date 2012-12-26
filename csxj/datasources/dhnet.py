@@ -8,28 +8,24 @@ from itertools import chain
 import re
 import urlparse
 from BeautifulSoup import Tag
-from common.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
+from common.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, setup_locales
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 from common import constants
 from common import ipm_utils
 
-# for datetime conversions
-if sys.platform in ['linux2', 'cygwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
-elif sys.platform in [ 'darwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR')
-
+setup_locales()
 
 DHNET_INTERNAL_SITES = {
-    'tackleonweb.blogs.dhnet.be':['internal blog', 'internal', 'sports'],
-    'galeries.dhnet.be':['internal site', 'internal', 'image gallery'],
+    'tackleonweb.blogs.dhnet.be': ['internal blog', 'internal', 'sports'],
+    'galeries.dhnet.be': ['internal site', 'internal', 'image gallery'],
 }
 
 DHNET_NETLOC = 'www.dhnet.be'
 
 SOURCE_TITLE = u"DHNet"
 SOURCE_NAME = u"dhnet"
+
 
 def is_on_same_domain(url):
     """
@@ -40,7 +36,6 @@ def is_on_same_domain(url):
     if netloc not in DHNET_INTERNAL_SITES:
         return netloc.endswith('dhnet.be')
     return False
-
 
 
 def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
@@ -58,7 +53,6 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
     return tagged_urls
 
 
-
 def cleanup_text_fragment(text_fragment):
     """
     Recursively cleans up a text fragment (e.g. nested tags).
@@ -68,8 +62,6 @@ def cleanup_text_fragment(text_fragment):
         return remove_text_formatting_markup_from_fragments(text_fragment.contents)
     else:
         return text_fragment
-
-
 
 
 def filter_out_useless_fragments(text_fragments):
@@ -86,7 +78,6 @@ def filter_out_useless_fragments(text_fragments):
     return [fragment for fragment in text_fragments if not is_linebreak(fragment)]
 
 
-
 def separate_no_target_links(links):
     no_target_links = [(target, title) for (target, title) in links if not target]
     other_links = list(set(links) - set(no_target_links))
@@ -100,7 +91,6 @@ def separate_keyword_links(all_links):
     return keyword_links, other_links
 
 
-
 def extract_and_tag_in_text_links(article_text):
     """
     Finds the links tags in the html text content.
@@ -108,7 +98,7 @@ def extract_and_tag_in_text_links(article_text):
     Returns a list of TaggedURL objects.
     """
     def extract_link_and_title(link):
-        return link.get('href'),  remove_text_formatting_markup_from_fragments(link.contents)
+        return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
 
     links = [extract_link_and_title(link)
              for link in article_text.findAll('a', recursive=True)]
@@ -120,10 +110,9 @@ def extract_and_tag_in_text_links(article_text):
         classify_and_make_tagged_url(keyword_links, additional_tags=set(['keyword', 'in text'])) +
         classify_and_make_tagged_url(other_links, additional_tags=set(['in text'])) +
         classify_and_make_tagged_url(no_target_links, additional_tags=set(['in text', 'no target']))
-        )
+    )
 
     return tagged_urls
-
 
 
 def extract_text_content_and_links_from_articletext(article_text, has_intro=True):
@@ -139,7 +128,6 @@ def extract_text_content_and_links_from_articletext(article_text, has_intro=True
     """
 
     in_text_tagged_urls = extract_and_tag_in_text_links(article_text)
-
 
     children = filter_out_useless_fragments(article_text.contents)
     # first child is the intro paragraph, discard it
@@ -163,7 +151,6 @@ def extract_text_content_and_links_from_articletext(article_text, has_intro=True
     return cleaned_up_text_fragments, in_text_tagged_urls + plaintext_tagged_urls
 
 
-
 def article_has_intro(article_text):
     return article_text.p
 
@@ -181,15 +168,12 @@ def extract_intro_from_articletext(article_text):
         return u''
 
 
-
-
-
 def extract_author_name_from_maincontent(main_content):
     """
     Finds the <p> element with author info, if available.
     Returns a string if found, 'None' if not.
     """
-    signature = main_content.find('p', {'id':'articleSign'})
+    signature = main_content.find('p', {'id': 'articleSign'})
     if signature:
         # the actual author name is often lost in a puddle of \n and \t
         # cleaning it up.
@@ -198,30 +182,27 @@ def extract_author_name_from_maincontent(main_content):
         return constants.NO_AUTHOR_NAME
 
 
-
-
 def extract_category_from_maincontent(main_content):
     """
     Finds the breadcrumbs list. Returns a list of strings,
     one per item in the trail. The '\t\n' soup around each entry is cleaned up.
     """
-    breadcrumbs = main_content.find('p', {'id':'breadcrumbs'})
+    breadcrumbs = main_content.find('p', {'id': 'breadcrumbs'})
     links = breadcrumbs.findAll('a', recursive=False)
 
     return [link.contents[0].rstrip().lstrip() for link in links]
 
 
-
 icon_type_to_tags = {
-    'pictoType0':['internal', 'full url'],
-    'pictoType1':['internal', 'local url'],
-    'pictoType2':['images', 'gallery'],
-    'pictoType3':['video'],
-    'pictoType4':['animation'],
-    'pictoType5':['audio'],
-    'pictoType6':['images', 'gallery'],
-    'pictoType9':['internal blog'],
-    'pictoType12':['external']
+    'pictoType0': ['internal', 'full url'],
+    'pictoType1': ['internal', 'local url'],
+    'pictoType2': ['images', 'gallery'],
+    'pictoType3': ['video'],
+    'pictoType4': ['animation'],
+    'pictoType5': ['audio'],
+    'pictoType6': ['images', 'gallery'],
+    'pictoType9': ['internal blog'],
+    'pictoType12': ['external']
 }
 
 
@@ -237,12 +218,11 @@ def make_tagged_url_from_pictotype(url, title, icon_type):
     return make_tagged_url(url, title, tags)
 
 
-
 def extract_associated_links_from_maincontent(main_content):
     """
     Finds the list of associated links. Returns a list of (title, url) tuples.
     """
-    container = main_content.find('ul', {'class':'articleLinks'}, recursive=False)
+    container = main_content.find('ul', {'class': 'articleLinks'}, recursive=False)
 
     # sometimes there are no links
     if container:
@@ -262,9 +242,9 @@ def extract_associated_links_from_maincontent(main_content):
         return []
 
 
-
-
 DATE_MATCHER = re.compile('\(\d\d/\d\d/\d\d\d\d\)')
+
+
 def was_publish_date_updated(date_string):
     """
     In case of live events (soccer, the article gets updated.
@@ -275,7 +255,6 @@ def was_publish_date_updated(date_string):
     return not match
 
 
-
 def make_time_from_string(time_string):
     """
     Takes a HH:MM string, returns a time object
@@ -284,12 +263,11 @@ def make_time_from_string(time_string):
     return time(h, m)
 
 
-
 def extract_date_from_maincontent(main_content):
     """
     Finds the publication date string, returns a datetime object
     """
-    date_string = main_content.find('p', {'id':'articleDate'}).contents[0]
+    date_string = main_content.find('p', {'id': 'articleDate'}).contents[0]
 
     if was_publish_date_updated(date_string):
         # extract the update time, make the date look like '(dd/mm/yyyy)'
@@ -302,11 +280,9 @@ def extract_date_from_maincontent(main_content):
     else:
         pub_time = None
 
-
-    pub_date = datetime.strptime(date_string, '(%d/%m/%Y)').date()
+    pub_date = datetime.strptime(date_string, "(%d/%m/%Y)").date()
 
     return pub_date, pub_time
-
 
 
 def extract_links_from_embedded_content(embedded_content):
@@ -317,7 +293,7 @@ def extract_links_from_embedded_content(embedded_content):
         return [make_tagged_url(url, title, all_tags | set(['embedded']))]
     else:
         divs = embedded_content.findAll('div', recursive=False)
-        kplayer = embedded_content.find('div', {'class':'containerKplayer'})
+        kplayer = embedded_content.find('div', {'class': 'containerKplayer'})
         if kplayer:
             kplayer_infos = kplayer.find('video')
             url = kplayer_infos.get('data-src')
@@ -326,7 +302,6 @@ def extract_links_from_embedded_content(embedded_content):
             return [make_tagged_url(url, title, all_tags | set(['video', 'embedded', 'kplayer']))]
         else:
             return []
-
 
 
 def extract_links_to_embedded_content(main_content):
@@ -338,7 +313,7 @@ def extract_links_to_embedded_content(main_content):
     Returns:
 
     """
-    items = main_content.findAll('div', {'class':'embedContents'})
+    items = main_content.findAll('div', {'class': 'embedContents'})
     return [ipm_utils.extract_tagged_url_from_embedded_item(item, DHNET_NETLOC, DHNET_INTERNAL_SITES) for item in items]
 
 
@@ -352,7 +327,7 @@ def extract_article_data(source):
 
     soup = make_soup_from_html_content(html_content)
 
-    main_content = soup.find('div', {'id':'maincontent'})
+    main_content = soup.find('div', {'id': 'maincontent'})
 
     if main_content and main_content.h1:
         title = remove_text_formatting_markup_from_fragments(main_content.h1.contents)
@@ -360,8 +335,7 @@ def extract_article_data(source):
         category = extract_category_from_maincontent(main_content)
         author_name = extract_author_name_from_maincontent(main_content)
 
-
-        article_text = main_content.find('div', {'id':'articleText'})
+        article_text = main_content.find('div', {'id': 'articleText'})
         if article_has_intro(article_text):
             intro = extract_intro_from_articletext(article_text)
             text, in_text_urls = extract_text_content_and_links_from_articletext(article_text)
@@ -372,17 +346,14 @@ def extract_article_data(source):
 
         embedded_content_urls = extract_links_to_embedded_content(main_content)
 
-
         fetched_datetime = datetime.today()
 
-
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                                  in_text_urls+associated_urls+embedded_content_urls,
+                                  in_text_urls + associated_urls + embedded_content_urls,
                                   category, author_name, intro, text)
         return new_article, html_content
     else:
         return None, html_content
-
 
 
 def extract_title_and_link_from_item_box(item_box):
@@ -391,17 +362,15 @@ def extract_title_and_link_from_item_box(item_box):
     return title, url
 
 
-
 def is_item_box_an_ad_placeholder(item_box):
     # awesome heuristic : if children are iframes, then go to hell
     return len(item_box.findAll('iframe')) != 0
 
 
-
 def extract_title_and_link_from_anounce_group(announce_group):
     # sometimes they use item box to show ads or some crap like that.
-    odd_boxes = announce_group.findAll('div', {'class':'box4 odd'})
-    even_boxes = announce_group.findAll('div', {'class':'box4 even'})
+    odd_boxes = announce_group.findAll('div', {'class': 'box4 odd'})
+    even_boxes = announce_group.findAll('div', {'class': 'box4 even'})
 
     all_boxes = chain(odd_boxes, even_boxes)
 
@@ -410,17 +379,15 @@ def extract_title_and_link_from_anounce_group(announce_group):
             if not is_item_box_an_ad_placeholder(box)]
 
 
-
 def get_first_story_title_and_url(main_content):
     """
     Extract the title and url of the main frontpage story
     """
-    first_announce = main_content.find('div', {'id':'firstAnnounce'})
+    first_announce = main_content.find('div', {'id': 'firstAnnounce'})
     first_title = first_announce.h2.a.get('title')
     first_url = first_announce.h2.a.get('href')
 
     return first_title, first_url
-
 
 
 def get_frontpage_toc():
@@ -428,7 +395,7 @@ def get_frontpage_toc():
     html_content = fetch_html_content(url)
     soup = make_soup_from_html_content(html_content)
 
-    main_content = soup.find('div', {'id':'maincontent'})
+    main_content = soup.find('div', {'id': 'maincontent'})
     if main_content:
         all_titles_and_urls = []
 
@@ -439,10 +406,10 @@ def get_frontpage_toc():
 
         # this will pick up the 'annouceGroup' containers with same type in the 'regions' div
         first_announce_groups = main_content.findAll('div',
-                                                     {'class':'announceGroupFirst announceGroup'},
+                                                     {'class': 'announceGroupFirst announceGroup'},
                                                      recursive=True)
         announce_groups = main_content.findAll('div',
-                                               {'class':'announceGroup'},
+                                               {'class': 'announceGroup'},
                                                recursive=True)
 
         # all those containers have two sub stories
@@ -450,7 +417,7 @@ def get_frontpage_toc():
             titles_and_urls = extract_title_and_link_from_anounce_group(announce_group)
             all_titles_and_urls.extend(titles_and_urls)
 
-        return [(title, 'http://www.dhnet.be%s' % url) for (title, url) in  all_titles_and_urls], []
+        return [(title, 'http://www.dhnet.be%s' % url) for (title, url) in all_titles_and_urls], []
     else:
         return [], []
 
@@ -459,27 +426,24 @@ if __name__ == "__main__":
     import json
 
     urls = [
-         "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html",
-         "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html",
-         "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html",
-         "http://www.dhnet.be/cine-tele/divers/article/378363/sois-belge-et-poile-toi.html",
-         "http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html",
-         "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html",
-         "http://www.dhnet.be/infos/monde/article/413062/sandy-paralyse-le-nord-est-des-etats-unis.html",
-         "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
-         "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html"
-
+        "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html",
+        "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html",
+        "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html",
+        "http://www.dhnet.be/cine-tele/divers/article/378363/sois-belge-et-poile-toi.html",
+        "http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html",
+        "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html",
+        "http://www.dhnet.be/infos/monde/article/413062/sandy-paralyse-le-nord-est-des-etats-unis.html",
+        "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
+        "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html"
     ]
 
     for url in urls[:]:
-         article, html = extract_article_data(url)
+        article, html = extract_article_data(url)
 
-         if article:
-             article.print_summary()
-             print article.title
-             for tagged_url in article.links:
-                 print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
+        if article:
+            article.print_summary()
+            print article.title
+            for tagged_url in article.links:
+                print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
 
-         print("\n"*4)
-
-
+        print("\n" * 4)

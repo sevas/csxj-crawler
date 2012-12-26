@@ -1,27 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import sys
 from datetime import datetime, date, time
-import locale
 from itertools import chain
 import urllib
 from BeautifulSoup import Tag
 from common.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
 from common.utils import extract_plaintext_urls_from_text
 from common.utils import remove_text_formatting_markup_from_fragments
-from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
+from common.utils import setup_locales
+from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 
 
-# for datetime conversions
-if sys.platform in ['linux2', 'cygwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
-elif sys.platform in [ 'darwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR')
+setup_locales()
 
 
 SUDPRESSE_INTERNAL_SITES = {
-    'portfolio.sudpresse.be':['internal site', 'images', 'gallery']
+    'portfolio.sudpresse.be': ['internal site', 'images', 'gallery']
 }
 
 SUDPRESSE_OWN_NETLOC = 'www.sudpresse.be'
@@ -29,12 +24,13 @@ SUDPRESSE_OWN_NETLOC = 'www.sudpresse.be'
 SOURCE_TITLE = u"Sud Presse"
 SOURCE_NAME = u"sudpresse"
 
+
 def extract_category(content):
-    breadcrumbs = content.find('p', {'class':'ariane'})
+    breadcrumbs = content.find('p', {'class': 'ariane'})
     if breadcrumbs:
         return [link.contents[0].strip() for link in breadcrumbs.findAll('a')]
     else:
-        alternate_breadcrumbs = content.find('p', {'class':'fil_ariane left'})
+        alternate_breadcrumbs = content.find('p', {'class': 'fil_ariane left'})
         return [link.contents[0].strip() for link in alternate_breadcrumbs.findAll('a')]
 
 
@@ -42,9 +38,8 @@ def extract_title(article):
     return article.h1.contents[0].strip()
 
 
-
 def extract_date(article):
-    pub_date_container = article.find('p', {'class':'publiele'})
+    pub_date_container = article.find('p', {'class': 'publiele'})
 
     today = datetime.today()
 
@@ -60,10 +55,8 @@ def extract_date(article):
     return pub_date, pub_time
 
 
-
 def extract_author_name(article):
-    return article.find('p', {'class':'auteur'}).contents[0].strip()
-
+    return article.find('p', {'class': 'auteur'}).contents[0].strip()
 
 
 def extract_text_and_links_from_paragraph(paragraph):
@@ -89,8 +82,7 @@ def extract_text_and_links_from_paragraph(paragraph):
         tags.update(['in text'])
         tagged_urls.append(make_tagged_url(url, title, tags))
 
-    text  = remove_text_formatting_markup_from_fragments(paragraph.contents)
-
+    text = remove_text_formatting_markup_from_fragments(paragraph.contents)
 
     plaintext_urls = extract_plaintext_urls_from_text(text)
     for url in plaintext_urls:
@@ -101,12 +93,10 @@ def extract_text_and_links_from_paragraph(paragraph):
     return text, tagged_urls
 
 
-
 def extract_intro_and_links(article):
-    intro_container = article.find('p', {'class':'chapeau'})
+    intro_container = article.find('p', {'class': 'chapeau'})
     intro_text, tagged_urls = extract_text_and_links_from_paragraph(intro_container)
     return intro_text, tagged_urls
-
 
 
 def extract_content_and_links(article):
@@ -124,19 +114,17 @@ def extract_content_and_links(article):
     return all_content_paragraphs, all_tagged_urls
 
 
-
 LINK_TYPE_TO_TAG = {
-    'media-video':['video'],
-    'media-press':[],
+    'media-video': ['video'],
+    'media-press': [],
 }
 
 
 def extract_associated_links(article):
-    links_block = article.find('div', {'class':'bloc-01'})
+    links_block = article.find('div', {'class': 'bloc-01'})
 
     if links_block:
         link_list = links_block.find('ul')
-
 
         def extract_url_and_title(item):
             url = item.a.get('href')
@@ -169,7 +157,6 @@ def is_page_error_404(soup):
     return soup.head.title.contents[0] == '404'
 
 
-
 def extract_article_data(source):
     """
     """
@@ -180,14 +167,13 @@ def extract_article_data(source):
 
     soup = make_soup_from_html_content(html_content)
 
-
     if is_page_error_404(soup):
         return None, html_content
     else:
-        content = soup.find('div', {'id':'content'})
+        content = soup.find('div', {'id': 'content'})
         category = extract_category(content)
 
-        article = soup.find('div', {'id':'article'})
+        article = soup.find('div', {'id': 'article'})
         title = extract_title(article)
         pub_date, pub_time = extract_date(article)
         author = extract_author_name(article)
@@ -205,12 +191,10 @@ def extract_article_data(source):
                            intro, content), html_content
 
 
-
 def extract_title_and_url(container):
     if container.h1 and container.h1.a:
         link = container.h1.a
         return link.contents[0].strip(), link.get('href')
-
 
 
 def extract_title_and_url_in_buzz(container):
@@ -219,10 +203,9 @@ def extract_title_and_url_in_buzz(container):
             return link.contents[0].strip(), link.get('href')
 
 
-
 def extract_headlines_from_buzz(column):
-    buzz_container = column.find('div', {'class':'buzz exergue clearfix'})
-    
+    buzz_container = column.find('div', {'class': 'buzz exergue clearfix'})
+
     main_buzzes = buzz_container.findAll('div')
     buzz_stories = [extract_title_and_url_in_buzz(b) for b in main_buzzes]
 
@@ -236,9 +219,9 @@ def extract_headlines_from_buzz(column):
 
 
 def extract_headlines_from_wrap_columns(column):
-    wrap_columns = column.findAll('div', {'class':'wrap-columns clearfix'})
-    stories_by_column = [col.findAll('div', {'class':'article lt clearfix'}) for col in wrap_columns]
-    stories_by_column.extend([col.findAll('div', {'class':'article lt clearfix noborder'}) for col in wrap_columns])
+    wrap_columns = column.findAll('div', {'class': 'wrap-columns clearfix'})
+    stories_by_column = [col.findAll('div', {'class': 'article lt clearfix'}) for col in wrap_columns]
+    stories_by_column.extend([col.findAll('div', {'class': 'article lt clearfix noborder'}) for col in wrap_columns])
 
     # flatten the result list
     all_stories = chain(*stories_by_column)
@@ -246,17 +229,14 @@ def extract_headlines_from_wrap_columns(column):
     return [extract_title_and_url(story) for story in all_stories]
 
 
-
 def extract_main_headline(column):
-    main_headline = column.find('div', {'class':'article gd clearfix'})
+    main_headline = column.find('div', {'class': 'article gd clearfix'})
     return extract_title_and_url(main_headline)
 
 
-
 def extract_headlines_from_regular_stories(column):
-    regular_stories = column.findAll('div', {'class':'article md clearfix noborder'})
+    regular_stories = column.findAll('div', {'class': 'article md clearfix noborder'})
     return [extract_title_and_url(story) for story in regular_stories]
-
 
 
 def extract_headlines_from_column_1(column):
@@ -269,18 +249,17 @@ def extract_headlines_from_column_1(column):
     return all_headlines
 
 
-
 def extract_headlines_from_column_3(column):
-    stories = column.findAll('div', {'class':'octetFun'})
+    stories = column.findAll('div', {'class': 'octetFun'})
 
-    last_story = column.findAll('div', {'class':'octetFun noborder'})
+    last_story = column.findAll('div', {'class': 'octetFun noborder'})
     if last_story:
         stories.append(last_story[0])
 
     headlines = list()
     for story in stories:
         if story.h3.a.contents:
-            clean_title =   remove_text_formatting_markup_from_fragments(story.h3.a.contents)
+            clean_title = remove_text_formatting_markup_from_fragments(story.h3.a.contents)
             if story.h3.a.get('href'):
                 title_and_url = clean_title, story.h3.a.get('href')
                 headlines.append(title_and_url)
@@ -291,7 +270,8 @@ def extract_headlines_from_column_3(column):
 def extract_headlines_for_one_region(region_container):
     main_story = region_container.h3.a.contents[0].strip(), region_container.h3.a.get('href')
 
-    story_list = region_container.find('ul', {'class':'story_list'})
+    story_list = region_container.find('ul', {'class': 'story_list'})
+
     def extract_title_and_link(item):
         return item.a.contents[0].strip(), item.a.get('href')
 
@@ -301,12 +281,10 @@ def extract_headlines_for_one_region(region_container):
     return headlines
 
 
-
 def extract_regional_headlines(content):
-    region_containers = content.findAll('div', {'class':'story secondaire couleur_03'})
+    region_containers = content.findAll('div', {'class': 'story secondaire couleur_03'})
 
     return list(chain(*[extract_headlines_for_one_region(c) for c in region_containers]))
-
 
 
 def get_regional_toc():
@@ -314,13 +292,11 @@ def get_regional_toc():
     html_content = fetch_content_from_url(url)
     soup = make_soup_from_html_content(html_content)
 
-    return extract_regional_headlines(soup.find('div', {'id':'content_first'}))
-
+    return extract_regional_headlines(soup.find('div', {'id': 'content_first'}))
 
 
 def make_full_url(prefix, titles_and_urls):
     return [(title, urllib.basejoin(prefix, url)) for title, url in titles_and_urls]
-
 
 
 def get_frontpage_toc():
@@ -328,17 +304,15 @@ def get_frontpage_toc():
     html_content = fetch_content_from_url(url)
     soup = make_soup_from_html_content(html_content)
 
-    column1 = soup.find('div', {'class':'column col-01'})
+    column1 = soup.find('div', {'class': 'column col-01'})
     headlines = extract_headlines_from_column_1(column1)
-    column3  = soup.find('div', {'class':'column col-03'})
+    column3 = soup.find('div', {'class': 'column col-03'})
     headlines.extend(extract_headlines_from_column_3(column3))
-
 
     regional_headlines = make_full_url(url, get_regional_toc())
     headlines.extend(regional_headlines)
 
     return make_full_url(url, headlines), []
-
 
 
 def show_frontpage_articles():
@@ -352,7 +326,6 @@ def show_frontpage_articles():
 
         article_data.print_summary()
         print article_data.to_json()
-
 
 
 def test_sample_data():
@@ -379,7 +352,6 @@ def download_one_article():
     #url = 'http://sudpresse.be/%3C!--%20error:%20linked%20page%20doesn\'t%20exist:...%20--%3E'
     url = "http://sudpresse.be/actualite/faits_divers/2012-01-10/un-enfant-de-4-ans-orphelin-sa-mere-a-saute-sur-les-voies-pour-recuperer-son-gsm-930520.shtml"
 
-
     article_data, raw_html = extract_article_data(url)
 
     if article_data:
@@ -389,7 +361,7 @@ def download_one_article():
     else:
         print 'no article found'
 
-if __name__=='__main__':
+if __name__ == '__main__':
     #get_frontpage_toc()
     #download_one_article()
     test_sample_data()

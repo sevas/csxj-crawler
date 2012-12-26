@@ -12,7 +12,6 @@ from common.utils import fetch_html_content
 from common.utils import setup_locales
 
 
-
 setup_locales()
 
 SOURCE_TITLE = u"Le Soir"
@@ -21,15 +20,12 @@ SOURCE_NAME = u"lesoir2"
 LESOIR2_NETLOC = 'www.lesoir.be'
 
 
-
-
 def extract_title_and_url(link_hxs):
     title = u"".join(link_hxs.select("text()").extract())
     url = link_hxs.select('@href').extract()[0]
     if not title:
         title = u"__NO_TITLE__"
     return title, url
-
 
 
 def separate_news_and_blogposts(titles_and_urls):
@@ -45,10 +41,8 @@ def separate_news_and_blogposts(titles_and_urls):
     return toc, blogposts
 
 
-
 def reconstruct_full_url(url):
     return urlparse.urljoin("http://{0}".format(LESOIR2_NETLOC), url)
-
 
 
 def get_frontpage_toc():
@@ -69,7 +63,6 @@ def get_frontpage_toc():
     # bottom sections
     bottom_news_links = hxs.select("//div [@class='bottom-content']//div [@class='block-articles']//a")
 
-
     all_links_hxs = itertools.chain(headlines_links, blog_block, sports_links, bottom_news_links)
     titles_and_urls = [extract_title_and_url(link) for link in all_links_hxs]
 
@@ -77,7 +70,7 @@ def get_frontpage_toc():
     return [(title, reconstruct_full_url(url)) for (title, url) in articles_toc], blogpost_toc
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     toc, blogposts = get_frontpage_toc()
     for t, u in toc:
         print u"{0} ({1})".format(t, u)

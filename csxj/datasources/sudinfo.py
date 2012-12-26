@@ -14,28 +14,20 @@ from scrapy.selector import HtmlXPathSelector
 from common.utils import fetch_content_from_url, fetch_html_content
 from common.utils import extract_plaintext_urls_from_text
 from common.utils import convert_utf8_url_to_ascii
-from csxj.common.tagging import  classify_and_tag, make_tagged_url
+from common.utils import setup_locales
+from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 
 
-
-# for datetime conversions
-if sys.platform in ['linux2', 'cygwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
-elif sys.platform in [ 'darwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR')
-elif sys.platform in [ 'win32']:
-    # locale string from: http://msdn.microsoft.com/en-us/library/cdax410z(v=VS.80).aspx
-    locale.setlocale(locale.LC_ALL, 'fra')
+setup_locales()
 
 
 SUDINFO_INTERNAL_SITES = {
-    'portfolio.sudinfo.be':['internal site', 'images', 'gallery'],
-    'portfolio.sudpresse.be':['internal site', 'images', 'gallery'],
-    'bassenge.blogs.sudinfo.be':['internal blog', 'blog'],
-    'pdf.lameuse.be':['internal site', 'pdf newspaper'],
-    'football.sudpresse.be':['sports', 'internal site'],
-
+    'portfolio.sudinfo.be': ['internal site', 'images', 'gallery'],
+    'portfolio.sudpresse.be': ['internal site', 'images', 'gallery'],
+    'bassenge.blogs.sudinfo.be': ['internal blog', 'blog'],
+    'pdf.lameuse.be': ['internal site', 'pdf newspaper'],
+    'football.sudpresse.be': ['sports', 'internal site'],
 }
 
 SUDINFO_OWN_NETLOC = 'www.sudinfo.be'
@@ -45,17 +37,11 @@ SOURCE_TITLE = u"Sud Info"
 SOURCE_NAME = u"sudinfo"
 
 
-
-
-
-
-
 def extract_date(hxs):
     today = datetime.today()
 
     date_string = u"".join(hxs.select("//p[@class='publiele']//text()").extract())
     date_bytestring = codecs.encode(date_string, 'utf-8')
-
 
     if date_string.startswith(u"Publié le "):
         date_fmt = codecs.encode(u"Publié le %A %d %B %Y à %Hh%M", 'utf-8')
@@ -67,7 +53,6 @@ def extract_date(hxs):
     datetime_published = datetime.strptime(date_bytestring, date_fmt)
 
     return datetime_published.date(), datetime_published.time()
-
 
 
 def extract_title_and_url(link_hxs):
@@ -94,8 +79,7 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
         img_links = [l for l in links if l.select("./img")]
         text_links = [l for l in links if l not in img_links]
 
-        return [extract_title_and_url(link) for link in text_links],  [extract_img_link_info(link) for link in img_links]
-
+        return [extract_title_and_url(link) for link in text_links], [extract_img_link_info(link) for link in img_links]
 
     links = paragraph_hxs.select(".//a")
 
@@ -114,7 +98,7 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
         tags.update(['in text', 'embedded image'])
         tagged_urls.append(make_tagged_url(url, img_target, tags))
 
-    text_fragments  = paragraph_hxs.select(".//text()").extract()
+    text_fragments = paragraph_hxs.select(".//text()").extract()
     if text_fragments:
         text = ' '.join(text_fragments)
         plaintext_urls = extract_plaintext_urls_from_text(text)
@@ -126,16 +110,13 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
     else:
         text = u""
 
-
     return text, tagged_urls
-
 
 
 def extract_intro_and_links(hxs):
     intro_container = hxs.select("//div [@id='article']/p[starts-with(@class, 'chapeau')]/following-sibling::*[1]")
     intro_text, tagged_urls = extract_text_and_links_from_paragraph(intro_container)
     return intro_text, tagged_urls
-
 
 
 def extract_links_from_media_items(media_items):
@@ -147,7 +128,6 @@ def extract_links_from_media_items(media_items):
         @media_items: list of html selectors pointing to every list item (<li>)
     """
 
-
     def extract_and_tag_url_from_iframe(item):
         embedded_frame = item.select(".//iframe")
         if embedded_frame:
@@ -157,7 +137,6 @@ def extract_links_from_media_items(media_items):
             return make_tagged_url(target_url, title, tags)
         else:
             return None
-
 
     tagged_urls = list()
     for item in media_items:
@@ -211,8 +190,6 @@ def extract_links_from_media_items(media_items):
         else:
             raise ValueError("Unknown media type ('{0}') detected. Please update this parser.".format(media_type))
 
-
-
     return tagged_urls
 
 
@@ -227,7 +204,6 @@ def extract_content_and_links(hxs):
         all_content_paragraphs.append(text)
         all_tagged_urls.extend(tagged_urls)
 
-
     #extract embedded videos
     divs = hxs.select("//div [@id='article']/p[starts-with(@class, 'publiele')]/following-sibling::div/div [@class='bottomVideos']")
 
@@ -239,7 +215,6 @@ def extract_content_and_links(hxs):
 
             all_tagged_urls.append(make_tagged_url(url, url, tags))
 
-
     new_media_items = hxs.select("//div [@class='digital-wally_digitalobject']//li")
 
     all_tagged_urls.extend(extract_links_from_media_items(new_media_items))
@@ -247,10 +222,9 @@ def extract_content_and_links(hxs):
     return all_content_paragraphs, all_tagged_urls
 
 
-
 LINK_TYPE_TO_TAG = {
-    'media-video':['video'],
-    'media-press':[],
+    'media-video': ['video'],
+    'media-press': [],
 }
 
 
@@ -296,10 +270,8 @@ def extract_associated_links(hxs):
     return all_tagged_urls
 
 
-
 def is_page_error_404(hxs):
     return hxs.select("//head/title/text()").extract() == '404'
-
 
 
 def extract_article_data(source):
@@ -337,7 +309,6 @@ def extract_article_data(source):
 
         all_links = intro_links + content_links + associated_links
 
-
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             all_links,
                             category, author,
@@ -345,11 +316,7 @@ def extract_article_data(source):
                 html_content)
 
 
-
-
-
 ### frontpage stuff
-
 def extract_title_url_from_hxs_a(link):
     title = ''.join(link.select(".//text()").extract())
     return title.strip(), link.select("@href").extract()[0]
@@ -368,7 +335,6 @@ def make_full_url(prefix, titles_and_urls):
     return [(title, urllib.basejoin(prefix, url)) for title, url in titles_and_urls]
 
 
-
 def separate_blogposts_and_news(titles_and_urls):
     def is_internal_url(url):
         scehem, netloc, path, params, query, fragments = urlparse(url)
@@ -378,14 +344,13 @@ def separate_blogposts_and_news(titles_and_urls):
     return news_items, blogpost_items
 
 
-
 def get_frontpage_toc():
     BASE_URL = u'http://www.sudinfo.be/'
     html_content = fetch_content_from_url(BASE_URL)
     hxs = HtmlXPathSelector(text=html_content)
 
     column1_headlines = hxs.select("//div[starts-with(@class, 'first-content')]//div[starts-with(@class, 'article')]//h2/a")
-    column3_headlines =  hxs.select("//div[@class='octetFun']/a/child::h3/..")
+    column3_headlines = hxs.select("//div[@class='octetFun']/a/child::h3/..")
     buzz_headlines = hxs.select("//div[@class='buzz exergue clearfix']//h2/a")
     buzz_headlines.extend(hxs.select("//div[@class='buzz exergue clearfix']//li/a"))
 
@@ -399,7 +364,6 @@ def get_frontpage_toc():
     return make_full_url(BASE_URL, news), blogposts
 
 
-
 def show_frontpage_articles():
     toc, blogs = get_frontpage_toc()
 
@@ -410,7 +374,6 @@ def show_frontpage_articles():
         article_data, html_content = extract_article_data(url)
         article_data.print_summary()
         #print article_data.to_json()
-
 
 
 def test_sample_data():
@@ -448,8 +411,7 @@ def show_article():
         u"http://www.sudinfo.be/534931/article/actualite/sante/2012-09-26/la-prescription-des-medicaments-bon-marche-continue-de-progresser",
         u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/des-nus-partout-dans-bruxelles-qui-miment-l-acte-sexuel-l’incroyable-performance",
         u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/schocking-in-brussles-des-hommes-nus-miment-l-acte-sexuel-au-palais-de-justice-a"
-
-        ]
+    ]
 
     for url in urls[:]:
         article_data, raw_html = extract_article_data(url)
@@ -465,32 +427,24 @@ def show_article():
             print 'no article found'
 
 
-
-
-
 def show_frontpage_toc():
     headlines, blogposts = get_frontpage_toc()
 
     for title, url in headlines:
         print u"{0} \t\t\t\t\t [{1}]".format(title, url)
 
-
-
     for title, url in blogposts:
         print u"{0} \t\t\t\t\t [{1}]".format(title, url)
 
     print len(headlines), len(blogposts)
 
-if __name__=='__main__':
+if __name__ == '__main__':
     #show_frontpage_toc()
     #download_one_article()
     #show_frontpage_articles()
 
     url = "/Volumes/Curst/json_db_0_5/sudinfo/2012-06-05/14.05.07/raw_data/18.html"
-    f = open(url,"r")
+    f = open(url, "r")
 
     article_data, content_html = extract_article_data(f)
     article_data.print_summary()
-
-
-

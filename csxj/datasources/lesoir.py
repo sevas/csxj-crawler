@@ -11,15 +11,12 @@ from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, Tagg
 from csxj.db.article import ArticleData
 from common.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
 from common.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
+from common.utils import setup_locales
 from common import constants
 from csxj.common import tagging
 
 
-# for datetime conversions
-if sys.platform in ['linux2', 'cygwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
-elif sys.platform in [ 'darwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR')
+setup_locales()
 
 SOURCE_TITLE = u"Le Soir"
 SOURCE_NAME = u"lesoir"
@@ -76,7 +73,7 @@ def extract_title_and_url_from_bslink(link):
     else :
         url = "__GHOST_LINK__"
         base_tags.append("ghost link")
-        
+
     if link.contents:
         title = link.contents[0].strip()
     else:
@@ -112,7 +109,7 @@ def extract_text_content(story):
 
     # extract story text
     clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
-    
+
     # extract plaintext links
     plaintext_urls = []
     for text in clean_paragraphs:
@@ -126,7 +123,7 @@ def extract_text_content(story):
 
 
     return clean_paragraphs, tagged_urls
-    
+
 
 
 def extract_to_read_links_from_sidebar(sidebar):
@@ -139,7 +136,7 @@ def extract_to_read_links_from_sidebar(sidebar):
     else:
         return []
 
-    
+
 
 def extract_external_links_from_sidebar(sidebar):
     external_links_container = sidebar.find('div', {'id':'external'})
@@ -173,7 +170,7 @@ def extract_recent_links_from_soup(soup):
     else:
         return []
 
-    
+
 
 def extract_links(soup):
     """
@@ -185,10 +182,10 @@ def extract_links(soup):
     all_tagged_urls = extract_external_links_from_sidebar(sidebar)
     all_tagged_urls.extend(extract_to_read_links_from_sidebar(sidebar))
     all_tagged_urls.extend(extract_recent_links_from_soup(soup))
-    
+
     return all_tagged_urls
 
-    
+
 
 def extract_title(story):
     header = story.find('div', {'id':'story_head'})
@@ -294,7 +291,7 @@ def extract_article_data(source):
     story = soup.find('div', {'id':'story'})
 
     category = extract_category(story)
-    title = extract_title(story)    
+    title = extract_title(story)
     pub_date, pub_time = extract_date(story)
     author = extract_author_name(story)
 
@@ -314,7 +311,7 @@ def extract_article_data(source):
                               all_links,
                               category, author,
                               intro, content), html_content
-    
+
 
 
 def extract_main_content_links(source):
@@ -385,7 +382,7 @@ def get_frontpage_toc():
         main_stories = set(container.findAll('li', {'class':'stories_main clearfix'}, recursive=False))
 
         other_stories = all_stories - main_stories
-        
+
         # So, in _some_ lists of stories, the first one ('main story') has its title in an <h1>
         # and the rest in an <h2>
         # Also, some have two columns stories.
@@ -420,7 +417,7 @@ def get_frontpage_toc():
     return [(title, 'http://www.lesoir.be{0}'.format(url)) for (title, url) in articles_toc], blogpost_toc
 
 
-            
+
 
 def get_rss_toc():
     rss_url = 'http://www.lesoir.be/la_une/rss.xml'
@@ -428,11 +425,11 @@ def get_rss_toc():
     stonesoup = BeautifulStoneSoup(xml_content)
 
     titles_in_rss = [(item.title.contents[0], item.link.contents[0]) for item in stonesoup.findAll('item')]
-        
+
     return titles_in_rss
 
 
-    
+
 def parse_sample_data():
     import sys
     data_directory = '../../sample_data'
@@ -465,7 +462,7 @@ def get_frontpage_articles_data():
     for (title, url) in articles_toc:
         article_data, html_content = extract_article_data(url)
         articles.append(article_data)
-            
+
     return articles, blogposts_toc, errors
 
 

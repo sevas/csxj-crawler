@@ -4,16 +4,12 @@ import locale
 from itertools import chain
 import codecs
 from common.utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
-from common.utils import extract_plaintext_urls_from_text
+from common.utils import extract_plaintext_urls_from_text, setup_locales
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
 from csxj.db.article import ArticleData
 
 
-# for datetime conversions
-if sys.platform in ['linux2', 'cygwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_FR.UTF8')
-elif sys.platform in [ 'darwin']:
-    locale.setlocale(locale.LC_TIME, 'fr_BE')
+setup_locales()
 
 
 RTLINFO_OWN_NETLOC = 'www.rtl.be'
@@ -69,7 +65,7 @@ def extract_external_links(main_article):
         for url, title in urls_and_titles:
             tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
             tagged_urls.append(make_tagged_url(url, title, tags))
-            
+
         return tagged_urls
 
     else:
@@ -144,7 +140,7 @@ def extract_embedded_links_from_articlebody(article_body):
         tags = classify_and_tag(url, RTLINFO_OWN_NETLOC, RTLINFO_INTERNAL_SITES)
         tags = tags.union(['in text', 'embedded'])
         embedded_links.append(make_tagged_url(url, title, tags))
-        
+
     return embedded_links
 
 
@@ -216,7 +212,7 @@ def extract_article_data(source):
         return None, html_content
 
 
-    
+
 def extract_frontpage_title_and_url(link):
     title = remove_text_formatting_markup_from_fragments(link, ' ')
     return title, link.get('href')
@@ -225,7 +221,7 @@ def extract_frontpage_title_and_url(link):
 
 def extract_headlines_from_module(module_container):
     """
-    
+
     """
     body = module_container.find('div', {'class':'ModuleElementBody'})
 
@@ -284,7 +280,7 @@ def extract_first_articles(maincontent):
     articles_right = maincontent.findAll('div', {'class':'ArticlesRight '})
     articles_right.extend(maincontent.findAll('div', {'class':'ArticlesRight ArticlesRight-First'}))
     articles_right.extend(maincontent.findAll('div', {'class':'ArticlesRight ArticlesRight-Last'}))
-    
+
     titles_and_urls.extend(extract_frontpage_title_and_url(article.h5.a) for article in articles_right)
 
     return titles_and_urls
