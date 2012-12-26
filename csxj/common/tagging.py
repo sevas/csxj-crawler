@@ -5,8 +5,6 @@ from urlutils import is_on_same_domain, get_netloc_domain
 TaggedURL = namedtuple('TaggedURL', 'URL title tags')
 
 
-
-
 def make_tagged_url(url, title, tags):
     return TaggedURL(URL=url, title=title, tags=tags)
 
@@ -57,3 +55,8 @@ def classify_and_tag(url, own_netloc, associated_sites):
 
     return set(tags)
 
+
+def print_taggedURLs(tagged_urls):
+    print "Count: ", len(tagged_urls)
+    for tagged_url in tagged_urls:
+        print(u"{0:60} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
