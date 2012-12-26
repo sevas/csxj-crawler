@@ -17,6 +17,23 @@ def tag_URL((url, title), tags):
 
 def classify_and_tag(url, own_netloc, associated_sites):
     """
+
+
+    >>> classify_and_tag("http://www.foo.org", "foo.org", {})
+    set(['internal site'])
+
+    >>> classify_and_tag("http://www.foo.org/bar", "foo.org", {})
+    set(['internal site'])
+
+    >>> classify_and_tag("http://www.baz.org/bar", "foo.org", {})
+    set(['external'])
+
+    >>> classify_and_tag("/bar/baz", "foo.org", {})
+    set(['internal'])
+
+
+    >>> classify_and_tag("#anchor", "foo.org", {})
+    set(['internal', 'anchor'])
     """
     tags = []
     parsed = urlparse.urlparse(url)
@@ -31,6 +48,9 @@ def classify_and_tag(url, own_netloc, associated_sites):
                 tags.append('internal site')
             else:
                 tags.append('external')
+    elif not (scheme or netloc or path or params or query) and fragment:
+        if url.startswith('#'):
+            tags = ['internal', 'anchor']
     elif url:
         # url starting with '/'
         tags = ['internal']

@@ -64,7 +64,21 @@ class URLClassificationTestCases(unittest.TestCase):
         self.assertEqual(tags, set())
 
 
+    def test_anchor(self):
+        url = '#anchor'
+        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
+        self.assertEqual(tags, set(['internal', 'anchor']))
 
+
+    def test_external_hashbang_url(self):
+        url = 'http://twitter.com/!#/foo'
+        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
+        self.assertEqual(tags, set(['external']))
+
+    def test_internal_hashbang_url(self):
+        url = 'http://twitter.com/!#/foo'
+        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
+        self.assertEqual(tags, set(['external']))
 
         
 class JSONSerializationTestCases(unittest.TestCase):
