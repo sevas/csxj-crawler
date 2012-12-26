@@ -207,9 +207,12 @@ def extract_embedded_media_from_top_box(soup):
         if url :
             tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
             tags.add('embedded')
+            tags.add('top box')
             tagged_urls.append(tagging.make_tagged_url(url, url, tags))
         else :
             raise ValueError("There to be an embedded object but we could not find an link. Update the parser.")
+    
+    # sometimes it's a kewego player
     kplayer = top_box.find(attrs = {'class': 'emvideo emvideo-video emvideo-kewego'})
     if kplayer:
         url_part1 = kplayer.object['data']
@@ -220,15 +223,27 @@ def extract_embedded_media_from_top_box(soup):
             if kplayer.next_sibling.name == "figcaption":
                 if len(kplayer.next_sibling) > 0 :
                     title = kplayer.next_sibling.contents[0]
-                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded'])))
+                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box'])))
                 else :
                     title = "__NO_TITLE__"
-                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded'])))
+                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box'])))
             else:
                 title = "__NO_TITLE__"
-                tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded'])))
+                tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box'])))
         else:
             raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
+    
+    # sometimes it's a youtube player
+    youtube_player = top_box.find(attrs = {'class': 'emvideo emvideo-video emvideo-youtube'})
+    if youtube_player:
+        url = youtube_player.find("a").get("href")
+        if url :
+            tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+            tags.add('embedded')
+            tags.add('top box')
+            tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+        else:
+            raise ValueError("There seems to be a Youtube player but we couldn't find an URL. Update the parser.")
     return tagged_urls
 
 def extract_embedded_media_from_bottom(soup):
@@ -297,21 +312,22 @@ if __name__ == '__main__':
     url = "http://www.lesoir.be/141854/article/debats/chats/2012-12-20/pol%C3%A9mique-sur-michelle-martin-%C2%ABne-confondons-pas-justice-et-vengeance%C2%BB"
     url = "http://www.lesoir.be/91779/article/actualite/belgique/2012-10-02/coupure-d%E2%80%99%C3%A9lectricit%C3%A9-%C3%A0-bruxelles-est-due-%C3%A0-un-incident-chez-elia"
     url = "http://www.lesoir.be/142376/article/styles/cuisines/2012-12-21/cuisinez-comme-un-chef-pour-f%C3%AAtes"
-    # url = "http://www.lesoir.be/144465/article/actualite/belgique/2012-12-26/di-rupo-discours-du-roi-un-message-%C2%AB-humaniste-%C2%BB"
-    # extract_article_data(url)
+    url = "http://www.lesoir.be/144465/article/actualite/belgique/2012-12-26/di-rupo-discours-du-roi-un-message-%C2%AB-humaniste-%C2%BB"
+    url = "http://www.lesoir.be/144352/article/culture/cinema/2012-12-26/spike-lee-boycotte-prochain-film-quentin-tarantino"
+    extract_article_data(url)
 
-    toc, blogposts = get_frontpage_toc()
-    for t, u in toc:
-        url = codecs.encode(u, 'utf-8')
-        print url
-        try:
-            extract_article_data(url)
-        except Exception as e:
-            print "Something went wrong with: ", url
-            import traceback
-            print traceback.format_exc()
+    # toc, blogposts = get_frontpage_toc()
+    # for t, u in toc:
+    #     url = codecs.encode(u, 'utf-8')
+    #     print url
+    #     try:
+    #         extract_article_data(url)
+    #     except Exception as e:
+    #         print "Something went wrong with: ", url
+    #         import traceback
+    #         print traceback.format_exc()
 
-        print "************************"
+    #     print "************************"
 
 
 
