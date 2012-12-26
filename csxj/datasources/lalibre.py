@@ -317,7 +317,7 @@ def test_sample_data():
             "http://www.lalibre.be/sports/football/article/778966/suivez-anderlecht-milan-ac-en-live-des-20h30.html",
             ]
 
-    for url in urls[-1:]:
+    for url in urls[:]:
         article, html = extract_article_data(url)
 
         if article:
