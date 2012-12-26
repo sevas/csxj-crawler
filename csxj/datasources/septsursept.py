@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import urllib
-from datetime import datetime, time
-import sys
+from datetime import datetime, date, time
 from itertools import chain
-import urlparse
+
 from scrapy.selector import HtmlXPathSelector
 import bs4
+
 from common import utils
 from common import twitter_utils
 from csxj.common import tagging
@@ -216,9 +216,6 @@ def extract_links_from_sidebar_box(soup):
             tags.add('sidebar box')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
-    for x in tagged_urls:
-        print x
-
     return tagged_urls
 
 def extract_title_and_url_from_bslink(link):
@@ -362,8 +359,8 @@ def extract_article_data(url):
     if "/photoalbum/" in url:
         title = "__photoalbum__"
         author_name = ""
-        pub_date = None
-        pub_time = None
+        pub_date = date(1900, 1, 1) # photoalbums don't have date info. Articles are stored by day/hour batches anyway so this info is mostly redundant for the other articles.
+        pub_time = time.min
         source = ""
         intro = ""
         text = ""
@@ -378,17 +375,11 @@ def extract_article_data(url):
         if page_type == IS_FRONTPAGE:
             return None, None
         elif page_type == MAYBE_ARTICLE:
-            raise Exception("We couldn't define if this was an article or the frontpage, please check")
+            raise ValueError("We couldn't define if this was an article or the frontpage, please check")
 
-
-    # pour tous les autres vrais articles
+        # pour tous les autres vrais articles
         elif page_type == IS_ARTICLE:
 
-            # if hasattr(source, 'read'):
-            #   html_data = source.read(source)
-            # else:
-            #   request  = urllib.urlopen(url)
-            #   html_data = request.read()
 
             soup  = bs4.BeautifulSoup(html_data)
             title = extract_title(soup)
@@ -451,28 +442,30 @@ if __name__ == '__main__':
     urls = [url1, url2, url3, url4, url6, url7, url8, url9, url10, url11, url12, url13]
 
     from pprint import pprint
-    import json
-    f = open("/Users/judemaey/code/2012-09-02/7sur7.json")
-    urls = json.load(f)
+#    import json
+#    f = open("/Users/judemaey/code/2012-09-02/7sur7.json")
+#    urls = json.load(f)
 
-    for x in urls:
-        for y in x[1]:
-            url = y[1]
-            article_data, html = extract_article_data(url)
-            print article_data.title
-            print article_data.url
-            pprint(article_data.links)
-            print len(article_data.links)
-            print "\n"
-            print "******************************"
-            print "\n"
+#    for x in urls:
+#        for y in x[1]:
+#            url = y[1]
+#            article_data, html = extract_article_data(url)
+#            print article_data.title
+#            print article_data.url
+#            pprint(article_data.links)
+#            print len(article_data.links)
+#            print "\n"
+#            print "******************************"
+#            print "\n"
 
-    # for url in urls:
-    #     article_data, html = extract_article_data(url)
-    #     print article_data.title
-    #     print article_data.url
-    #     pprint(article_data.links)
-    #     print len(article_data.links)
+    for url in urls[3:4]:
+         article_data, html = extract_article_data(url)
+         print article_data.title
+         print article_data.url
+         pprint(article_data.links)
+         print len(article_data.links)
+         print article_data.pub_date
+         print article_data.to_json()
 
 
 
