@@ -159,7 +159,7 @@ def extract_text_content_and_links(soup) :
     tagged_urls = list()
     for title, url, base_tags in titles_and_urls:
         tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-        tags.union(base_tags)
+        tags.update(base_tags)
         tags.add('in text')
         tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
@@ -180,7 +180,7 @@ def extract_links_from_read_more_box(soup):
         tagged_urls = list()
         for title, url, base_tags in titles_and_urls:
             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-            tags.union(base_tags)
+            tags.update(base_tags)
             tags.add('bottom box')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
         return tagged_urls
@@ -196,7 +196,7 @@ def extract_links_from_sidebar_box(soup):
     titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
     for title, url, base_tags in titles_and_urls:
         tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-        tags.union(base_tags)
+        tags.update(base_tags)
         tags.add('sidebar box')
         tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
@@ -207,7 +207,7 @@ def extract_links_from_sidebar_box(soup):
         titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
         for title, url, base_tags in titles_and_urls:
             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-            tags.union(base_tags)
+            tags.update(base_tags)
             tags.add('article tag')
             tags.add('siderbar box')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
