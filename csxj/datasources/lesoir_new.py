@@ -5,10 +5,13 @@ import codecs
 from datetime import datetime, time
 import urlparse
 import bs4
+import itertools
+from scrapy.selector import HtmlXPathSelector
 from common import utils
 from common import twitter_utils
 from csxj.common import tagging
 from csxj.db.article import ArticleData
+from common.utils import fetch_html_content
 from common.utils import setup_locales
 
 
@@ -16,6 +19,55 @@ setup_locales()
 
 LESOIR_NETLOC = "www.lesoir.be"
 LESOIR_INTERNAL_SITES = {}
+
+def extract_title_and_url(link_hxs):
+    title = u"".join(link_hxs.select("text()").extract())
+    url = link_hxs.select('@href').extract()[0]
+    if not title:
+        title = u"__NO_TITLE__"
+    return title, url
+
+def separate_news_and_blogposts(titles_and_urls):
+    def is_external_blog(url):
+        return not url.startswith('/')
+
+    toc, blogposts = list(), list()
+    for t, u in titles_and_urls:
+        if is_external_blog(u):
+            blogposts.append((t, u))
+        else:
+            toc.append((t, u))
+    return toc, blogposts
+
+
+def reconstruct_full_url(url):
+    return urlparse.urljoin("http://{0}".format(LESOIR_NETLOC), url)
+def get_frontpage_toc():
+    html_data = fetch_html_content('http://www.lesoir.be')
+    hxs = HtmlXPathSelector(text=html_data)
+
+    # main stories
+    list_items = hxs.select("//div [@id='main-content']//ul/li")
+    headlines_links = list_items.select("./h2/a | ./h3/a")
+
+    # just for the blog count statistics
+    blog_block = hxs.select("//div [@class='bottom-content']//div [@class='block-blog box']//h5/a")
+
+    # mainly soccer
+    sport_block = hxs.select("//div [@class='bottom-content']//div [@class='block-sport']")
+    sports_links = sport_block.select(".//h2/a | .//aside//li/a")
+
+    # bottom sections
+    bottom_news_links = hxs.select("//div [@class='bottom-content']//div [@class='block-articles']//a")
+
+
+    all_links_hxs = itertools.chain(headlines_links, blog_block, sports_links, bottom_news_links)
+
+
+    titles_and_urls = [extract_title_and_url(link) for link in all_links_hxs]
+
+    articles_toc, blogpost_toc = separate_news_and_blogposts(titles_and_urls)
+    return [(title, reconstruct_full_url(url)) for (title, url) in articles_toc], blogpost_toc
 
 
 def extract_title(soup):
@@ -42,7 +94,6 @@ def extract_date_and_time(soup):
     full_date_and_time_string = "%sh%s" % (date_part1, date_part2)
     date_bytestring = codecs.encode(full_date_and_time_string, 'utf-8')
     datetime_published = datetime.strptime(date_bytestring, u'%A %d %B %Y, %Hh%M')
-    print datetime_published.date(), datetime_published.time()
     return datetime_published.date(), datetime_published.time()
 
 
@@ -127,8 +178,6 @@ def extract_article_tags(soup):
             tags.add('article tag')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
-    for x in tagged_urls:
-        print x
     return tagged_urls
 
 
@@ -232,8 +281,8 @@ def extract_article_data(url):
     links = tagged_urls_intext + sidebar_links + article_tags + embedded_media
     date, time = extract_date_and_time(soup)
 
-    # for x in links:
-    #     print x
+    for x in links:
+        print x
 
 if __name__ == '__main__':
 
@@ -245,12 +294,24 @@ if __name__ == '__main__':
     url = "http://www.lesoir.be/141646/article/actualite/regions/bruxelles/2012-12-20/stib-l-abonnement-scolaire-co%C3%BBtera-120-euros"
     url = "http://www.lesoir.be/141861/article/debats/chats/2012-12-20/11h02-relations-du-parti-islam-avec-l-iran-posent-question"
     url = "http://www.lesoir.be/141613/article/actualite/regions/bruxelles/2012-12-20/catteau-danse-contre-harc%C3%A8lement"
-  #  url = "http://www.lesoir.be/141854/article/debats/chats/2012-12-20/pol%C3%A9mique-sur-michelle-martin-%C2%ABne-confondons-pas-justice-et-vengeance%C2%BB"
-  #  url = "http://www.lesoir.be/91779/article/actualite/belgique/2012-10-02/coupure-d%E2%80%99%C3%A9lectricit%C3%A9-%C3%A0-bruxelles-est-due-%C3%A0-un-incident-chez-elia"
-  #  url = "http://www.lesoir.be/142376/article/styles/cuisines/2012-12-21/cuisinez-comme-un-chef-pour-f%C3%AAtes"
-    extract_article_data(url)
+    url = "http://www.lesoir.be/141854/article/debats/chats/2012-12-20/pol%C3%A9mique-sur-michelle-martin-%C2%ABne-confondons-pas-justice-et-vengeance%C2%BB"
+    url = "http://www.lesoir.be/91779/article/actualite/belgique/2012-10-02/coupure-d%E2%80%99%C3%A9lectricit%C3%A9-%C3%A0-bruxelles-est-due-%C3%A0-un-incident-chez-elia"
+    url = "http://www.lesoir.be/142376/article/styles/cuisines/2012-12-21/cuisinez-comme-un-chef-pour-f%C3%AAtes"
+    # url = "http://www.lesoir.be/144465/article/actualite/belgique/2012-12-26/di-rupo-discours-du-roi-un-message-%C2%AB-humaniste-%C2%BB"
+    # extract_article_data(url)
 
+    toc, blogposts = get_frontpage_toc()
+    for t, u in toc:
+        url = codecs.encode(u, 'utf-8')
+        print url
+        try:
+            extract_article_data(url)
+        except Exception as e:
+            print "Something went wrong with: ", url
+            import traceback
+            print traceback.format_exc()
 
+        print "************************"
 
 
 
