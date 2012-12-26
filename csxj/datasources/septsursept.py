@@ -209,7 +209,7 @@ def extract_links_from_sidebar_box(soup):
             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
             tags.update(base_tags)
             tags.add('article tag')
-            tags.add('siderbar box')
+            tags.add('sidebar box')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
     for x in tagged_urls:
