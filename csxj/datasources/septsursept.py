@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import urllib
-from datetime import datetime, date, time
+import datetime as dt
+import time
 from itertools import chain
 
 from scrapy.selector import HtmlXPathSelector
@@ -97,7 +98,7 @@ def extract_date_and_time(author_box):
         Takes a HH:MM string, returns a time object
         """
         h, m = [int(i) for i in time_string.split('h')]
-        return time(h, m)
+        return dt.time(h, m)
 
     # la date et l'heure sont dans le dernier élément de la author_box
     date_string = author_box.contents[-1]
@@ -111,7 +112,7 @@ def extract_date_and_time(author_box):
     # nettoyer les espaces et les retours à la ligne autour de la date
     date_clean = date_and_time[0].strip("\n ")
 
-    pub_date = datetime.strptime(date_clean, '%d/%m/%y').date()
+    pub_date = dt.datetime.strptime(date_clean, '%d/%m/%y').date()
     pub_time = make_time_from_string(date_and_time[1])
 
     return pub_date, pub_time
@@ -359,12 +360,12 @@ def extract_article_data(url):
     if "/photoalbum/" in url:
         title = "__photoalbum__"
         author_name = ""
-        pub_date = date(1900, 1, 1) # photoalbums don't have date info. Articles are stored by day/hour batches anyway so this info is mostly redundant for the other articles.
-        pub_time = time.min
+        pub_date = dt.date(1900, 1, 1) # photoalbums don't have date info. Articles are stored by day/hour batches anyway so this info is mostly redundant for the other articles.
+        pub_time = dt.time.min
         source = ""
         intro = ""
         text = ""
-        return (ArticleData(url, title, pub_date, pub_time, datetime.now(),
+        return (ArticleData(url, title, pub_date, pub_time, dt.datetime.now(),
                             [],
                             title, author_name,
                             intro, text),
@@ -404,7 +405,7 @@ def extract_article_data(url):
 
             tagged_urls = tagged_urls_intext + tagged_urls_read_more_box + tagged_urls_sidebar_box + tagged_urls_embedded_media
 
-            return (ArticleData(url, title, pub_date, pub_time, datetime.now(),
+            return (ArticleData(url, title, pub_date, pub_time, dt.datetime.now(),
                             tagged_urls,
                             category, author_name,
                             intro, text),
@@ -458,15 +459,25 @@ if __name__ == '__main__':
 #            print "******************************"
 #            print "\n"
 
-    for url in urls[3:4]:
-         article_data, html = extract_article_data(url)
-         print article_data.title
-         print article_data.url
-         pprint(article_data.links)
-         print len(article_data.links)
-         print article_data.pub_date
-         print article_data.to_json()
+    total_time = 0.0
+    for url in urls[:]:
+        before = dt.datetime.now()
+        article_data, html = extract_article_data(url)
+        elapsed = dt.datetime.now() - before
+        total_time += elapsed.seconds
+        print article_data.title
+        print article_data.url
+        pprint(article_data.links)
+        print len(article_data.links)
+        print article_data.pub_date
+        print article_data.to_json()
 
+    avg = total_time / len(urls)
+    print "total time for {0} articles: {1}".format(len(urls), total_time)
+    print "avg time per article: {0}".format(avg)
+    projected_article_count = 50000
+    projected_time = avg * projected_article_count
+    print "Projection for {0} articles:".format(projected_article_count), time.strftime("%H:%M:%S", time.gmtime(projected_time))
 
 
     # frontpage = get_frontpage_toc()
