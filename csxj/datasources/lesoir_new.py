@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import urllib
+import codecs
 from datetime import datetime, time
 import urlparse
 import bs4
@@ -8,7 +9,10 @@ from common import utils
 from common import twitter_utils
 from csxj.common import tagging
 from csxj.db.article import ArticleData
+from common.utils import setup_locales
 
+
+setup_locales()
 
 LESOIR_NETLOC = "www.lesoir.be"
 LESOIR_INTERNAL_SITES = {}
@@ -30,8 +34,17 @@ def extract_author_name(soup):
 
     return authors
 
-def extract_date_and_time(author_box):
-    pass
+def extract_date_and_time(soup):
+    meta_box = soup.find(attrs = {"class" : "meta"})
+    date = meta_box.find(attrs = {"class" : "prettydate"})
+    date_part1 = date.contents[0]
+    date_part2 = date.contents[-1]
+    full_date_and_time_string = "%sh%s" % (date_part1, date_part2)
+    date_bytestring = codecs.encode(full_date_and_time_string, 'utf-8')
+    datetime_published = datetime.strptime(date_bytestring, u'%A %d %B %Y, %Hh%M')
+    print datetime_published.date(), datetime_published.time()
+    return datetime_published.date(), datetime_published.time()
+
 
 def extract_intro(soup):
     intro_box = soup.find(attrs = {"class" : "article-content"})
@@ -217,9 +230,10 @@ def extract_article_data(url):
     embedded_media_in_article = extract_embedded_media_in_article(soup)
     embedded_media = embedded_media_from_top_box + embedded_media_from_bottom + embedded_media_in_article
     links = tagged_urls_intext + sidebar_links + article_tags + embedded_media
+    date, time = extract_date_and_time(soup)
 
-    for x in links:
-        print x
+    # for x in links:
+    #     print x
 
 if __name__ == '__main__':
 
@@ -231,10 +245,9 @@ if __name__ == '__main__':
     url = "http://www.lesoir.be/141646/article/actualite/regions/bruxelles/2012-12-20/stib-l-abonnement-scolaire-co%C3%BBtera-120-euros"
     url = "http://www.lesoir.be/141861/article/debats/chats/2012-12-20/11h02-relations-du-parti-islam-avec-l-iran-posent-question"
     url = "http://www.lesoir.be/141613/article/actualite/regions/bruxelles/2012-12-20/catteau-danse-contre-harc%C3%A8lement"
-    url = "http://www.lesoir.be/141854/article/debats/chats/2012-12-20/pol%C3%A9mique-sur-michelle-martin-%C2%ABne-confondons-pas-justice-et-vengeance%C2%BB"
-    url = "http://www.lesoir.be/142297/article/sports/football/2012-12-21/genk-anderlecht-en-direct-comment%C3%A9"
-    url = "http://www.lesoir.be/91779/article/actualite/belgique/2012-10-02/coupure-d%E2%80%99%C3%A9lectricit%C3%A9-%C3%A0-bruxelles-est-due-%C3%A0-un-incident-chez-elia"
-    url = "http://www.lesoir.be/142376/article/styles/cuisines/2012-12-21/cuisinez-comme-un-chef-pour-f%C3%AAtes"
+  #  url = "http://www.lesoir.be/141854/article/debats/chats/2012-12-20/pol%C3%A9mique-sur-michelle-martin-%C2%ABne-confondons-pas-justice-et-vengeance%C2%BB"
+  #  url = "http://www.lesoir.be/91779/article/actualite/belgique/2012-10-02/coupure-d%E2%80%99%C3%A9lectricit%C3%A9-%C3%A0-bruxelles-est-due-%C3%A0-un-incident-chez-elia"
+  #  url = "http://www.lesoir.be/142376/article/styles/cuisines/2012-12-21/cuisinez-comme-un-chef-pour-f%C3%AAtes"
     extract_article_data(url)
 
 
