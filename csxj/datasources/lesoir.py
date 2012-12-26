@@ -12,6 +12,7 @@ from csxj.db.article import ArticleData
 from common.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
 from common.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
 from common import constants
+from csxj.common import tagging
 
 
 # for datetime conversions
@@ -67,6 +68,22 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
         tagged_urls.append(make_tagged_url(url, title, tags|additional_tags))
     return tagged_urls
 
+def extract_title_and_url_from_bslink(link):
+    base_tags = []
+    if link.get('href'):
+        url = link.get('href')
+
+    else :
+        url = "__GHOST_LINK__"
+        base_tags.append("ghost link")
+        
+    if link.contents:
+        title = link.contents[0].strip()
+    else:
+        title = "__GHOST_LINK__"
+        base_tags.append("ghost link")
+
+    return title, url, base_tags
 
 def extract_text_content(story):
     """
@@ -75,14 +92,38 @@ def extract_text_content(story):
     """
     story = story.find('div', {'id':'story_body'})
     paragraphs = story.findAll('p', recursive=False)
-    clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
 
-    all_plaintext_urls = []
+    tagged_urls = list()
+
+    # extract regular, in text links
+    inline_links = list()
+    plaintext_urls = list()
+
+    for paragraph in paragraphs:
+        links = paragraph.findAll('a', recursive=True)
+        inline_links.extend(links)
+
+    titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
+    for title, url, base_tags in titles_and_urls:
+        tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+        tags.add('in text')
+        tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+
+
+    # extract story text
+    clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
+    
+    # extract plaintext links
+    plaintext_urls = []
     for text in clean_paragraphs:
-        all_plaintext_urls.extend(extract_plaintext_urls_from_text(text))
-    # plaintext urls are their own title
-    urls_and_titles = zip(all_plaintext_urls, all_plaintext_urls)
-    tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext url', 'in text']))
+        plaintext_urls.extend(extract_plaintext_urls_from_text(text))
+
+    for url in plaintext_urls:
+        tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+        tags.add('in text')
+        tags.add('plaintext')
+        tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+
 
     return clean_paragraphs, tagged_urls
     
@@ -94,7 +135,7 @@ def extract_to_read_links_from_sidebar(sidebar):
     if to_read_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
                             for link in to_read_links_container.findAll('a')]
-        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['to read']))
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['sidebar box', 'to read']))
     else:
         return []
 
@@ -106,7 +147,7 @@ def extract_external_links_from_sidebar(sidebar):
     if external_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
                             for link in external_links_container.findAll('a')]
-        return classify_and_make_tagged_url(urls_and_titles)
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['sidebar box', 'web']))
     else:
         return []
 
@@ -128,7 +169,7 @@ def extract_recent_links_from_soup(soup):
     if recent_links_container:
         urls_and_titles = [extract_url_and_title(item)
                            for item in recent_links_container.findAll('a')]
-        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['recent']))
+        return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['recent', 'sidebar box']))
     else:
         return []
 
@@ -194,12 +235,49 @@ def extract_intro(story):
 
     return ''.join(text_fragments)
 
-
-
 def extract_category(story):
     breadcrumbs = story.find('div', {'id':'fil_ariane'})
     category_stages = [a.contents[0] for a in breadcrumbs.findAll('a') ]
     return category_stages
+
+def extract_links_from_embedded_content(story):
+    tagged_urls = []
+
+    # generic iframes
+    iframe_items = story.findAll("iframe", recursive=True)
+    for iframe in iframe_items:
+        url = iframe.get('src')
+        all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+        tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
+
+    # extract embedded storify
+    scripts = story.findAll('script', recursive=True)
+    for script in scripts :
+        url = script.get('src')
+        if url :
+            scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
+            if netloc == "storify.com":
+                url = url.rstrip(".js")
+                all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+                tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
+
+    # TO DO NEXT : reconstruc kplayer URL
+    kplayer = story.find('div', {'class':'containerKplayer'})
+    if kplayer:
+        kplayer_flash = kplayer.find('div', {'class': 'flash_kplayer'})
+        url_part1 = kplayer_flash.object['data']
+        url_part2 = kplayer_flash.object.find('param', {'name' : 'flashVars'})['value']
+        if url_part1 is not None and url_part2 is not None:
+            url = "%s?%s" % (url_part1, url_part2)
+            all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+            tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
+        else:
+            raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
+
+    for x in tagged_urls:
+        print x
+    return tagged_urls
+
 
 
 
@@ -223,11 +301,14 @@ def extract_article_data(source):
     sidebar_links = extract_links(soup)
 
     intro = extract_intro(story)
-    content, plaintext_links = extract_text_content(story)
+    content, intext_links = extract_text_content(story)
 
     fetched_datetime = datetime.today()
 
-    all_links = sidebar_links + plaintext_links
+    embedded_content_links = extract_links_from_embedded_content(story)
+
+    all_links = sidebar_links + intext_links + embedded_content_links
+
 
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                               all_links,
@@ -394,6 +475,7 @@ def dowload_one_article():
     url = "http://www.lesoir.be/actualite/belgique/elections_2010/2012-01-10/budget-2012-chastel-appele-a-s-expliquer-cet-apres-midi-889234.php"
     url = "http://www.lesoir.be/actualite/france/2012-01-10/free-defie-les-telecoms-francais-avec-un-forfait-illimite-a-19-99-euros-889276.php"
     url = "http://www.lesoir.be/actualite/belgique/2012-08-21/guy-spitaels-est-decede-933203.php"
+    url = "../../sample_data/lesoir/lesoir_storify2.html"
     art, raw_html = extract_article_data(url)
 
     maincontent_links = set(extract_main_content_links(url))
@@ -406,7 +488,20 @@ def dowload_one_article():
     print "processed links: ", len(processed_links)
     print "missing: ", len(missing_links)
 
+def test_sample_data():
+    filepath = '../../sample_data/lesoir/lesoir_storify2.html'
 
+    with open(filepath) as f:
+        article_data, raw = extract_article_data(f)
+        # article_data.print_summary()
+
+        # for link in article_data.links:
+        #     print link.title
+        #     print link.URL
+        #     print link.tags
+
+        # print article_data.intro
+        # print article_data.content
 
 if __name__ == '__main__':
-    dowload_one_article()
+    test_sample_data()
