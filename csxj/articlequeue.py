@@ -216,7 +216,7 @@ class ArticleQueueDownloader(object):
                     self.save_raw_data_to_db(raw_data, batch_output_directory)
 
 
-                self.log_info("Removing queue directory")
+                self.log_info("Removing queue directory for day: {0}".format(day_string))
                 provider_db.cleanup_queue(day_string)
         else:
             self.log_info("Empty queue. Nothing to do.")
