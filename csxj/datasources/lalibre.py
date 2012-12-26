@@ -6,9 +6,9 @@ from BeautifulSoup import Tag
 import urlparse
 from common.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
 from common import constants
-from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
+from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL, print_taggedURLs
 from csxj.db.article import ArticleData
-
+from common import ipm_utils
 
 LALIBRE_ASSOCIATED_SITES = {
 
@@ -171,31 +171,55 @@ def make_tagged_url_from_pictotype(url, title, icon_type):
     return tag_URL((url, title), tags)
 
 
+def extract_tagged_url_from_associated_link(link_list_item, tags=[]):
+    # sometimes list items are used to show things which aren't links
+    # but more like unclickable ads
+    url = link_list_item.a.get('href')
+    title = sanitize_fragment(link_list_item.a.contents[0].rstrip().lstrip())
+    icon_type = link_list_item.get('class')
+    tagged_url = make_tagged_url_from_pictotype(url, title, icon_type)
+    additional_tags = classify_and_tag(url, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+    tagged_url.tags.update(additional_tags | set(tags))
+    return tagged_url
+
+
 def extract_and_tag_associated_links(main_content):
     """
     Extract the associated links. Uses the icon type to tag it.
 
     """
-    link_list = main_content.find('ul', {'class': 'articleLinks'})
+    strong_article_links = main_content.find('div', {'id': 'strongArticleLinks'})
+    if not strong_article_links:
+        return []
 
+    link_list = strong_article_links.find('ul', {'class': 'articleLinks'})
+    tagged_urls = []
     # sometimes there are no links, and thus no placeholder
     if link_list:
-        links = []
-        for item in link_list.findAll('li', recursive=False):
-            # sometimes list items are used to show things which aren't links
-            # but more like unclickable ads
-            if item.a:
-                url = item.a.get('href')
-                title = sanitize_fragment(item.a.contents[0].rstrip().lstrip())
-                icon_type = item.get('class')
-                tagged_url = make_tagged_url_from_pictotype(url, title, icon_type)
-                additional_tags = classify_and_tag(url, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
-                tagged_url.tags.update(additional_tags)
-                links.append(tagged_url)
+        for li in link_list.findAll('li', recursive=False):
+            if li.a:
+                new_url = extract_tagged_url_from_associated_link(li)
+                tagged_urls.append(new_url)
 
-        return links
-    else:
-        return []
+    return tagged_urls
+
+
+def extract_bottom_links(main_content):
+    link_list = main_content.findAll('ul', {'class': 'articleLinks'}, recursive=False)
+
+    tagged_urls = []
+    if link_list:
+        for li in link_list[0].findAll('li', recursive=False):
+            if li.a:
+                tagged_urls.append(extract_tagged_url_from_associated_link(li, tags=['bottom']))
+            else:
+                raise ValueError()
+    return tagged_urls
+
+
+def extract_embedded_content_links(main_content):
+    items = main_content.findAll('div', {'class': 'embedContents'})
+    return [ipm_utils.extract_tagged_url_from_embedded_item(item, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES) for item in items]
 
 
 def extract_author_name(main_content):
@@ -238,20 +262,23 @@ def extract_article_data_from_html(html_content, source_url):
 
     category = extract_category(main_content)
     author = extract_author_name(main_content)
-
     pub_date, pub_time = extract_date(main_content)
-
-    intro = extract_intro(main_content)
-
-    text_content, in_text_urls = extract_text_content_and_links(main_content)
-    associated_tagged_urls = extract_and_tag_associated_links(main_content)
-
     fetched_datetime = datetime.today()
 
-    new_article = ArticleData(source_url, title, pub_date, pub_time, fetched_datetime,
-                              in_text_urls + associated_tagged_urls,
+    intro = extract_intro(main_content)
+    text_content, in_text_urls = extract_text_content_and_links(main_content)
+
+    associated_tagged_urls = extract_and_tag_associated_links(main_content)
+    bottom_links = extract_bottom_links(main_content)
+    embedded_content_links = extract_embedded_content_links(main_content)
+    all_links = in_text_urls + associated_tagged_urls + bottom_links + embedded_content_links
+
+    new_article = ArticleData(source_url, title,
+                              pub_date, pub_time, fetched_datetime,
+                              all_links,
                               category, author,
                               intro, text_content)
+
     return new_article, html_content
 
 
@@ -287,16 +314,16 @@ def test_sample_data():
             "http://www.lalibre.be/culture/selection-culturelle/article/707244/ou-sortir-ce-week-end.html",
             "http://www.lalibre.be/actu/usa-2012/article/773294/obama-raille-les-chevaux-et-baionnettes-de-romney.html",
             "http://www.lalibre.be/actu/international/article/774524/sandy-le-calme-avant-la-tempete.html",
-            "http://www.lalibre.be/sports/football/article/778966/suivez-anderlecht-milan-ac-en-live-des-20h30.html"]
+            "http://www.lalibre.be/sports/football/article/778966/suivez-anderlecht-milan-ac-en-live-des-20h30.html",
+            ]
 
     for url in urls[-1:]:
         article, html = extract_article_data(url)
 
         if article:
+            print u"{0}".format(article.title)
             article.print_summary()
-            print article.title
-            for tagged_url in article.links:
-                print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
+            print_taggedURLs(article.links)
 
         print("\n" * 4)
 
