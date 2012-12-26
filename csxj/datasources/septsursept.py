@@ -13,6 +13,10 @@ from csxj.common import tagging
 from csxj.db.article import ArticleData
 
 
+SOURCE_TITLE = u"7 sur 7"
+SOURCE_NAME = u"septsursept"
+
+
 SEPTSURSEPT_NETLOC = "www.7sur7.be"
 SEPTSURSEPT_INTERNAL_SITES = {}
 
@@ -146,7 +150,7 @@ def extract_text_content_and_links(soup) :
             link = p.find_all("a")
             inline_links.extend(link)
 
-    
+
     plaintext_urls = []
 
     for x in article_text:
@@ -224,7 +228,7 @@ def extract_title_and_url_from_bslink(link):
     else :
         url = "__GHOST_LINK__"
         base_tags.append("ghost link")
-        
+
     if link.find('h3'):
         title = link.find('h3').contents[0].strip()
     else:
@@ -271,7 +275,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                                 tags.add('tweet')
                                 tagged_urls.append(tagging.make_tagged_url(url, url, tags))
                     else:
-                        raise ValueError("There seems to be more than one embedded tweet in the SNIPPET, check this")  
+                        raise ValueError("There seems to be more than one embedded tweet in the SNIPPET, check this")
 
                 # it might be an embedded javascript object that shows a twitter account or query
                 twitter_widget = section.find_all(attrs = {"class" : "tweet_widget"})
@@ -302,11 +306,11 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                             raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
 
                     else :
-                        raise ValueError("There seems to be more than one embedded twitter wdget in the SNIPPET, check this")  
+                        raise ValueError("There seems to be more than one embedded twitter wdget in the SNIPPET, check this")
 
             else:
                 raise ValueError("There seems to be an undefined embedded media here, you should check")
-      
+
         return tagged_urls
 
 def extract_embedded_media(soup):
@@ -329,9 +333,9 @@ def extract_embedded_media(soup):
     art_bottom = soup.find(attrs = {"class" : "art_bottom"})
     if art_bottom:
         tagged_urls.extend(find_embedded_media_in_multimedia_box(art_bottom))
-    
+
     return tagged_urls
-        
+
 
 # une fonction qui vérifie si l'url renvoie en fait vers la frontpage
 IS_FRONTPAGE = 1
@@ -368,7 +372,7 @@ def extract_article_data(url):
                             title, author_name,
                             intro, text),
                 html_data)
-    
+
     else:
         page_type = detect_page_type(url)
         if page_type == IS_FRONTPAGE:
@@ -388,7 +392,7 @@ def extract_article_data(url):
 
             soup  = bs4.BeautifulSoup(html_data)
             title = extract_title(soup)
-            
+
             author_box = soup.find(attrs = {"class" : "author"})
             author_name = extract_author_name(author_box)
             pub_date, pub_time = extract_date_and_time(author_box)
@@ -445,7 +449,7 @@ if __name__ == '__main__':
     url14 = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1527428/2012/11/02/La-robe-interactive-de-Nicole-Scherzinger.dhtml"
     url15 = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1501041/2012/09/14/Une-traversee-des-Etats-Unis-avec-du-bacon-comme-seule-monnaie.dhtml"
     urls = [url1, url2, url3, url4, url6, url7, url8, url9, url10, url11, url12, url13]
-    
+
     from pprint import pprint
     import json
     f = open("/Users/judemaey/code/2012-09-02/7sur7.json")
@@ -487,6 +491,6 @@ if __name__ == '__main__':
     #     pprint(article_data.links)
     #     print len(article_data.links)
 
-    
+
 
 
