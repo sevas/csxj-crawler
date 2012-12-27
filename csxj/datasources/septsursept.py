@@ -270,85 +270,93 @@ def extract_category(soup):
     return [utils.remove_text_formatting_markup_from_fragments(link.contents[0]) for link in links]
 
 def find_embedded_media_in_multimedia_box(multimedia_box):
-        tagged_urls = list()
-        all_sections = multimedia_box.findAll("section")
-        for section in all_sections:
+    tagged_urls = list()
+    all_sections = multimedia_box.findAll("section")
+    for section in all_sections:
 
-            if 'photo' in section.attrs['class']:
-                continue
+        if 'photo' in section.attrs['class']:
+            continue
 
-            elif 'video' in section.attrs['class']:
-                video = section.find("iframe")
-                url = video.get("src")
+        elif 'video' in section.attrs['class']:
+            video = section.find("iframe")
+            url = video.get("src")
+            if url :
                 tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
                 tags.add('embedded media')
                 tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-
-            elif 'snippet' in section.attrs['class']:
-
-                # it might be a tweet
-                tweets = section.find_all(attrs = {"class" : "twitter-tweet"})
-                if tweets:
-                    if len(tweets) == 1:
-                        links = tweets[0].find_all("a")
-                        for link in links :
-                            if link.get("data-datetime"):
-                                url = link.get("href")
-                                tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                                tags.add('embedded media')
-                                tags.add('tweet')
-                                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-                    else:
-                        raise ValueError("There seems to be more than one embedded tweet in the SNIPPET, check this")
-
-                # it might be an embedded javascript object that shows a twitter account or query
-                twitter_widget = section.find_all(attrs = {"class" : "tweet_widget"})
-                if twitter_widget:
-                    if len(twitter_widget) ==1:
-                        if twitter_widget[0].find('script').get('src'):
-                            script_url = twitter_widget[0].find('script').get('src')
-                            if twitter_utils.is_twitter_widget_url(script_url):
-                                title, url, tags = twitter_utils.get_widget_type(twitter_widget[0].findAll('script')[1].contents[0])
-                                tags |= tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                                tags |= set(['script', 'embedded'])
-                                tagged_urls.append(tagging.make_tagged_url(url, title, tags))
-                            else:
-                                if twitter_widget[0].find('noscript'):
-                                    noscript = twitter_widget[0].find('noscript')
-                                    link = noscript.find('a')
-                                    if link:
-                                        url = link.get('href')
-                                        title = remove_text_formatting_markup_from_fragments(link.contents)
-                                        all_tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                                        all_tags |= set(['script', 'embedded'])
-                                        tagged_urls.append(tagging.make_tagged_url(url, title, all_tags))
-                                    else:
-                                        raise ValueError("No link was found in the <noscript> section. Update the parser.")
-                                else:
-                                    raise ValueError("Embedded script of unknown type was detected ('{0}'). Update the parser.".format(script_url))
-                        else:
-                            raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
-
-                    else :
-                        raise ValueError("There seems to be more than one embedded twitter wdget in the SNIPPET, check this")
-
             else:
-                raise ValueError("There seems to be an undefined embedded media here, you should check")
+                    raise ValueError("There seems to be an iframe but we could not find a link. Please update parser.")
+   
+        elif 'snippet' in section.attrs['class']:
 
-        return tagged_urls
+            # it might be a tweet
+            tweets = section.find_all(attrs = {"class" : "twitter-tweet"})
+            if tweets:
+                if len(tweets) == 1:
+                    links = tweets[0].find_all("a")
+                    for link in links :
+                        if link.get("data-datetime"):
+                            url = link.get("href")
+                            tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                            tags.add('embedded media')
+                            tags.add('tweet')
+                            tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+                else:
+                    raise ValueError("There seems to be more than one embedded tweet in the SNIPPET, check this")
+
+            # it might be an embedded javascript object that shows a twitter account or query
+            twitter_widget = section.find_all(attrs = {"class" : "tweet_widget"})
+            if twitter_widget:
+                if len(twitter_widget) ==1:
+                    if twitter_widget[0].find('script').get('src'):
+                        script_url = twitter_widget[0].find('script').get('src')
+                        if twitter_utils.is_twitter_widget_url(script_url):
+                            title, url, tags = twitter_utils.get_widget_type(twitter_widget[0].findAll('script')[1].contents[0])
+                            tags |= tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                            tags |= set(['script', 'embedded'])
+                            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+                        else:
+                            if twitter_widget[0].find('noscript'):
+                                noscript = twitter_widget[0].find('noscript')
+                                link = noscript.find('a')
+                                if link:
+                                    url = link.get('href')
+                                    title = remove_text_formatting_markup_from_fragments(link.contents)
+                                    all_tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                                    all_tags |= set(['script', 'embedded'])
+                                    tagged_urls.append(tagging.make_tagged_url(url, title, all_tags))
+                                else:
+                                    raise ValueError("No link was found in the <noscript> section. Update the parser.")
+                            else:
+                                raise ValueError("Embedded script of unknown type was detected ('{0}'). Update the parser.".format(script_url))
+                    else:
+                        raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
+
+                else :
+                    raise ValueError("There seems to be more than one embedded twitter wdget in the SNIPPET, check this")
+
+        else:
+            raise ValueError("There seems to be an undefined embedded media here, you should check")
+
+    return tagged_urls
 
 def extract_embedded_media(soup):
     tagged_urls = list()
-    # extract embedded media from any iframe in the article container
-    article_container = soup.find(attrs = {"id" : "detail_content"})
-    embedded_container = article_container.findAll("iframe")
-    for x in embedded_container:
-        url = x.get("src")
-        tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-        tags.add('embedded media')
-        tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
-    # some embedded media are not in iframe, but embedded in the art_aside container
+    # extract embedded media from any iframe in the article body
+    content_box = soup.find(attrs = {"id" : "detail_content"})
+    text = content_box.find_all(attrs = {"class":"clear"})
+    for fragment in text :
+        for p in fragment.find_all("p", recursive=False):
+            embedded_container = p.findAll("iframe")
+            for x in embedded_container:
+                url = x.get("src")
+                tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                tags.add('embedded media')
+                tags.add ('in text')
+                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+
+    # some embedded media are not in the artucle body, but embedded in the art_aside container
     art_aside = soup.find(attrs = {"class" : "art_aside"})
     if art_aside:
         tagged_urls.extend(find_embedded_media_in_multimedia_box(art_aside))
@@ -453,15 +461,15 @@ if __name__ == '__main__':
     url15 = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1501041/2012/09/14/Une-traversee-des-Etats-Unis-avec-du-bacon-comme-seule-monnaie.dhtml"
     urls = [url1, url2, url3, url4, url6, url7, url8, url9, url10, url11, url12, url13]
 
-    from pprint import pprint
-    import json
-    f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/it_breaks.json")
-    urls = json.load(f)
-    for x in urls[u'articles']:
-        url = x[1]
-        article_data, html = extract_article_data(url)
-        print url
-        print article_data.to_json()
+    # from pprint import pprint
+    # import json
+    # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/it_breaks.json")
+    # urls = json.load(f)
+    # for x in urls[u'articles']:
+    #     url = x[1]
+    #     article_data, html = extract_article_data(url)
+    #     print url
+    #     print article_data.to_json()
 
 #    for x in urls:
 #        for y in x[1]:
@@ -507,7 +515,10 @@ if __name__ == '__main__':
 
     # url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1500307/2012/09/13/Si-tu-me-mets-une-contravention-je-tire.dhtml"
     # url = "http://www.7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1554304/2012/12/27/Vincent-Kompany-dans-le-onze-ideal-du-journal-l-Equipe.dhtml"
-    # article_data, html = extract_article_data(url)
+    url = "http://www.7sur7.be/7s7/fr/1528/Cinema/article/detail/1403291/2012/03/03/Julie-Arnold-Gerard-Rinaldi-etait-un-etre-exceptionnel.dhtml"
+    article_data, html = extract_article_data(url)
+    for link in article_data.links:
+        print link
 
     # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
     # article_data, html = extract_article_data(f)
