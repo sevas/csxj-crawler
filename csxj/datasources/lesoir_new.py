@@ -278,6 +278,7 @@ def extract_embedded_media_in_article(soup):
 
 def extract_article_data(url):
 
+
     request  = urllib.urlopen(url)
     html_data = request.read()
 
@@ -293,11 +294,15 @@ def extract_article_data(url):
     embedded_media_from_bottom = extract_embedded_media_from_bottom(soup)
     embedded_media_in_article = extract_embedded_media_in_article(soup)
     embedded_media = embedded_media_from_top_box + embedded_media_from_bottom + embedded_media_in_article
-    links = tagged_urls_intext + sidebar_links + article_tags + embedded_media
-    date, time = extract_date_and_time(soup)
+    tagged_urls = tagged_urls_intext + sidebar_links + article_tags + embedded_media
+    pub_date, pub_time = extract_date_and_time(soup)
 
-    for x in links:
-        print x
+    return (ArticleData(url, title, pub_date, pub_time, dt.datetime.now(),
+                tagged_urls,
+                category, author_name,
+                intro, text),
+    html_data)
+ 
 
 if __name__ == '__main__':
 
