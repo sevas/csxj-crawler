@@ -137,30 +137,28 @@ def extract_source(author_box):
 
 def extract_intro(soup):
     intro_box = soup.find(attrs = {"class" : "intro"})
+    tagged_urls = []
+
     if intro_box:
         intro_fragments = intro_box.find_all('b')
         intro = utils.remove_text_formatting_markup_from_fragments(intro_fragments) 
+        inline_links = intro_box.find_all("a")
+        titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
+        plaintext_urls = utils.extract_plaintext_urls_from_text(intro)
+
+        for title, url, base_tags in titles_and_urls:
+            tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+            tags.update(base_tags)
+            tags.add('in intro')
+            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+
+        for url in plaintext_urls:
+            tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+            tags.add('in intro')
+            tags.add('plaintext')
+            tagged_urls.append(tagging.make_tagged_url(url, url, tags))
     else:
         intro = ""
-
-    # once we saw a link in the intro text
-    tagged_urls = []
-
-    inline_links = intro_box.find_all("a")
-    titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
-    plaintext_urls = utils.extract_plaintext_urls_from_text(intro)
-
-    for title, url, base_tags in titles_and_urls:
-        tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-        tags.update(base_tags)
-        tags.add('in intro')
-        tagged_urls.append(tagging.make_tagged_url(url, title, tags))
-
-    for url in plaintext_urls:
-        tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-        tags.add('in intro')
-        tags.add('plaintext')
-        tagged_urls.append(tagging.make_tagged_url(url, url, tags))
     
     return intro, tagged_urls
 
@@ -456,14 +454,14 @@ if __name__ == '__main__':
     urls = [url1, url2, url3, url4, url6, url7, url8, url9, url10, url11, url12, url13]
 
     from pprint import pprint
-    # import json
-    # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/it_breaks.json")
-    # urls = json.load(f)
-    # for x in urls[u'articles']:
-    #     url = x[1]
-    #     article_data, html = extract_article_data(url)
-    #     print url
-    #     print article_data.to_json()
+    import json
+    f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/it_breaks.json")
+    urls = json.load(f)
+    for x in urls[u'articles']:
+        url = x[1]
+        article_data, html = extract_article_data(url)
+        print url
+        print article_data.to_json()
 
 #    for x in urls:
 #        for y in x[1]:
@@ -511,10 +509,10 @@ if __name__ == '__main__':
     # url = "http://www.7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1554304/2012/12/27/Vincent-Kompany-dans-le-onze-ideal-du-journal-l-Equipe.dhtml"
     # article_data, html = extract_article_data(url)
 
-    f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
-    article_data, html = extract_article_data(f)
-    for link in article_data.links:
-        print link
+    # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
+    # article_data, html = extract_article_data(f)
+    # for link in article_data.links:
+    #     print link
 
 
 
