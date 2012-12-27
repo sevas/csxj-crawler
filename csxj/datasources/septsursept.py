@@ -130,10 +130,11 @@ def extract_source(author_box):
 def extract_intro(soup):
     intro_box = soup.find(attrs = {"class" : "intro"})
     if intro_box:
-        intro = intro_box.find_all('b')
-        intro = intro[0].contents[0]
+        intro_fragments = intro_box.find_all('b')
+        intro = utils.remove_text_formatting_markup_from_fragments(intro_fragments) 
     else:
         intro = ""
+    print intro
     return intro
 
 
@@ -443,9 +444,14 @@ if __name__ == '__main__':
     urls = [url1, url2, url3, url4, url6, url7, url8, url9, url10, url11, url12, url13]
 
     from pprint import pprint
-#    import json
-#    f = open("/Users/judemaey/code/2012-09-02/7sur7.json")
-#    urls = json.load(f)
+    # import json
+    # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/it_breaks.json")
+    # urls = json.load(f)
+    # for x in urls[u'articles']:
+    #     url = x[1]
+    #     article_data, html = extract_article_data(url)
+    #     print url
+    #     print article_data.to_json()
 
 #    for x in urls:
 #        for y in x[1]:
@@ -459,25 +465,25 @@ if __name__ == '__main__':
 #            print "******************************"
 #            print "\n"
 
-    total_time = 0.0
-    for url in urls[:]:
-        before = dt.datetime.now()
-        article_data, html = extract_article_data(url)
-        elapsed = dt.datetime.now() - before
-        total_time += elapsed.seconds
-        print article_data.title
-        print article_data.url
-        pprint(article_data.links)
-        print len(article_data.links)
-        print article_data.pub_date
-        print article_data.to_json()
+    # total_time = 0.0
+    # for url in urls[:]:
+    #     before = dt.datetime.now()
+    #     article_data, html = extract_article_data(url)
+    #     elapsed = dt.datetime.now() - before
+    #     total_time += elapsed.seconds
+    #     print article_data.title
+    #     print article_data.url
+    #     pprint(article_data.links)
+    #     print len(article_data.links)
+    #     print article_data.pub_date
+    #     print article_data.to_json()
 
-    avg = total_time / len(urls)
-    print "total time for {0} articles: {1}".format(len(urls), total_time)
-    print "avg time per article: {0}".format(avg)
-    projected_article_count = 50000
-    projected_time = avg * projected_article_count
-    print "Projection for {0} articles:".format(projected_article_count), time.strftime("%H:%M:%S", time.gmtime(projected_time))
+    # avg = total_time / len(urls)
+    # print "total time for {0} articles: {1}".format(len(urls), total_time)
+    # print "avg time per article: {0}".format(avg)
+    # projected_article_count = 50000
+    # projected_time = avg * projected_article_count
+    # print "Projection for {0} articles:".format(projected_article_count), time.strftime("%H:%M:%S", time.gmtime(projected_time))
 
 
     # frontpage = get_frontpage_toc()
@@ -489,11 +495,11 @@ if __name__ == '__main__':
     #             print article_data.title
     #             print len(article_data.links)
 
-    # article_data, html = extract_article_data(url15)
-    # if article_data:
-    #     print article_data.title
-    #     pprint(article_data.links)
-    #     print len(article_data.links)
+    url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1500307/2012/09/13/Si-tu-me-mets-une-contravention-je-tire.dhtml"
+    # url = "http://www.7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1554304/2012/12/27/Vincent-Kompany-dans-le-onze-ideal-du-journal-l-Equipe.dhtml"
+    article_data, html = extract_article_data(url)
+    # print article_data.intro
+
 
 
 
