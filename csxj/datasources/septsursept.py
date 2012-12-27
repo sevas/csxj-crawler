@@ -35,7 +35,14 @@ def extract_title_and_url(link_selector):
     title = link_selector.select("./text()").extract()[0].strip()
     return title, url
 
+
+def separate_articles_and_photoalbums(frontpage_items):
+    photoalbum_links = [(title, url) for (title, url) in frontpage_items if "/photoalbum/" in url]
+    article_links = [l for l in frontpage_items if l not in photoalbum_links]
+    return article_links, photoalbum_links 
+
 def try_extract_frontpage_items(url):
+
     html_data = urllib.urlopen(url).read()
     hxs = HtmlXPathSelector(text=html_data)
 
@@ -60,7 +67,8 @@ def try_extract_frontpage_items(url):
     right_items = list(right_items - to_remove)
 
     frontpage_items = left_items + right_items
-    return [make_full_url(item) for item in frontpage_items], []
+    article_links, photoalbum_links = separate_articles_and_photoalbums(frontpage_items)
+    return [make_full_url(item) for item in article_links], [make_full_url(item) for item in photoalbum_links]
 
 def get_frontpage_toc():
     return try_extract_frontpage_items("http://www.7sur7.be/")
@@ -134,8 +142,27 @@ def extract_intro(soup):
         intro = utils.remove_text_formatting_markup_from_fragments(intro_fragments) 
     else:
         intro = ""
-    print intro
-    return intro
+
+    # once we saw a link in the intro text
+    tagged_urls = []
+
+    inline_links = intro_box.find_all("a")
+    titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
+    plaintext_urls = utils.extract_plaintext_urls_from_text(intro)
+
+    for title, url, base_tags in titles_and_urls:
+        tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+        tags.update(base_tags)
+        tags.add('in intro')
+        tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+
+    for url in plaintext_urls:
+        tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+        tags.add('in intro')
+        tags.add('plaintext')
+        tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+    
+    return intro, tagged_urls
 
 
 def extract_text_content_and_links(soup) :
@@ -352,65 +379,51 @@ def detect_page_type(url):
         return IS_FRONTPAGE
 
 
-def extract_article_data(url):
-
-    request  = urllib.urlopen(url)
-    html_data = request.read()
-
-    # detecter si l'article est un photoalbum
-    if "/photoalbum/" in url:
-        title = "__photoalbum__"
-        author_name = ""
-        pub_date = dt.date(1900, 1, 1) # photoalbums don't have date info. Articles are stored by day/hour batches anyway so this info is mostly redundant for the other articles.
-        pub_time = dt.time.min
-        source = ""
-        intro = ""
-        text = ""
-        return (ArticleData(url, title, pub_date, pub_time, dt.datetime.now(),
-                            [],
-                            title, author_name,
-                            intro, text),
-                html_data)
-
+def extract_article_data(source):
+    # url is either a file-like object, or a url.
+    # if it's a file we just open it, assume it's an article and extract article data
+    
+    if hasattr(source, 'read'):
+        html_data = source.read()
+    # if it's an url we need to check if it's a photo album, a link to the frontpage or a true article
     else:
-        page_type = detect_page_type(url)
+        html_data = utils.fetch_html_content(source)
+
+        page_type = detect_page_type(source)
         if page_type == IS_FRONTPAGE:
             return None, None
         elif page_type == MAYBE_ARTICLE:
             raise ValueError("We couldn't define if this was an article or the frontpage, please check")
 
-        # pour tous les autres vrais articles
-        elif page_type == IS_ARTICLE:
+    # pour tous les autres vrais articles
+    soup  = bs4.BeautifulSoup(html_data)
+    title = extract_title(soup)
 
+    author_box = soup.find(attrs = {"class" : "author"})
+    author_name = extract_author_name(author_box)
+    pub_date, pub_time = extract_date_and_time(author_box)
 
-            soup  = bs4.BeautifulSoup(html_data)
-            title = extract_title(soup)
+    source = extract_source(author_box)
 
-            author_box = soup.find(attrs = {"class" : "author"})
-            author_name = extract_author_name(author_box)
-            pub_date, pub_time = extract_date_and_time(author_box)
+    intro, tagged_urls_from_intro = extract_intro(soup)
 
-            source = extract_source(author_box)
+    category = extract_category(soup)
 
-            intro = extract_intro(soup)
+    text, tagged_urls_intext = extract_text_content_and_links(soup)
 
-            category = extract_category(soup)
+    tagged_urls_read_more_box = extract_links_from_read_more_box(soup)
 
-            text, tagged_urls_intext = extract_text_content_and_links(soup)
+    tagged_urls_sidebar_box = extract_links_from_sidebar_box(soup)
 
-            tagged_urls_read_more_box = extract_links_from_read_more_box(soup)
+    tagged_urls_embedded_media = extract_embedded_media(soup)
 
-            tagged_urls_sidebar_box = extract_links_from_sidebar_box(soup)
+    tagged_urls = tagged_urls_intext + tagged_urls_read_more_box + tagged_urls_sidebar_box + tagged_urls_embedded_media + tagged_urls_from_intro
 
-            tagged_urls_embedded_media = extract_embedded_media(soup)
-
-            tagged_urls = tagged_urls_intext + tagged_urls_read_more_box + tagged_urls_sidebar_box + tagged_urls_embedded_media
-
-            return (ArticleData(url, title, pub_date, pub_time, dt.datetime.now(),
-                            tagged_urls,
-                            category, author_name,
-                            intro, text),
-                html_data)
+    return (ArticleData(source, title, pub_date, pub_time, dt.datetime.now(),
+                    tagged_urls,
+                    category, author_name,
+                    intro, text),
+        html_data)
 
 # on vérifie que les urls de la frontpage ne renvoient pas vers la frontpage (en y appliquant la fonction qui extrait les urls des la frontpage!!)
 def show_frontpage():
@@ -422,7 +435,6 @@ def show_frontpage():
         if len(x) > 0:
             print u"{0} \t\t [{1}]".format(title, url)
             print len(x)
-
 
 
 
@@ -495,10 +507,18 @@ if __name__ == '__main__':
     #             print article_data.title
     #             print len(article_data.links)
 
-    url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1500307/2012/09/13/Si-tu-me-mets-une-contravention-je-tire.dhtml"
+    # url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1500307/2012/09/13/Si-tu-me-mets-une-contravention-je-tire.dhtml"
     # url = "http://www.7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1554304/2012/12/27/Vincent-Kompany-dans-le-onze-ideal-du-journal-l-Equipe.dhtml"
-    article_data, html = extract_article_data(url)
-    # print article_data.intro
+    # article_data, html = extract_article_data(url)
+
+    f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
+    article_data, html = extract_article_data(f)
+    for link in article_data.links:
+        print link
+
+
+
+
 
 
 
