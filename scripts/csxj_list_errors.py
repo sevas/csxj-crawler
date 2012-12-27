@@ -47,7 +47,9 @@ def list_errors(db_root, outfile):
             errors_by_batch = provider_db.get_errors2_per_batch(date_string)
 
             for (batch_time, errors) in errors_by_batch:
-                errors = flatten_list(errors)
+                errors = it.chain(*errors)
+                #errors = flatten_list(errors)
+
                 errors = filter_identical_ErrorLogEntries(errors)
                 error_count += len(errors)
 
@@ -70,7 +72,7 @@ def list_errors(db_root, outfile):
 
 
     with open(outfile, 'w') as f:
-            json.dump(all_errors, f, indent=4)
+            json.dump(all_errors, f, indent=2)
 
 
 
