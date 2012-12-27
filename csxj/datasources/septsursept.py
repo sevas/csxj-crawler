@@ -277,16 +277,31 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
         if 'photo' in section.attrs['class']:
             continue
 
-        elif 'video' in section.attrs['class']:
-            video = section.find("iframe")
-            url = video.get("src")
-            if url :
-                tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                tags.add('embedded media')
-                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-            else:
+        elif 'video' in section.attrs['class']:        
+            # it might be an iframe
+            if section.find("iframe"):
+                iframe = section.find("iframe")
+                url = iframe.get("src")
+                if url :
+                    tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                    tags.add('embedded media')
+                    tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+                else:
                     raise ValueError("There seems to be an iframe but we could not find a link. Please update parser.")
-   
+            
+            elif section.find("embed"):
+                embedded_stuff = section.find("embed")
+                url = embedded_stuff.get("src")
+                if url :
+                    tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                    tags.add('embedded media')
+                    tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+                else:
+                    raise ValueError("There seems to be an embedded video but we could not find a link. Please update parser.")
+            else :
+                raise ValueError("There seems to be an embedded video but we could not identify it. Please update parser.")
+
+        
         elif 'snippet' in section.attrs['class']:
 
             # it might be a tweet
@@ -504,21 +519,28 @@ if __name__ == '__main__':
     # print "Projection for {0} articles:".format(projected_article_count), time.strftime("%H:%M:%S", time.gmtime(projected_time))
 
 
-    # frontpage = get_frontpage_toc()
-    # for item in frontpage:
-    #     for title, url in item:
-    #         print url
-    #         article_data, html = extract_article_data(url)
-    #         if article_data:
-    #             print article_data.title
-    #             print len(article_data.links)
+    articles, photos = get_frontpage_toc()
+    for item in articles:
+        title, url = item
+        print url
+        article_data, html = extract_article_data(url)
+        if article_data:
+            print article_data.title
+            print len(article_data.links)
 
     # url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1500307/2012/09/13/Si-tu-me-mets-une-contravention-je-tire.dhtml"
     # url = "http://www.7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1554304/2012/12/27/Vincent-Kompany-dans-le-onze-ideal-du-journal-l-Equipe.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1528/Cinema/article/detail/1403291/2012/03/03/Julie-Arnold-Gerard-Rinaldi-etait-un-etre-exceptionnel.dhtml"
-    article_data, html = extract_article_data(url)
-    for link in article_data.links:
-        print link
+    url = "http://7sur7.be/7s7/fr/1536/Economie/article/detail/1403430/2012/03/03/Manifestations-contre-les-abus-bancaires-en-Espagne.dhtml"
+    url = "http://7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1403137/2012/03/02/Blatter-appelle-a-adopter-la-technologie-sur-la-ligne-de-but.dhtml"
+    url = "http://7sur7.be/7s7/fr/1504/Insolite/article/detail/1403964/2012/03/05/Le-pire-cauchemar-d-une-mariee-devenu-realite.dhtml"
+    
+    # article_data, html = extract_article_data(url)
+    # for link in article_data.links:
+    #     print link
+    # print article_data.title
+    # print article_data.intro
+    # print len(article_data.links)
 
     # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
     # article_data, html = extract_article_data(f)
