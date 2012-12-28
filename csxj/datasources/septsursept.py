@@ -204,17 +204,20 @@ def extract_text_content_and_links(soup) :
 
 
 def extract_links_from_read_more_box(soup):
-    read_more_box = soup.find(attrs = {"class" : "read_more"})
-    if read_more_box.find('h4'):
-        links = read_more_box.find_all("a")
-        titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links if not link.find("img")]
-        tagged_urls = list()
-        for title, url, base_tags in titles_and_urls:
-            tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-            tags.update(base_tags)
-            tags.add('bottom box')
-            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
-        return tagged_urls
+    if soup.find(attrs = {"class" : "read_more"}) :
+        read_more_box = soup.find(attrs = {"class" : "read_more"})
+        if read_more_box.find('h4'):
+            links = read_more_box.find_all("a")
+            titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links if not link.find("img")]
+            tagged_urls = list()
+            for title, url, base_tags in titles_and_urls:
+                tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                tags.update(base_tags)
+                tags.add('bottom box')
+                tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+            return tagged_urls
+        else:
+            return []
     else:
         return []
 
@@ -548,6 +551,13 @@ if __name__ == '__main__':
     # url = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1403993/2012/03/05/Le-harnais-etrange-accessoire-en-vogue.dhtml"
     # url = "http://7sur7.be/7s7/fr/1536/Economie/article/detail/1404580/2012/03/06/Le-Comite-restreint-se-penche-sur-les-recettes.dhtml"
     # url = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1405399/2012/03/07/Le-mannequin-aux-grosses-fesses-a-gagne-son-proces.dhtml"
+    url = "http://7sur7.be/7s7/fr/1767/Ligue-des-Champions/article/detail/1405471/2012/03/07/Messi-l-extraterrestre.dhtml"
+    url = "http://7sur7.be/7s7/fr/1512/Cyclisme/article/detail/1405628/2012/03/08/Mais-que-se-passe-t-il-avec-Philippe-Gilbert.dhtml"
+    url = "http://7sur7.be/7s7/fr/1527/People/article/detail/1411055/2012/03/19/M-Pokora-dement-etre-en-couple-avec-Alizee.dhtml"
+    url = "http://7sur7.be/7s7/fr/1529/Musique/article/detail/1406607/2012/03/09/Deces-du-chanteur-du-group-disco-des-Trammps.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1407359/2012/03/12/Les-malheurs-d-un-journaliste-amusent-le-web.dhtml"
+    url = "http://7sur7.be/7s7/fr/1527/People/article/detail/1408039/2012/03/13/Premier-apercu-de-la-frimousse-de-Giulia-Sarkozy.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1487322/2012/08/17/La-tumeur-cancereuse-d-Israel-va-bientot-disparaitre.dhtml"
     article_data, html = extract_article_data(url)
     for link in article_data.links:
         print link
