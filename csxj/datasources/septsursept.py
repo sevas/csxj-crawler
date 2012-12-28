@@ -277,6 +277,9 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
         if 'photo' in section.attrs['class']:
             continue
 
+        elif 'poll' in section.attrs['class']:
+            continue
+
         elif 'video' in section.attrs['class']:        
             # it might be an iframe
             if section.find("iframe"):
@@ -519,14 +522,14 @@ if __name__ == '__main__':
     # print "Projection for {0} articles:".format(projected_article_count), time.strftime("%H:%M:%S", time.gmtime(projected_time))
 
 
-    articles, photos = get_frontpage_toc()
-    for item in articles:
-        title, url = item
-        print url
-        article_data, html = extract_article_data(url)
-        if article_data:
-            print article_data.title
-            print len(article_data.links)
+    # articles, photos = get_frontpage_toc()
+    # for item in articles:
+    #     title, url = item
+    #     print url
+    #     article_data, html = extract_article_data(url)
+    #     if article_data:
+    #         print article_data.title
+    #         print len(article_data.links)
 
     # url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1500307/2012/09/13/Si-tu-me-mets-une-contravention-je-tire.dhtml"
     # url = "http://www.7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1554304/2012/12/27/Vincent-Kompany-dans-le-onze-ideal-du-journal-l-Equipe.dhtml"
@@ -534,13 +537,18 @@ if __name__ == '__main__':
     url = "http://7sur7.be/7s7/fr/1536/Economie/article/detail/1403430/2012/03/03/Manifestations-contre-les-abus-bancaires-en-Espagne.dhtml"
     url = "http://7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1403137/2012/03/02/Blatter-appelle-a-adopter-la-technologie-sur-la-ligne-de-but.dhtml"
     url = "http://7sur7.be/7s7/fr/1504/Insolite/article/detail/1403964/2012/03/05/Le-pire-cauchemar-d-une-mariee-devenu-realite.dhtml"
-    
-    # article_data, html = extract_article_data(url)
-    # for link in article_data.links:
-    #     print link
-    # print article_data.title
-    # print article_data.intro
-    # print len(article_data.links)
+    url = "http://7sur7.be/7s7/fr/1540/TV/article/detail/1408003/2012/03/13/Demande-en-mariage-sur-le-plateau-d-Une-Famille-en-or.dhtml"
+    url = "http://7sur7.be/7s7/fr/1759/Bundesliga/article/detail/1410425/2012/03/18/Le-sang-froid-d-Igor-De-Camargo-devant-le-but.dhtml"
+    url = "http://7sur7.be/7s7/fr/1762/Premier-League/article/detail/1410549/2012/03/18/Torres-retrouve-le-chemin-du-but.dhtml"
+    url = "http://7sur7.be/7s7/fr/1759/Bundesliga/article/detail/1410425/2012/03/18/Le-sang-froid-d-Igor-De-Camargo-devant-le-but.dhtml"
+    url = "http://7sur7.be/7s7/fr/1745/Standard/article/detail/1403891/2012/03/05/Le-Standard-n-est-toujours-pas-assure-de-jouer-les-Playoffs.dhtml"
+    url = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1403993/2012/03/05/Le-harnais-etrange-accessoire-en-vogue.dhtml"
+    article_data, html = extract_article_data(url)
+    for link in article_data.links:
+        print link
+    print article_data.title
+    print article_data.intro
+    print len(article_data.links)
 
     # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
     # article_data, html = extract_article_data(f)
