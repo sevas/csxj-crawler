@@ -330,31 +330,51 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
             twitter_widget = section.find_all(attrs = {"class" : "tweet_widget"})
             if twitter_widget:
                 if len(twitter_widget) ==1:
-                    if twitter_widget[0].find('script').get('src'):
+                    if twitter_widget[0].find('script'):
                         script_url = twitter_widget[0].find('script').get('src')
                         if twitter_utils.is_twitter_widget_url(script_url):
                             title, url, tags = twitter_utils.get_widget_type(twitter_widget[0].findAll('script')[1].contents[0])
                             tags |= tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
                             tags |= set(['script', 'embedded'])
                             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+                
+                    elif section.find("script"):
+                        script_url = section.find('script').get('src')
+                        if twitter_utils.is_twitter_widget_url(script_url):
+                            title, url, tags = twitter_utils.get_widget_type(section.findAll('script')[1].contents[0])
+                            tags |= tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                            tags |= set(['script', 'embedded'])
+                            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
                         else:
-                            if twitter_widget[0].find('noscript'):
-                                noscript = twitter_widget[0].find('noscript')
-                                link = noscript.find('a')
-                                if link:
-                                    url = link.get('href')
-                                    title = remove_text_formatting_markup_from_fragments(link.contents)
-                                    all_tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                                    all_tags |= set(['script', 'embedded'])
-                                    tagged_urls.append(tagging.make_tagged_url(url, title, all_tags))
-                                else:
-                                    raise ValueError("No link was found in the <noscript> section. Update the parser.")
-                            else:
-                                raise ValueError("Embedded script of unknown type was detected ('{0}'). Update the parser.".format(script_url))
+                            raise ValueError("Embedded script of unknown type was detected ('{0}'). Update the parser.".format(script_url))
+
+                    elif twitter_widget[0].find('noscript'):
+                        noscript = twitter_widget[0].find('noscript')
+                        link = noscript.find('a')
+                        if link:
+                            url = link.get('href')
+                            title = remove_text_formatting_markup_from_fragments(link.contents)
+                            all_tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                            all_tags |= set(['script', 'embedded'])
+                            tagged_urls.append(tagging.make_tagged_url(url, title, all_tags))
+                        else:
+                            raise ValueError("No link was found in the <noscript> section. Update the parser.")
+                
                     else:
                         raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
                 else :
                     raise ValueError("There seems to be more than one embedded twitter wdget in the SNIPPET, check this")
+
+            # it might be a spotify container
+            spotify_widget = section.find(attrs = {"class" : "spotify"})
+            if spotify_widget:
+                if spotify_widget.find("iframe").get("src"):
+                    url = spotify_widget.find("iframe").get("src")
+                    all_tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                    all_tags |= set(['spotify', 'embedded'])
+                    tagged_urls.append(tagging.make_tagged_url(url, url, all_tags))
+                else :
+                    raise ValueError("There seems to be a spotify widget but we could not find a link")
 
         else:
             raise ValueError("There seems to be an undefined embedded media here, you should check")
@@ -469,18 +489,25 @@ if __name__ == '__main__':
     url1 = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1494529/2012/09/02/Ils-passent-devant-une-vitrine-avant-de-disparaitre.dhtml"
     url2 = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1491869/2012/08/27/Fin-des-recherches-apres-une-alerte-au-lion-pres-de-Londres.dhtml"
     url3 = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1494515/2012/09/02/Obama-et-Romney-a-egalite-dans-les-sondages.dhtml"
-    url4 = "http://www.7sur7.be/7s7/fr/8024/Stars/photoalbum/detail/1492820/1170797/0/La-Mostra-de-Venise-au-jour-le-jour.dhtml"
     url6 = "http://www.7sur7.be/7s7/fr/1757/Dopage-dans-le-cyclisme/article/detail/1514991/2012/10/11/Armstrong-est-un-grand-champion-point-final.dhtml"
     url7 = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1520913/2012/10/21/Une-premiere-Amerindienne-canonisee.dhtml"
-    url8 = "http://www.7sur7.be/7s7/fr/8012/photo/photoalbum/detail/1520894/1188429/0/Nuit-blanche-a-Luxembourg.dhtml"
     url9 = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1520790/2012/10/20/Le-pacte-de-solidarite-signe-par-Onkelinx-tres-critique.dhtml"
     url10 = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1520820/2012/10/20/Une-raclee-pour-Bruges-un-exploit-pour-Charleroi.dhtml"
     url11 = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1528304/2012/11/04/La-Marche-russe-des-ultra-nationalistes-reclame-le-depart-de-Poutine.dhtml"
     url12 = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1528304/2012/11/04/La-Marche-russe-des-ultra-nationalistes-reclame-le-depart-de-Poutine.dhtml"
-    url13 = "http://www.7sur7.be/7s7/fr/8024/Stars/photoalbum/detail/85121/1193441/0/Showbiz-en-images.dhtml"
     url14 = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1527428/2012/11/02/La-robe-interactive-de-Nicole-Scherzinger.dhtml"
     url15 = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1501041/2012/09/14/Une-traversee-des-Etats-Unis-avec-du-bacon-comme-seule-monnaie.dhtml"
-    urls = [url1, url2, url3, url4, url6, url7, url8, url9, url10, url11, url12, url13]
+    urls = [url1, url2, url3, url6, url7, url9, url10, url11, url12, url14, url15]
+
+    for url in urls:
+        print url
+        article_data, html = extract_article_data(url)
+        for link in article_data.links:
+            print link
+        print article_data.title
+        print article_data.intro
+        print len(article_data.links)
+
 
     # from pprint import pprint
     # import json
@@ -556,13 +583,16 @@ if __name__ == '__main__':
     url = "http://7sur7.be/7s7/fr/1527/People/article/detail/1408039/2012/03/13/Premier-apercu-de-la-frimousse-de-Giulia-Sarkozy.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1487322/2012/08/17/La-tumeur-cancereuse-d-Israel-va-bientot-disparaitre.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1452608/2012/06/12/Mathieu-Kassovitz-traite-Nadine-Morano-de-conne.dhtml"
-
-    article_data, html = extract_article_data(url)
-    for link in article_data.links:
-        print link
-    print article_data.title
-    print article_data.intro
-    print len(article_data.links)
+    url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1455287/2012/06/17/Lindsay-Lohan-plaisante-sur-son-malaise.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1773/Festivals/article/detail/1486845/2012/08/16/Le-Pukkelpop-revit.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/9100/Infos/article/detail/1489178/2012/08/21/Myriam-Leroy-et-Pure-Fm-c-est-fini.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/2864/Dossier-Obama/article/detail/1492705/2012/08/29/Michelle-Obama-en-esclave-denudee.dhtml"
+    # article_data, html = extract_article_data(url)
+    # for link in article_data.links:
+    #     print link
+    # print article_data.title
+    # print article_data.intro
+    # print len(article_data.links)
 
     # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
     # article_data, html = extract_article_data(f)
