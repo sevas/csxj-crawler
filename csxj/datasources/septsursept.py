@@ -316,8 +316,8 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
             # it might be a tweet
             tweets = section.find_all(attrs = {"class" : "twitter-tweet"})
             if tweets:
-                if len(tweets) == 1:
-                    links = tweets[0].find_all("a")
+                for tweet in tweets:
+                    links = tweet.find_all("a")
                     for link in links :
                         if link.get("data-datetime"):
                             url = link.get("href")
@@ -325,8 +325,6 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                             tags.add('embedded media')
                             tags.add('tweet')
                             tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-                else:
-                    raise ValueError("There seems to be more than one embedded tweet in the SNIPPET, check this")
 
             # it might be an embedded javascript object that shows a twitter account or query
             twitter_widget = section.find_all(attrs = {"class" : "tweet_widget"})
@@ -355,7 +353,6 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                                 raise ValueError("Embedded script of unknown type was detected ('{0}'). Update the parser.".format(script_url))
                     else:
                         raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
-
                 else :
                     raise ValueError("There seems to be more than one embedded twitter wdget in the SNIPPET, check this")
 
@@ -558,6 +555,8 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1407359/2012/03/12/Les-malheurs-d-un-journaliste-amusent-le-web.dhtml"
     url = "http://7sur7.be/7s7/fr/1527/People/article/detail/1408039/2012/03/13/Premier-apercu-de-la-frimousse-de-Giulia-Sarkozy.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1487322/2012/08/17/La-tumeur-cancereuse-d-Israel-va-bientot-disparaitre.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1452608/2012/06/12/Mathieu-Kassovitz-traite-Nadine-Morano-de-conne.dhtml"
+
     article_data, html = extract_article_data(url)
     for link in article_data.links:
         print link
