@@ -257,7 +257,10 @@ def extract_title_and_url_from_bslink(link):
         title = link.find('h3').contents[0].strip()
     else:
         if link.contents:
-            title = link.contents[0].strip()
+            if type(link.contents[0]) is bs4.element.NavigableString:
+                title = link.contents[0].strip()
+            else :
+                title = link.contents[-1].strip()
         else:
             title = "__GHOST_LINK__"
             base_tags.append("ghost link")
@@ -531,18 +534,20 @@ if __name__ == '__main__':
     #         print article_data.title
     #         print len(article_data.links)
 
-    # url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1500307/2012/09/13/Si-tu-me-mets-une-contravention-je-tire.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1500307/2012/09/13/Si-tu-me-mets-une-contravention-je-tire.dhtml"
     # url = "http://www.7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1554304/2012/12/27/Vincent-Kompany-dans-le-onze-ideal-du-journal-l-Equipe.dhtml"
-    url = "http://www.7sur7.be/7s7/fr/1528/Cinema/article/detail/1403291/2012/03/03/Julie-Arnold-Gerard-Rinaldi-etait-un-etre-exceptionnel.dhtml"
-    url = "http://7sur7.be/7s7/fr/1536/Economie/article/detail/1403430/2012/03/03/Manifestations-contre-les-abus-bancaires-en-Espagne.dhtml"
-    url = "http://7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1403137/2012/03/02/Blatter-appelle-a-adopter-la-technologie-sur-la-ligne-de-but.dhtml"
-    url = "http://7sur7.be/7s7/fr/1504/Insolite/article/detail/1403964/2012/03/05/Le-pire-cauchemar-d-une-mariee-devenu-realite.dhtml"
-    url = "http://7sur7.be/7s7/fr/1540/TV/article/detail/1408003/2012/03/13/Demande-en-mariage-sur-le-plateau-d-Une-Famille-en-or.dhtml"
-    url = "http://7sur7.be/7s7/fr/1759/Bundesliga/article/detail/1410425/2012/03/18/Le-sang-froid-d-Igor-De-Camargo-devant-le-but.dhtml"
-    url = "http://7sur7.be/7s7/fr/1762/Premier-League/article/detail/1410549/2012/03/18/Torres-retrouve-le-chemin-du-but.dhtml"
-    url = "http://7sur7.be/7s7/fr/1759/Bundesliga/article/detail/1410425/2012/03/18/Le-sang-froid-d-Igor-De-Camargo-devant-le-but.dhtml"
-    url = "http://7sur7.be/7s7/fr/1745/Standard/article/detail/1403891/2012/03/05/Le-Standard-n-est-toujours-pas-assure-de-jouer-les-Playoffs.dhtml"
-    url = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1403993/2012/03/05/Le-harnais-etrange-accessoire-en-vogue.dhtml"
+    # url = "http://www.7sur7.be/7s7/fr/1528/Cinema/article/detail/1403291/2012/03/03/Julie-Arnold-Gerard-Rinaldi-etait-un-etre-exceptionnel.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1536/Economie/article/detail/1403430/2012/03/03/Manifestations-contre-les-abus-bancaires-en-Espagne.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1403137/2012/03/02/Blatter-appelle-a-adopter-la-technologie-sur-la-ligne-de-but.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1504/Insolite/article/detail/1403964/2012/03/05/Le-pire-cauchemar-d-une-mariee-devenu-realite.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1540/TV/article/detail/1408003/2012/03/13/Demande-en-mariage-sur-le-plateau-d-Une-Famille-en-or.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1759/Bundesliga/article/detail/1410425/2012/03/18/Le-sang-froid-d-Igor-De-Camargo-devant-le-but.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1762/Premier-League/article/detail/1410549/2012/03/18/Torres-retrouve-le-chemin-du-but.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1759/Bundesliga/article/detail/1410425/2012/03/18/Le-sang-froid-d-Igor-De-Camargo-devant-le-but.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1745/Standard/article/detail/1403891/2012/03/05/Le-Standard-n-est-toujours-pas-assure-de-jouer-les-Playoffs.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1403993/2012/03/05/Le-harnais-etrange-accessoire-en-vogue.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1536/Economie/article/detail/1404580/2012/03/06/Le-Comite-restreint-se-penche-sur-les-recettes.dhtml"
+    # url = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1405399/2012/03/07/Le-mannequin-aux-grosses-fesses-a-gagne-son-proces.dhtml"
     article_data, html = extract_article_data(url)
     for link in article_data.links:
         print link
