@@ -22,12 +22,10 @@ class PlainTextURLExtractorTestCases(unittest.TestCase):
         urls = extract_plaintext_urls_from_text(text_with_url)
         self.assertEqual(urls, [self.simple_url])
 
-
     def test_complex_url(self):
         text_with_url = self.text.format(self.complex_url)
         urls = extract_plaintext_urls_from_text(text_with_url)
         self.assertEqual(urls, [self.complex_url])
-
 
     def test_multiple_urls(self):
         text = 'this {0} has {1} many {2} links {3}'
@@ -35,18 +33,19 @@ class PlainTextURLExtractorTestCases(unittest.TestCase):
         urls = extract_plaintext_urls_from_text(text_with_urls)
         self.assertEqual(urls, [self.simple_url, self.complex_url, self.complex_url, self.simple_url])
 
-
     def test_text_with_urls(self):
         urls = extract_plaintext_urls_from_text(self.text_with_urls)
         self.assertEqual(urls, ['http://www.example.com', 'http://en.wikipedia.org/wiki/PC_Tools_(Central_Point_Software)', 'http://msdn.microsoft.com/en-us/library/aa752574(VS.85).aspx', 'http://www.awesomeexample.com'])
-
 
     def test_no_url(self):
         text = self.text.format('not a url')
         urls = extract_plaintext_urls_from_text(text)
         self.assertEqual(urls, [])
-        
 
+#    def test_schemeless_url(self):
+#        url = "foo.com"
+#        extracted_urls = extract_plaintext_urls_from_text(url)
+#        self.assertEqual([url], extracted_urls)
 
 
 if __name__ == '__main__':
