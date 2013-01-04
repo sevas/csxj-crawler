@@ -70,16 +70,15 @@ def list_errors(db_root, outfile):
         print "{0}: Had {1} errors".format(name, error_count)
         print "{0}: Had {1} errors".format(name, len(all_errors[name]))
 
-
     with open(outfile, 'w') as f:
             json.dump(all_errors, f, indent=2)
-
 
 
 def main(db_root, outfile):
     list_errors(db_root, outfile)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Utility prgram to list errors')
     parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='json db root directory')
