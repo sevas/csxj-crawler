@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime, date, time
-from itertools import chain
+import itertools as it
 import urllib
 from BeautifulSoup import Tag
+
+from csxj.common.tagging import classify_and_tag, make_tagged_url, print_taggedURLs
+from csxj.db.article import ArticleData
+
 from common.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
 from common.utils import extract_plaintext_urls_from_text
 from common.utils import remove_text_formatting_markup_from_fragments
 from common.utils import setup_locales
-from csxj.common.tagging import classify_and_tag, make_tagged_url
-from csxj.db.article import ArticleData
+from common import media_utils
 
 
 setup_locales()
@@ -153,8 +156,42 @@ def extract_associated_links(article):
 
 
 def is_page_error_404(soup):
-
     return soup.head.title.contents[0] == '404'
+
+
+def extract_embedded_media_links(article):
+    tagged_urls = list()
+
+    for iframe in article.findAll('iframe', recursive=False):
+        url, title = media_utils.extract_url_from_iframe(iframe)
+        tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
+        tags.update(['embedded'])
+        tagged_urls.append(make_tagged_url(url, title, tags))
+
+    for video_list in article.findAll('ul', {'class':"video_article"}):
+        for video_item in video_list.findAll('li', recursive=False):
+            if video_item.object:
+                title = u"__UNTITLED_VIDEO__"
+                flash_object = video_item.object
+                url_part1 = flash_object['data']
+                url_part2 = flash_object.find('param', {'name' : 'flashVars'})['value']
+                if url_part1 is not None and url_part2 is not None:
+                    url = "%s?%s" % (url_part1, url_part2)
+                    all_tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
+                    tagged_urls.append(make_tagged_url(url, title, all_tags | set(['video', 'embedded', 'flash'])))
+                else:
+                    raise ValueError("Could not extract url from embedded video object. Please update the parser.")
+            else:
+                raise ValueError("Encountered a video item of unknown type. Please update the parser.")
+
+    for script in article.findAll('script', recursive=False):
+        import pdb
+        #pdb.set_trace()
+        print script
+        #tagged_url = media_utils.extract_tagged_url_from_embedded_script(script.parent(), SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
+        #tagged_urls.append(tagged_url)
+
+    return tagged_urls
 
 
 def extract_article_data(source):
@@ -184,9 +221,9 @@ def extract_article_data(source):
         content, content_links = extract_content_and_links(article)
 
         associated_links = extract_associated_links(article)
-
+        embedded_media_links = extract_embedded_media_links(article)
         return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                           intro_links + content_links + associated_links,
+                           intro_links + content_links + associated_links + embedded_media_links,
                            category, author,
                            intro, content), html_content
 
@@ -224,7 +261,7 @@ def extract_headlines_from_wrap_columns(column):
     stories_by_column.extend([col.findAll('div', {'class': 'article lt clearfix noborder'}) for col in wrap_columns])
 
     # flatten the result list
-    all_stories = chain(*stories_by_column)
+    all_stories = it.chain(*stories_by_column)
 
     return [extract_title_and_url(story) for story in all_stories]
 
@@ -284,7 +321,7 @@ def extract_headlines_for_one_region(region_container):
 def extract_regional_headlines(content):
     region_containers = content.findAll('div', {'class': 'story secondaire couleur_03'})
 
-    return list(chain(*[extract_headlines_for_one_region(c) for c in region_containers]))
+    return list(it.chain(*[extract_headlines_for_one_region(c) for c in region_containers]))
 
 
 def get_regional_toc():
@@ -329,37 +366,18 @@ def show_frontpage_articles():
 
 
 def test_sample_data():
-    filepath = '../../sample_data/sudpresse_some_error.html'
-    filepath = '../../sample_data/sudpresse_associated_link_error.html'
-    filepath = "/Volumes/Curst/json_db_0_5/sudpresse/2012-01-09/11.05.13/raw_data/0.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_noTitle.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_noTitle2.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
-    with open(filepath) as f:
-        article_data, raw = extract_article_data(f)
-        article_data.print_summary()
+    import glob
+    filepaths = glob.glob("sample_data/sudpresse/*.html")
+    filepaths = ["sample_data/sudpresse/0 2.html"]
+    #filepath = "/Volumes/Curst/json_db_0_5/sudpresse/2012-01-09/11.05.13/raw_data/0.html"
 
-        for link in article_data.links:
-            print link.title
+    for filepath in filepaths:
+        with open(filepath) as f:
+            article_data, raw = extract_article_data(f)
+            article_data.print_summary()
 
-        print article_data.intro
-        print article_data.content
+            print_taggedURLs(article_data.links)
 
-
-def download_one_article():
-    url = 'http://www.sudpresse.be/regions/liege/2012-01-09/liege-un-mineur-d-age-et-un-majeur-apprehendes-pour-un-viol-collectif-930314.shtml'
-    url = 'http://sudpresse.be/actualite/dossiers/2012-01-02/le-stage-du-standard-a-la-manga-infos-photos-tweets-928836.shtml'
-    #url = 'http://sudpresse.be/%3C!--%20error:%20linked%20page%20doesn\'t%20exist:...%20--%3E'
-    url = "http://sudpresse.be/actualite/faits_divers/2012-01-10/un-enfant-de-4-ans-orphelin-sa-mere-a-saute-sur-les-voies-pour-recuperer-son-gsm-930520.shtml"
-
-    article_data, raw_html = extract_article_data(url)
-
-    if article_data:
-        article_data.print_summary()
-        print article_data.intro
-        print article_data.content
-    else:
-        print 'no article found'
 
 if __name__ == '__main__':
     #get_frontpage_toc()
