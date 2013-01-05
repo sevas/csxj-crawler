@@ -37,7 +37,10 @@ def extract_title_and_url(link_selector):
 
 
 def separate_articles_and_photoalbums(frontpage_items):
-    photoalbum_links = [(title, url) for (title, url) in frontpage_items if "/photoalbum/" in url]
+    def is_junk(url):
+        return ("/photoalbum/" in url) or ('/video/' in url)
+
+    photoalbum_links = [(title, url) for (title, url) in frontpage_items if is_junk(url)]
     article_links = [l for l in frontpage_items if l not in photoalbum_links]
     return article_links, photoalbum_links 
 
@@ -225,26 +228,28 @@ def extract_links_from_sidebar_box(soup):
     tagged_urls = list()
     sidebar_box = soup.find(attrs = {"class" : "teas_article_306 mar10 clear clearfix relatedcomponents"})
     # there are links to articles
-    articles = sidebar_box.find_all(attrs = {"class" : "clearfix"})
-    links = articles[0].find_all("a")
-    titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
-    for title, url, base_tags in titles_and_urls:
-        tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-        tags.update(base_tags)
-        tags.add('sidebar box')
-        tagged_urls.append(tagging.make_tagged_url(url, title, tags))
-
-    # and also links to thematic tags
-    tags = sidebar_box.find_all(attrs = {"class" : "bt_meer_over clearfix"})
-    for tag in tags:
-        links = tag.find_all("a")
+    if sidebar_box :
+        sidebar_box.find_all(attrs = {"class" : "clearfix"})
+        articles = sidebar_box.find_all(attrs = {"class" : "clearfix"})
+        links = articles[0].find_all("a")
         titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
         for title, url, base_tags in titles_and_urls:
             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
             tags.update(base_tags)
-            tags.add('article tag')
             tags.add('sidebar box')
-            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+            tagged_urls.append(tagging.make_tagged_url(url, title, tags))  
+
+        # and also links to thematic tags
+        tags = sidebar_box.find_all(attrs = {"class" : "bt_meer_over clearfix"})
+        for tag in tags:
+            links = tag.find_all("a")
+            titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
+            for title, url, base_tags in titles_and_urls:
+                tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+                tags.update(base_tags)
+                tags.add('article tag')
+                tags.add('sidebar box')
+                tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
     return tagged_urls
 
@@ -258,6 +263,9 @@ def extract_title_and_url_from_bslink(link):
 
     if link.find('h3'):
         title = link.find('h3').contents[0].strip()
+
+    if link.find('strong'):
+        title = link.find('strong').contents[0].strip()
     else:
         if link.contents:
             if type(link.contents[0]) is bs4.element.NavigableString:
@@ -426,10 +434,30 @@ def detect_page_type(url):
         return IS_FRONTPAGE
 
 
+SEPTSURSEPT_404_PAGE_CONTENT = """
+<html>
+ <head>
+  <script language="JavaScript">
+   function goToURL()
+{
+ parent.location = "http://www.7sur7.be/404";
+}
+  </script>
+ </head>
+ <body onload="goToURL()">
+  <!-- MEDUSA -->
+ </body>"""
+
+def is_404_page(html_data):
+    stripped_html_data = html_data.translate(None, ' \n\t')
+    stripped_404 = SEPTSURSEPT_404_PAGE_CONTENT.translate(None, ' \n\t')
+    return stripped_404.lower() == stripped_html_data.lower()
+
+
 def extract_article_data(source):
     # url is either a file-like object, or a url.
     # if it's a file we just open it, assume it's an article and extract article data
-    
+
     if hasattr(source, 'read'):
         html_data = source.read()
     # if it's an url we need to check if it's a photo album, a link to the frontpage or a true article
@@ -442,35 +470,45 @@ def extract_article_data(source):
         elif page_type == MAYBE_ARTICLE:
             raise ValueError("We couldn't define if this was an article or the frontpage, please check")
 
+    if is_404_page(html_data):
+        return (None, html_data)
+
     # pour tous les autres vrais articles
     soup  = bs4.BeautifulSoup(html_data)
-    title = extract_title(soup)
 
-    author_box = soup.find(attrs = {"class" : "author"})
-    author_name = extract_author_name(author_box)
-    pub_date, pub_time = extract_date_and_time(author_box)
 
-    source = extract_source(author_box)
+    if soup.find("head").find("title").contents[0] == "301 Moved Permanently":
+          return (None, html_data)
 
-    intro, tagged_urls_from_intro = extract_intro(soup)
+    else :
 
-    category = extract_category(soup)
+        title = extract_title(soup)
 
-    text, tagged_urls_intext = extract_text_content_and_links(soup)
+        author_box = soup.find(attrs = {"class" : "author"})
+        author_name = extract_author_name(author_box)
+        pub_date, pub_time = extract_date_and_time(author_box)
 
-    tagged_urls_read_more_box = extract_links_from_read_more_box(soup)
+        source = extract_source(author_box)
 
-    tagged_urls_sidebar_box = extract_links_from_sidebar_box(soup)
+        intro, tagged_urls_from_intro = extract_intro(soup)
 
-    tagged_urls_embedded_media = extract_embedded_media(soup)
+        category = extract_category(soup)
 
-    tagged_urls = tagged_urls_intext + tagged_urls_read_more_box + tagged_urls_sidebar_box + tagged_urls_embedded_media + tagged_urls_from_intro
+        text, tagged_urls_intext = extract_text_content_and_links(soup)
 
-    return (ArticleData(source, title, pub_date, pub_time, dt.datetime.now(),
-                    tagged_urls,
-                    category, author_name,
-                    intro, text),
-        html_data)
+        tagged_urls_read_more_box = extract_links_from_read_more_box(soup)
+
+        tagged_urls_sidebar_box = extract_links_from_sidebar_box(soup)
+
+        tagged_urls_embedded_media = extract_embedded_media(soup)
+
+        tagged_urls = tagged_urls_intext + tagged_urls_read_more_box + tagged_urls_sidebar_box + tagged_urls_embedded_media + tagged_urls_from_intro
+
+        return (ArticleData(source, title, pub_date, pub_time, dt.datetime.now(),
+                        tagged_urls,
+                        category, author_name,
+                        intro, text),
+            html_data)
 
 # on vérifie que les urls de la frontpage ne renvoient pas vers la frontpage (en y appliquant la fonction qui extrait les urls des la frontpage!!)
 def show_frontpage():
@@ -499,14 +537,14 @@ if __name__ == '__main__':
     url15 = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1501041/2012/09/14/Une-traversee-des-Etats-Unis-avec-du-bacon-comme-seule-monnaie.dhtml"
     urls = [url1, url2, url3, url6, url7, url9, url10, url11, url12, url14, url15]
 
-    for url in urls:
-        print url
-        article_data, html = extract_article_data(url)
-        for link in article_data.links:
-            print link
-        print article_data.title
-        print article_data.intro
-        print len(article_data.links)
+    # for url in urls:
+    #     print url
+    #     article_data, html = extract_article_data(url)
+    #     for link in article_data.links:
+    #         print link
+    #     print article_data.title
+    #     print article_data.intro
+    #     print len(article_data.links)
 
 
     # from pprint import pprint
@@ -587,12 +625,19 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/1773/Festivals/article/detail/1486845/2012/08/16/Le-Pukkelpop-revit.dhtml"
     url = "http://www.7sur7.be/7s7/fr/9100/Infos/article/detail/1489178/2012/08/21/Myriam-Leroy-et-Pure-Fm-c-est-fini.dhtml"
     url = "http://www.7sur7.be/7s7/fr/2864/Dossier-Obama/article/detail/1492705/2012/08/29/Michelle-Obama-en-esclave-denudee.dhtml"
-    # article_data, html = extract_article_data(url)
-    # for link in article_data.links:
-    #     print link
-    # print article_data.title
-    # print article_data.intro
-    # print len(article_data.links)
+    url = "http://7sur7.be/7s7/fr/1536/Economie/article/detail/1404580/2012/03/06/Le-Comite-restreint-se-penche-sur-les-recettes.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/2625/Planete/article/detail/1407279/2012/03/12/Un-lundi-au-soleil-pour-l-ouest-et-le-centre.dhtml"
+    url = "http://7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1413456/2012/03/24/Un-jeune-supporter-de-Port-Said-tue-dans-des-heurts-avec-la-police.dhtml"
+    url = "http://7sur7.be/7s7/fr/1502/Belgique/article/detail/1411405/2012/03/20/Peine-de-travail-pour-un-double-accident-mortel.dhtml"
+    url = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/moved_permanently.html")
+    url = "http://www.7sur7.be/7s7/fr/1513/tennis/article/detail/1455721/2012/06/18/Les-10-plus-gros-petages-de-plomb-de-l-histoire-du-tennis.dhtml"
+    article_data, html = extract_article_data(url)
+    if article_data:
+        for link in article_data.links:
+            print link
+        print article_data.title
+        print article_data.intro
+        print len(article_data.links)
 
     # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
     # article_data, html = extract_article_data(f)
