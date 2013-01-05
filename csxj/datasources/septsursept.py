@@ -280,7 +280,7 @@ def extract_title_and_url_from_bslink(link):
 
 def extract_category(soup):
     category_box = soup.find(attrs = {"class" : "actua_nav"})
-    links = category_box.findAll('a')
+    links = category_box.find_all('a')
     return [utils.remove_text_formatting_markup_from_fragments(link.contents[0]) for link in links]
 
 def find_embedded_media_in_multimedia_box(multimedia_box):
@@ -293,6 +293,13 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
 
         elif 'poll' in section.attrs['class']:
             continue
+
+        elif 'asset' in section.attrs['class']:
+            url = section.find('a').get('href')
+            title = section.find('a').contents
+            tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
+            tags.add('embedded media')
+            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
         elif 'video' in section.attrs['class']:        
             # it might be an iframe
@@ -631,6 +638,7 @@ if __name__ == '__main__':
     url = "http://7sur7.be/7s7/fr/1502/Belgique/article/detail/1411405/2012/03/20/Peine-de-travail-pour-un-double-accident-mortel.dhtml"
     url = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/moved_permanently.html")
     url = "http://www.7sur7.be/7s7/fr/1513/tennis/article/detail/1455721/2012/06/18/Les-10-plus-gros-petages-de-plomb-de-l-histoire-du-tennis.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1426303/2012/04/20/Wesphael-annonce-la-creation-de-son-parti.dhtml"
     article_data, html = extract_article_data(url)
     if article_data:
         for link in article_data.links:
