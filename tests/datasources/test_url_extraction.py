@@ -18,16 +18,25 @@ class PlainTextURLExtractorTestCases(unittest.TestCase):
         """
 
     def test_simple_url(self):
+        """
+            Test Plaintext URL extraction with a simple URL
+        """
         text_with_url = self.text.format(self.simple_url)
         urls = extract_plaintext_urls_from_text(text_with_url)
         self.assertEqual(urls, [self.simple_url])
 
     def test_complex_url(self):
+        """
+            Test Plaintext URL extraction with a complex URL (parameters, port, spaces and semicolons)
+        """
         text_with_url = self.text.format(self.complex_url)
         urls = extract_plaintext_urls_from_text(text_with_url)
         self.assertEqual(urls, [self.complex_url])
 
     def test_multiple_urls(self):
+        """
+            Test Plaintext URL extraction from a text with several URLs
+        """
         text = 'this {0} has {1} many {2} links {3}'
         text_with_urls = text.format(self.simple_url, self.complex_url, self.complex_url, self.simple_url)
         urls = extract_plaintext_urls_from_text(text_with_urls)
@@ -38,6 +47,9 @@ class PlainTextURLExtractorTestCases(unittest.TestCase):
         self.assertEqual(urls, ['http://www.example.com', 'http://en.wikipedia.org/wiki/PC_Tools_(Central_Point_Software)', 'http://msdn.microsoft.com/en-us/library/aa752574(VS.85).aspx', 'http://www.awesomeexample.com'])
 
     def test_no_url(self):
+        """
+            Test Plaintext URL extraction on a text with no URL
+        """
         text = self.text.format('not a url')
         urls = extract_plaintext_urls_from_text(text)
         self.assertEqual(urls, [])
