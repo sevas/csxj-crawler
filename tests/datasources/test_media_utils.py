@@ -1,10 +1,10 @@
 from nose.tools import *
 from csxj.datasources.common import media_utils
-from BeautilfulSoup import BeautilfulSoup
+from BeautifulSoup import BeautifulSoup
 
 
 def make_soup(html_data):
-    return BeautilfulSoup(html_data)
+    return BeautifulSoup(html_data)
 
 
 class TestMediaUtils(object):
@@ -22,7 +22,7 @@ class TestMediaUtils(object):
         """
         assert(False)
 
-    def test_embeded_tweet_widget(self):
+    def test_embeded_stweet_widget(self):
         """
             Test that the embedded media extraction returns a link to a twitter ressource when the script is a twitter widget
         """
