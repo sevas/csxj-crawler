@@ -254,7 +254,6 @@ def extract_links_from_sidebar_box(soup):
     return tagged_urls
 
 def extract_title_and_url_from_bslink(link):
-    print link
     base_tags = []
     if link.get('href'):
         url = link.get('href')
@@ -278,9 +277,7 @@ def extract_title_and_url_from_bslink(link):
         else:
             title = "__GHOST_LINK__"
             base_tags.append("ghost link")
-    print title
-    print url
-    print "*******************"
+
     return title, url, base_tags
 
 def extract_category(soup):
@@ -649,6 +646,10 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/1536/Economie/article/detail/1446084/2012/05/30/Ces-grandes-entreprises-belges-qui-ne-paient-pas-d-impots.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1495469/2012/09/04/Gad-Elmaleh-et-Charlotte-de-Monaco-officialisent-leur-relation.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1504847/2012/09/21/Le-Standard-voit-rouge-Trond-Sollied-sauve-sa-tete.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1507177/2012/09/26/Van-Damme-Pour-moi-ca-reste-une-question-ridicule.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1767/Ligue-des-Champions/article/detail/1510948/2012/10/03/Anderlecht-mange-a-la-sauce-andalouse.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/9099/Hors-jeu/article/detail/1536875/2012/11/20/Varane-considere-Bilbao-pour-une-equipe-catalane.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1513518/2012/10/09/Arret-de-travail-aux-depots-TEC-de-Jemeppe-et-Robermont.dhtml"
     article_data, html = extract_article_data(url)
     if article_data:
         for link in article_data.links:
