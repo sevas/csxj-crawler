@@ -193,31 +193,6 @@ def extract_category_from_maincontent(main_content):
     return [link.contents[0].rstrip().lstrip() for link in links]
 
 
-icon_type_to_tags = {
-    'pictoType0': ['internal', 'full url'],
-    'pictoType1': ['internal', 'local url'],
-    'pictoType2': ['images', 'gallery'],
-    'pictoType3': ['video'],
-    'pictoType4': ['animation'],
-    'pictoType5': ['audio'],
-    'pictoType6': ['images', 'gallery'],
-    'pictoType9': ['internal blog'],
-    'pictoType12': ['external']
-}
-
-
-def make_tagged_url_from_pictotype(url, title, icon_type):
-    """
-    Attempts to tag a url using the icon used. Mapping is incomplete at the moment.
-    Still keeps the icon type as part of the tags for future uses.
-    """
-    tags = set([icon_type])
-    if icon_type in icon_type_to_tags:
-        tags = tags.union(set(icon_type_to_tags[icon_type]))
-
-    return make_tagged_url(url, title, tags)
-
-
 def extract_associated_links_from_maincontent(main_content):
     """
     Finds the list of associated links. Returns a list of (title, url) tuples.
@@ -232,10 +207,9 @@ def extract_associated_links_from_maincontent(main_content):
         for list_item in container.findAll('li', recursive=False):
             url, title = extract_link_and_title(list_item)
             pictotype = list_item.get('class')
-            tagged_url = make_tagged_url_from_pictotype(url, title, pictotype)
+            
             tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-
-            tagged_url.tags.update(set(tags))
+            tagged_url = make_tagged_url(url, title,tags)
             tagged_urls.append(tagged_url)
         return tagged_urls
     else:
