@@ -146,7 +146,7 @@ def extract_text_content_and_links_from_articletext(article_text, has_intro=True
         all_plaintext_urls.extend(extract_plaintext_urls_from_text(text))
     # plaintext urls are their own title
     urls_and_titles = zip(all_plaintext_urls, all_plaintext_urls)
-    plaintext_tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext url', 'in text']))
+    plaintext_tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext', 'in text']))
 
     return cleaned_up_text_fragments, in_text_tagged_urls + plaintext_tagged_urls
 
