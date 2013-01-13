@@ -146,40 +146,14 @@ def extract_category(main_content):
     return [link.contents[0].rstrip().lstrip() for link in links]
 
 
-icon_type_to_tags = {
-    'pictoType0': ['internal', 'full url'],
-    'pictoType1': ['internal', 'local url'],
-    'pictoType2': ['images', 'gallery'],
-    'pictoType3': ['video'],
-    'pictoType4': ['animation'],
-    'pictoType5': ['audio'],
-    'pictoType6': ['images', 'gallery'],
-    'pictoType9': ['internal blog'],
-    'pictoType12': ['external']
-}
-
-
-def make_tagged_url_from_pictotype(url, title, icon_type):
-    """
-    Attempts to tag a url using the icon used. Mapping is incomplete at the moment.
-    Still keeps the icon type as part of the tags for future uses.
-    """
-    tags = set([icon_type])
-    if icon_type in icon_type_to_tags:
-        tags.update(set(icon_type_to_tags[icon_type]))
-
-    return tag_URL((url, title), tags)
-
 
 def extract_tagged_url_from_associated_link(link_list_item, tags=[]):
     # sometimes list items are used to show things which aren't links
     # but more like unclickable ads
     url = link_list_item.a.get('href')
     title = sanitize_fragment(link_list_item.a.contents[0].rstrip().lstrip())
-    icon_type = link_list_item.get('class')
-    tagged_url = make_tagged_url_from_pictotype(url, title, icon_type)
-    additional_tags = classify_and_tag(url, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
-    tagged_url.tags.update(additional_tags | set(tags))
+    tags = classify_and_tag(url, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+    tagged_url = make_tagged_url(url, title, tags)
     return tagged_url
 
 
