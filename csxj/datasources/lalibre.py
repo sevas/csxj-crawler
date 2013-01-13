@@ -159,7 +159,7 @@ def extract_tagged_url_from_associated_link(link_list_item, tags=[]):
 
 def extract_and_tag_associated_links(main_content):
     """
-    Extract the associated links. Uses the icon type to tag it.
+    Extract the associated links. .
 
     """
     strong_article_links = main_content.find('div', {'id': 'strongArticleLinks'})

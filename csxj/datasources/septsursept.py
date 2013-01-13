@@ -632,7 +632,7 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1407359/2012/03/12/Les-malheurs-d-un-journaliste-amusent-le-web.dhtml"
     url = "http://7sur7.be/7s7/fr/1527/People/article/detail/1408039/2012/03/13/Premier-apercu-de-la-frimousse-de-Giulia-Sarkozy.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1487322/2012/08/17/La-tumeur-cancereuse-d-Israel-va-bientot-disparaitre.dhtml"
-    url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1452608/2012/06/12/Mathieu-Kassovitz-traite-Nadine-Morano-de-conne.dhtml"
+    url_test = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1452608/2012/06/12/Mathieu-Kassovitz-traite-Nadine-Morano-de-conne.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1455287/2012/06/17/Lindsay-Lohan-plaisante-sur-son-malaise.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1773/Festivals/article/detail/1486845/2012/08/16/Le-Pukkelpop-revit.dhtml"
     url = "http://www.7sur7.be/7s7/fr/9100/Infos/article/detail/1489178/2012/08/21/Myriam-Leroy-et-Pure-Fm-c-est-fini.dhtml"
@@ -653,7 +653,7 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/1767/Ligue-des-Champions/article/detail/1510948/2012/10/03/Anderlecht-mange-a-la-sauce-andalouse.dhtml"
     url = "http://www.7sur7.be/7s7/fr/9099/Hors-jeu/article/detail/1536875/2012/11/20/Varane-considere-Bilbao-pour-une-equipe-catalane.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1513518/2012/10/09/Arret-de-travail-aux-depots-TEC-de-Jemeppe-et-Robermont.dhtml"
-    article_data, html = extract_article_data(url)
+    article_data, html = extract_article_data(url_test)
     if article_data:
         for link in article_data.links:
             print link
