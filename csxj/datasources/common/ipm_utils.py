@@ -35,3 +35,47 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             return media_utils.extract_tagged_url_from_embedded_script(item_div, site_netloc, site_internal_sites)
         else:
             raise ValueError("Unknown media type with class: {0}. Update the parser.".format(item_div.get('class')))
+
+
+def extract_tagged_url_from_associated_link(link_list_item, netloc, associated_sites, tags=[]):
+    # sometimes list items are used to show things which aren't links
+    # but more like unclickable ads
+    url = link_list_item.a.get('href')  
+    title = remove_text_formatting_markup_from_fragments(link_list_item.a.contents)
+    tags = classify_and_tag(url, netloc, associated_sites)
+    tagged_url = make_tagged_url(url, title, tags)
+    return tagged_url
+
+
+def extract_and_tag_associated_links(main_content, netloc, associated_sites):
+    """
+    Extract the associated links. .
+
+    """
+    strong_article_links = main_content.find('div', {'id': 'strongArticleLinks'})
+    if not strong_article_links:
+        return []
+
+    link_list = strong_article_links.find('ul', {'class': 'articleLinks'})
+    tagged_urls = []
+    # sometimes there are no links, and thus no placeholder
+    if link_list:
+        for li in link_list.findAll('li', recursive=False):
+            if li.a:
+                new_url = extract_tagged_url_from_associated_link(li, netloc, associated_sites, tags=['sidebar box'])
+                tagged_urls.append(new_url)
+
+    return tagged_urls
+
+
+def extract_bottom_links(main_content, netloc, associated_sites):
+    link_list = main_content.findAll('ul', {'class': 'articleLinks'}, recursive=False)
+
+    tagged_urls = []
+    if link_list:
+        for li in link_list[0].findAll('li', recursive=False):
+            if li.a:
+                tagged_urls.append(extract_tagged_url_from_associated_link(li, netloc, associated_sites, tags=['bottom box']))
+            else:
+                raise ValueError()
+    return tagged_urls

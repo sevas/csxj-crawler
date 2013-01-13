@@ -5,6 +5,7 @@ from datetime import datetime, time
 from BeautifulSoup import Tag
 import urlparse
 from common.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
+from common.utils import remove_text_formatting_markup_from_fragments
 from common import constants
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL, print_taggedURLs
 from csxj.db.article import ArticleData
@@ -66,15 +67,7 @@ def extract_date(main_content):
     return pub_date.date(), pub_time
 
 
-def sanitize_fragment(fragment):
-    if isinstance(fragment, Tag):
-        # sometimes, we just get <p></p>
-        if fragment.contents:
-            return ''.join(sanitize_fragment(f) for f in fragment.contents)
-        else:
-            return ''
-    else:
-        return fragment
+
 
 
 def separate_no_target_links(links):
@@ -96,7 +89,7 @@ def extract_and_tag_in_text_links(article_text):
     Returns a list of TaggedURL objects.
     """
     def extract_link_and_title(link):
-            return link.get('href'), sanitize_fragment(link.contents[0])
+            return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
     links = [extract_link_and_title(link)
              for link in article_text.findAll('a', recursive=True)]
 
@@ -114,7 +107,7 @@ def extract_and_tag_in_text_links(article_text):
 
 def sanitize_paragraph(paragraph):
     """Returns plain text article"""
-    sanitized_paragraph = [sanitize_fragment(fragment) for fragment in paragraph.contents]
+    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment) for fragment in paragraph.contents]
     return ''.join(sanitized_paragraph)
 
 
@@ -144,51 +137,6 @@ def extract_category(main_content):
     links = breadcrumbs.findAll('a', recursive=False)
 
     return [link.contents[0].rstrip().lstrip() for link in links]
-
-
-
-def extract_tagged_url_from_associated_link(link_list_item, tags=[]):
-    # sometimes list items are used to show things which aren't links
-    # but more like unclickable ads
-    url = link_list_item.a.get('href')
-    title = sanitize_fragment(link_list_item.a.contents[0].rstrip().lstrip())
-    tags = classify_and_tag(url, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
-    tagged_url = make_tagged_url(url, title, tags)
-    return tagged_url
-
-
-def extract_and_tag_associated_links(main_content):
-    """
-    Extract the associated links. .
-
-    """
-    strong_article_links = main_content.find('div', {'id': 'strongArticleLinks'})
-    if not strong_article_links:
-        return []
-
-    link_list = strong_article_links.find('ul', {'class': 'articleLinks'})
-    tagged_urls = []
-    # sometimes there are no links, and thus no placeholder
-    if link_list:
-        for li in link_list.findAll('li', recursive=False):
-            if li.a:
-                new_url = extract_tagged_url_from_associated_link(li)
-                tagged_urls.append(new_url)
-
-    return tagged_urls
-
-
-def extract_bottom_links(main_content):
-    link_list = main_content.findAll('ul', {'class': 'articleLinks'}, recursive=False)
-
-    tagged_urls = []
-    if link_list:
-        for li in link_list[0].findAll('li', recursive=False):
-            if li.a:
-                tagged_urls.append(extract_tagged_url_from_associated_link(li, tags=['bottom']))
-            else:
-                raise ValueError()
-    return tagged_urls
 
 
 def extract_embedded_content_links(main_content):
@@ -242,8 +190,8 @@ def extract_article_data_from_html(html_content, source_url):
     intro = extract_intro(main_content)
     text_content, in_text_urls = extract_text_content_and_links(main_content)
 
-    associated_tagged_urls = extract_and_tag_associated_links(main_content)
-    bottom_links = extract_bottom_links(main_content)
+    associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+    bottom_links = ipm_utils.extract_bottom_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     embedded_content_links = extract_embedded_content_links(main_content)
     all_links = in_text_urls + associated_tagged_urls + bottom_links + embedded_content_links
 
