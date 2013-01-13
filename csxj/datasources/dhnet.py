@@ -193,27 +193,27 @@ def extract_category_from_maincontent(main_content):
     return [link.contents[0].rstrip().lstrip() for link in links]
 
 
-def extract_associated_links_from_maincontent(main_content):
-    """
-    Finds the list of associated links. Returns a list of (title, url) tuples.
-    """
-    container = main_content.find('ul', {'class': 'articleLinks'}, recursive=False)
+# def extract_associated_links_from_maincontent(main_content):
+#     """
+#     Finds the list of associated links. Returns a list of (title, url) tuples.
+#     """
+#     container = main_content.find('ul', {'class': 'articleLinks'}, recursive=False)
 
-    # sometimes there are no links
-    if container:
-        def extract_link_and_title(list_item):
-            return  list_item.a.get('href'), remove_text_formatting_markup_from_fragments(list_item.a.contents)
-        tagged_urls = list()
-        for list_item in container.findAll('li', recursive=False):
-            url, title = extract_link_and_title(list_item)
-            pictotype = list_item.get('class')
+#     # sometimes there are no links
+#     if container:
+#         def extract_link_and_title(list_item):
+#             return  list_item.a.get('href'), remove_text_formatting_markup_from_fragments(list_item.a.contents)
+#         tagged_urls = list()
+#         for list_item in container.findAll('li', recursive=False):
+#             url, title = extract_link_and_title(list_item)
+#             tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
 
-            tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-            tagged_url = make_tagged_url(url, title, tags)
-            tagged_urls.append(tagged_url)
-        return tagged_urls
-    else:
-        return []
+#             tags.add('sidebar box')
+#             tagged_url = make_tagged_url(url, title,tags)
+#             tagged_urls.append(tagged_url)
+#         return tagged_urls
+#     else:
+#         return []
 
 
 DATE_MATCHER = re.compile('\(\d\d/\d\d/\d\d\d\d\)')
@@ -316,14 +316,18 @@ def extract_article_data(source):
         else:
             intro = u""
             text, in_text_urls = extract_text_content_and_links_from_articletext(article_text, False)
-        associated_urls = extract_associated_links_from_maincontent(main_content)
+        
+
+        
+        associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+        bottom_links = ipm_utils.extract_bottom_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
 
         embedded_content_urls = extract_links_to_embedded_content(main_content)
 
         fetched_datetime = datetime.today()
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                                  in_text_urls + associated_urls + embedded_content_urls,
+                                  in_text_urls + associated_tagged_urls + embedded_content_urls + bottom_links,
                                   category, author_name, intro, text)
         return new_article, html_content
     else:
