@@ -16,17 +16,17 @@ def extract_url_from_iframe(iframe):
     return url, title
 
 
-def extract_tagged_url_from_embedded_script(script_parent, site_netloc, site_internal_sites):
-    if script_parent.find('script').get('src'):
-        script_url = script_parent.find('script').get('src')
+def extract_tagged_url_from_embedded_script(script, site_netloc, site_internal_sites):
+    if script.get('src'):
+        script_url = script.get('src')
         if twitter_utils.is_twitter_widget_url(script_url):
-            title, url, tags = twitter_utils.get_widget_type(script_parent.findAll('script')[1].contents[0])
+            title, url, tags = twitter_utils.get_widget_type(script.contents[0])
             tags |= classify_and_tag(url, site_netloc, site_internal_sites)
             tags |= set(['script', 'embedded'])
             return make_tagged_url(url, title, tags)
         else:
-            if script_parent.find('noscript'):
-                noscript = script_parent.find('noscript')
+            if script.findNextSibling('noscript'):
+                noscript = script.findNextSibling('noscript')
                 link = noscript.find('a')
                 if link:
                     url = link.get('href')
@@ -37,6 +37,7 @@ def extract_tagged_url_from_embedded_script(script_parent, site_netloc, site_int
                 else:
                     raise ValueError("No link was found in the <noscript> section. Update the parser.")
             else:
-                raise ValueError("Embedded script of unknown type was detected ('{0}'). Update the parser.".format(script_url))
+                raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
     else:
-        raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
+        raise ValueError("Embedded script of unknown type was detected. Update the parser.")
+
