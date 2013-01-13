@@ -37,12 +37,14 @@ def extract_title_and_url(link_selector):
 
 
 def separate_articles_and_photoalbums(frontpage_items):
-    def is_junk(url):
+    def is_junk(frontpage_item):
+        title, url = frontpage_item
         return ("/photoalbum/" in url) or ('/video/' in url)
 
-    photoalbum_links = [(title, url) for (title, url) in frontpage_items if is_junk(url)]
-    article_links = [l for l in frontpage_items if l not in photoalbum_links]
-    return article_links, photoalbum_links 
+    photoalbum_items = [item for item in frontpage_items if is_junk(item)]
+    article_items = [l for l in frontpage_items if l not in photoalbum_items]
+    return article_items, photoalbum_items
+
 
 def try_extract_frontpage_items(url):
 
@@ -73,6 +75,7 @@ def try_extract_frontpage_items(url):
     article_links, photoalbum_links = separate_articles_and_photoalbums(frontpage_items)
     return [make_full_url(item) for item in article_links], [make_full_url(item) for item in photoalbum_links]
 
+
 def get_frontpage_toc():
     return try_extract_frontpage_items("http://www.7sur7.be/")
 
@@ -81,7 +84,7 @@ def extract_title(soup):
     # trouver le titre
     # la méthode avec "articleDetailTitle" ne marche pas tout le temps
     #title_box = soup.find(attrs = {"id" : "articleDetailTitle"})
-    title_box = soup.find(attrs = {"class" : "k1 mrg"})
+    title_box = soup.find(attrs={"class": "k1 mrg"})
     title = title_box.contents[0]
 
     return title
@@ -144,7 +147,7 @@ def extract_intro(soup):
 
     if intro_box:
         intro_fragments = intro_box.find_all('b')
-        intro = utils.remove_text_formatting_markup_from_fragments(intro_fragments) 
+        intro = utils.remove_text_formatting_markup_from_fragments(intro_fragments)
         inline_links = intro_box.find_all("a")
         titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
         plaintext_urls = utils.extract_plaintext_urls_from_text(intro)
@@ -162,7 +165,7 @@ def extract_intro(soup):
             tagged_urls.append(tagging.make_tagged_url(url, url, tags))
     else:
         intro = ""
-    
+
     return intro, tagged_urls
 
 
@@ -237,7 +240,7 @@ def extract_links_from_sidebar_box(soup):
             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
             tags.update(base_tags)
             tags.add('sidebar box')
-            tagged_urls.append(tagging.make_tagged_url(url, title, tags))  
+            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
         # and also links to thematic tags
         tags = sidebar_box.find_all(attrs = {"class" : "bt_meer_over clearfix"})
@@ -303,7 +306,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
             tags.add('embedded media')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
-        elif 'video' in section.attrs['class']:        
+        elif 'video' in section.attrs['class']:
             # it might be an iframe
             if section.find("iframe"):
                 iframe = section.find("iframe")
@@ -314,7 +317,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                     tagged_urls.append(tagging.make_tagged_url(url, url, tags))
                 else:
                     raise ValueError("There seems to be an iframe but we could not find a link. Please update parser.")
-            
+
             elif section.find("embed"):
                 embedded_stuff = section.find("embed")
                 url = embedded_stuff.get("src")
@@ -327,7 +330,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
             else :
                 raise ValueError("There seems to be an embedded video but we could not identify it. Please update parser.")
 
-        
+
         elif 'snippet' in section.attrs['class']:
 
             # it might be a tweet
@@ -354,7 +357,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                             tags |= tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
                             tags |= set(['script', 'embedded'])
                             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
-                
+
                     elif section.find("script"):
                         script_url = section.find('script').get('src')
                         if twitter_utils.is_twitter_widget_url(script_url):
@@ -376,7 +379,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                             tagged_urls.append(tagging.make_tagged_url(url, title, all_tags))
                         else:
                             raise ValueError("No link was found in the <noscript> section. Update the parser.")
-                
+
                     else:
                         raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
                 else :
