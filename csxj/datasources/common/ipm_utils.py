@@ -31,7 +31,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
 
         elif item_div.find('script'):
-            # try to detect a twitter widget
-            return media_utils.extract_tagged_url_from_embedded_script(item_div, site_netloc, site_internal_sites)
+            # try to detect a <script>
+            return media_utils.extract_tagged_url_from_embedded_script(item_div.find('script'), site_netloc, site_internal_sites)
         else:
             raise ValueError("Unknown media type with class: {0}. Update the parser.".format(item_div.get('class')))
