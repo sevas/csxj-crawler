@@ -21,10 +21,7 @@ class TestMediaUtils(object):
         self.internal_sites = {}
 
     def test_embedded_script(self):
-        """
-            The embedded <script> extraction works on a simple embedded
-            script with <noscript> fallback
-        """
+        """ The embedded <script> extraction works on a simple embedded script with <noscript> fallback """
         html_data = """
         <div>
             <script src='http://bar.com/some_widget.js'>
@@ -40,10 +37,7 @@ class TestMediaUtils(object):
 
     @raises(ValueError)
     def test_embedded_script_without_noscript_fallback(self):
-        """
-            The embedded <script> extraction raises a ValueError exception
-            when encountering a script without <noscript> fallback
-        """
+        """ The embedded <script> extraction raises a ValueError exception when encountering a script without <noscript> fallback """
         html_data = """
         <div>
             <script src='http://bar.com/some_widget.js'>
@@ -54,9 +48,7 @@ class TestMediaUtils(object):
         media_utils.extract_tagged_url_from_embedded_script(soup.script, self.netloc, self.internal_sites)
 
     def test_embeded_tweet_widget(self):
-        """
-            The embedded <script> extraction returns a link to a twitter resource when the script is a twitter widget
-        """
+        """ The embedded <script> extraction returns a link to a twitter resource when the script is a twitter widget """
         html_data = """
         <div>
             <script src={0}>
@@ -73,10 +65,7 @@ class TestMediaUtils(object):
 
     @raises(ValueError)
     def test_embedded_javascript_code(self):
-        """
-            The embedded <script> extraction raises a ValueError when processing
-            a <script> tag with arbitrary Javascript code inside
-        """
+        """ The embedded <script> extraction raises a ValueError when processing a <script> tag with arbitrary Javascript code inside """
         js_content = """<script type='text/javascript'>var pokey='penguin'; </script>"""
         soup = make_soup(js_content)
         media_utils.extract_tagged_url_from_embedded_script(soup, self.netloc, self.internal_sites)
@@ -84,11 +73,7 @@ class TestMediaUtils(object):
 
 
     def test_embedded_tweet_widget_splitted(self):
-        """
-            The embedded <script> extraction should work when an embedded tweet
-            is split between the widget.js inclusion and the actual
-            javascript code to instantiate it.
-        """
+        """ The embedded <script> extraction should work when an embedded tweet is split between the widget.js inclusion and the actual javascript code to instantiate it."""
         html_data = """
         <div>
             <script src={0}></script>
