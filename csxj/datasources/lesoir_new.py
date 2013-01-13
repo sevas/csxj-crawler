@@ -175,7 +175,7 @@ def extract_article_tags(soup):
         for title, url, base_tags in titles_and_urls:
             tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
             tags.update(base_tags)
-            tags.add('article tag')
+            tags.add('keyword')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
     return tagged_urls
@@ -319,6 +319,7 @@ if __name__ == '__main__':
     url = "http://www.lesoir.be/142376/article/styles/cuisines/2012-12-21/cuisinez-comme-un-chef-pour-f%C3%AAtes"
     url = "http://www.lesoir.be/144465/article/actualite/belgique/2012-12-26/di-rupo-discours-du-roi-un-message-%C2%AB-humaniste-%C2%BB"
     url = "http://www.lesoir.be/144352/article/culture/cinema/2012-12-26/spike-lee-boycotte-prochain-film-quentin-tarantino"
+    url = "http://www.lesoir.be/159937/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-%C2%ABbruxelles-doit-travailler-avec-wallonie-et-flandre%C2%BB"
     extract_article_data(url)
 
     # toc, blogposts = get_frontpage_toc()
