@@ -9,7 +9,6 @@ from csxj.articlequeue import ArticleQueueDownloader
 import traceback
 
 
-
 def download_all_queued_articles(db_root):
     if not os.path.exists(db_root):
         print("no such database directory: {0}".format(db_root))
@@ -19,7 +18,7 @@ def download_all_queued_articles(db_root):
         for source in all_sources:
             try:
                 csxj.crawler.download_queued_articles(source, db_root)
-            except Exception as e:
+            except Exception:
                 stacktrace = traceback.format_exc()
                 print stacktrace
 

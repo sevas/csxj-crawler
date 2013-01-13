@@ -1,5 +1,5 @@
 import sys
-import os, os.path
+import os
 from datetime import datetime
 import json
 import utils
@@ -23,11 +23,9 @@ def write_dict_to_file(d, outdir, outfile):
         json.dump(d, outfile)
 
 
-
-
-
 class ArticleQueueFiller(object):
     log_name = "csxj_QueueFiller.log"
+
     def __init__(self, source, source_name, db_root):
         self.source = source
         self.source_name = source_name
@@ -35,21 +33,14 @@ class ArticleQueueFiller(object):
         self.new_stories = list()
         self.root = os.path.join(db_root, source_name)
 
-
-
     def make_log_message(self, message):
         return u"[{0}] {1}".format(self.source_name, message)
-
-
 
     def log_info(self, message):
         self.log.info(self.make_log_message(message))
 
-
-
     def log_error(self, message):
         self.log.error(self.make_log_message(message))
-
 
     @classmethod
     def setup_logging(cls):
@@ -63,14 +54,11 @@ class ArticleQueueFiller(object):
         stream_formatter = logging.Formatter("[%(levelname)s]  %(message)s")
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setFormatter(stream_formatter)
-        
+
         cls.log = logging.getLogger("csxj_QueueFiller")
         cls.log.setLevel(logging.INFO)
         cls.log.addHandler(file_handler)
         cls.log.addHandler(stream_handler)
-        
-
-
 
     def fetch_newest_article_links(self):
         outdir = os.path.join(self.db_root, self.source_name)
@@ -94,19 +82,17 @@ class ArticleQueueFiller(object):
                 self.new_blogposts = utils.filter_only_new_stories(blogposts_toc, last_blogposts_filename)
 
                 self.log_info("Found {0} new stories and {1} new blogposts since last time".format(len(self.new_stories),
-                                                                                               len(self.new_blogposts)))
+                                                                                                   len(self.new_blogposts)))
 
                 self.update_global_queue()
             else:
                 self.log_error("Found no headlines on the frontpage. Updating error log")
                 self.update_queue_error_log("*** No link were extracted from the frontpage")
 
-
-        except Exception as e:
+        except Exception:
             self.log_error("Something went wrong while fetching new frontpage headlines. Updating error log")
             stacktrace = traceback.format_exc()
             self.update_queue_error_log(stacktrace)
-
 
     def update_queue_error_log(self, stacktrace):
         """
@@ -132,13 +118,12 @@ class ArticleQueueFiller(object):
         with open(error_log_file, 'w') as f:
             json.dump(queue_error_log, f)
 
-
     def update_global_queue(self):
         today = datetime.today()
 
         day_str = today.strftime("%Y-%m-%d")
         day_directory = os.path.join(self.root, "queue", day_str)
-        
+
         if not os.path.exists(day_directory):
             os.makedirs(day_directory)
 
@@ -149,13 +134,12 @@ class ArticleQueueFiller(object):
         with open(batch_filename, "w") as f:
             self.log.info(self.make_log_message("Enqueuing {0} new stories and {1} blogposts".format(len(self.new_stories),
                                                                                                      len(self.new_blogposts))))
-            json.dump({"articles":self.new_stories, "blogposts":self.new_blogposts}, f)
-
-            
+            json.dump({"articles": self.new_stories, "blogposts": self.new_blogposts}, f)
 
 
 class ArticleQueueDownloader(object):
     log_name = "csxj_QueueDownloader.log"
+
     def __init__(self, source, source_name, db_root, debug_mode=True):
         self.db_root = db_root
         self.source = source
@@ -163,17 +147,11 @@ class ArticleQueueDownloader(object):
         self.downloaded_articles = []
         self.debug_mode = debug_mode
 
-
-
     def make_log_message(self, message):
         return u"[{0}] {1}".format(self.source_name, message)
 
-
-
     def log_info(self, message):
         self.log.info(self.make_log_message(message))
-
-
 
     @classmethod
     def setup_logging(cls):
@@ -192,8 +170,6 @@ class ArticleQueueDownloader(object):
         cls.log.setLevel(logging.INFO)
         cls.log.addHandler(file_handler)
         cls.log.addHandler(stream_handler)
-
-
 
     def download_all_articles_in_queue(self):
         provider_db = Provider(self.db_root, self.source_name)
@@ -215,13 +191,10 @@ class ArticleQueueDownloader(object):
                     self.save_articles_to_db(articles, deleted_articles, errors, items['blogposts'], batch_output_directory)
                     self.save_raw_data_to_db(raw_data, batch_output_directory)
 
-
                 self.log_info("Removing queue directory for day: {0}".format(day_string))
                 provider_db.cleanup_queue(day_string)
         else:
             self.log_info("Empty queue. Nothing to do.")
-
-
 
     def download_batch(self, items):
         articles, deleted_articles, errors, raw_data = list(), list(), list(), list()
@@ -233,42 +206,37 @@ class ArticleQueueDownloader(object):
                     raw_data.append((url, html_content))
                 else:
                     deleted_articles.append((title, url))
-            except Exception as e:
+            except Exception:
                 # log all the things
                 stacktrace = traceback.format_exc()
                 new_error = make_error_log_entry2(url, title, stacktrace)
                 errors.append(new_error)
 
-
         return articles, deleted_articles, errors, raw_data
 
-
-
     def save_articles_to_db(self, articles, deleted_articles, errors, blogposts, outdir):
-        all_data = {'articles':[art.to_json() for art in  articles],
-                    'errors':[]}
+        all_data = {'articles': [art.to_json() for art in articles],
+                    'errors': []}
 
         self.log_info("Writing {0} articles to {1}".format(len(articles), os.path.join(outdir, ARTICLES_FILENAME)))
         write_dict_to_file(all_data, outdir, ARTICLES_FILENAME)
 
-        blogposts_data = {'blogposts':blogposts}
+        blogposts_data = {'blogposts': blogposts}
         self.log_info("Writing {0} blogpost links to {1}".format(len(blogposts), os.path.join(outdir, BLOGPOSTS_FILENAME)))
         write_dict_to_file(blogposts_data, outdir, BLOGPOSTS_FILENAME)
 
-        deleted_articles_data = {'deleted_articles':deleted_articles}
+        deleted_articles_data = {'deleted_articles': deleted_articles}
         self.log_info("Writing {0} links to deleted articles to {1}".format(len(deleted_articles), os.path.join(outdir, DELETED_ARTICLES_FILENAME)))
         write_dict_to_file(deleted_articles_data, outdir, DELETED_ARTICLES_FILENAME)
 
         self.log_info("Writing {0} errors to {1}".format(len(errors), os.path.join(outdir, ERRORS2_FILENAME)))
-        write_dict_to_file({'errors':errors}, outdir, ERRORS2_FILENAME)
-
-
+        write_dict_to_file({'errors': errors}, outdir, ERRORS2_FILENAME)
 
     def save_raw_data_to_db(self, raw_data, batch_outdir):
         """
         """
         self.log_info("Writing raw html data to {0}".format(os.path.join(batch_outdir, RAW_DATA_DIR)))
-        
+
         raw_data_dir = os.path.join(batch_outdir, RAW_DATA_DIR)
         if not os.path.exists(raw_data_dir):
             os.mkdir(raw_data_dir)
@@ -303,9 +271,6 @@ class ArticleQueueDownloader(object):
             self.log_info(str(e))
 
 
-
-        
-
 def test_filler(json_db):
     from datasources import lesoir, lalibre
     ArticleQueueFiller.setup_logging()
@@ -313,7 +278,6 @@ def test_filler(json_db):
         queue_filler = ArticleQueueFiller(source, source.SOURCE_NAME, json_db)
         queue_filler.fetch_newest_article_links()
         queue_filler.update_global_queue()
-    
 
 
 def test_downloader(json_db):
@@ -322,7 +286,6 @@ def test_downloader(json_db):
     for source in [rtlinfo]:
         queue_downloader = ArticleQueueDownloader(source, source.SOURCE_NAME, json_db)
         queue_downloader.download_all_articles_in_queue()
-
 
 
 def main(json_db):

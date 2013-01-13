@@ -22,9 +22,9 @@ def show_queue_info(json_db):
             total_item_count += queued_item_count
         res[source.SOURCE_NAME] = (total_item_count, len(batches_by_day))
 
-
     for name, (item_count, day_count) in res.items():
         print "{0}: {1} items for {2} days".format(name, item_count, day_count)
+
 
 def try_download_queue(json_db):
     sources = [rtlinfo, lesoir, lalibre, dhnet, lavenir]
@@ -45,14 +45,13 @@ def try_download_queue(json_db):
                     else:
                         print "\t\t\t\t no article found"
 
-
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Utility functions to troubleshoot queue management')
     parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='json db root directory')
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--download-queue',  action='store_true')
+    group.add_argument('--download-queue', action='store_true')
     group.add_argument('--show-queue', action='store_true')
 
     args = parser.parse_args()
