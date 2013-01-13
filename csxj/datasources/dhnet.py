@@ -207,9 +207,9 @@ def extract_associated_links_from_maincontent(main_content):
         for list_item in container.findAll('li', recursive=False):
             url, title = extract_link_and_title(list_item)
             pictotype = list_item.get('class')
-            
+
             tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-            tagged_url = make_tagged_url(url, title,tags)
+            tagged_url = make_tagged_url(url, title, tags)
             tagged_urls.append(tagged_url)
         return tagged_urls
     else:
