@@ -1,6 +1,14 @@
+"""
+Test suite for the embedded <script> extraction
+"""
 from nose.tools import raises, eq_, ok_
-from csxj.datasources.common import media_utils
 from BeautifulSoup import BeautifulSoup
+
+from csxj.datasources.common import media_utils
+from csxj.datasources.common import twitter_utils
+
+import test_twitter_utils
+
 
 
 def make_soup(html_data):
@@ -14,7 +22,7 @@ class TestMediaUtils(object):
 
     def test_embedded_script(self):
         """
-            Test that the embedded media extraction works on a simple embedded script with <noscript> fallback
+            The embedded <script> extraction works on a simple embedded script with <noscript> fallback
         """
         html_data = """
         <div>
@@ -32,7 +40,7 @@ class TestMediaUtils(object):
     @raises(ValueError)
     def test_embedded_script_without_noscript_fallback(self):
         """
-            Test that the embedded media extraction on a simple embedded script without <noscript> fallback raises a ValueError exception
+            The embedded <script> extraction raises a ValueError exception when encountering a script without <noscript> fallback
         """
         html_data = """
         <div>
@@ -45,14 +53,26 @@ class TestMediaUtils(object):
 
     def test_embeded_tweet_widget(self):
         """
-            Test that the embedded media extraction returns a link to a twitter ressource when the script is a twitter widget
+            The embedded <script> extraction returns a link to a twitter resource when the script is a twitter widget
         """
-        assert(False)
+        html_data = """
+        <div>
+            <script src={0}>
+            {1}
+            </script>
+        </div>
+        """.format(twitter_utils.TWITTER_WIDGET_SCRIPT_URL, test_twitter_utils.SAMPLE_TWIMG_PROFILE)
+
+        soup = make_soup(html_data)
+        tagged_URL = media_utils.extract_tagged_url_from_embedded_script(soup.script, self.netloc, self.internal_sites)
+        expected_tags = set(['twitter widget', 'twitter profile', 'script', 'external', 'embedded'])
+
+        eq_(tagged_URL.tags, expected_tags)
 
     @raises(ValueError)
     def test_embedded_javascript_code(self):
         """
-            Test that the embedded script detector raises a ValueError when processing a <script> tag with arbitrary JS inside
+            The embedded <script> extraction raises a ValueError when processing a <script> tag with arbitrary Javascript code inside
         """
         js_content = """<script type='text/javascript'>var pokey='penguin'; </script>"""
         soup = make_soup(js_content)

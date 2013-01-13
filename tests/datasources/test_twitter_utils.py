@@ -1,5 +1,5 @@
 from csxj.datasources.common import twitter_utils
-from nose.tools import assert_equal, raises
+from nose.tools import eq_, raises
 
 SAMPLE_TWIMG_PROFILE = """
     new TWTR.Widget({
@@ -70,7 +70,7 @@ class TestTwitterUtils(object):
         script_content = SAMPLE_TWIMG_SEARCH
         expected_tags = set(['twitter widget', 'twitter search'])
         title, url, tags = twitter_utils.get_widget_type(script_content)
-        assert_equal(tags, expected_tags)
+        eq_(tags, expected_tags)
 
     def test_embedded_profile_widget(self):
         """
@@ -80,7 +80,7 @@ class TestTwitterUtils(object):
         expected_tags = set(['twitter widget', 'twitter profile'])
         title, url, tags = twitter_utils.get_widget_type(script_content_user)
 
-        assert_equal(tags, expected_tags)
+        eq_(tags, expected_tags)
 
     @raises(ValueError)
     def test_unknown_widget_type(self):

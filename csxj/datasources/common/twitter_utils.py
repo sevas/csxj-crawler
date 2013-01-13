@@ -1,11 +1,11 @@
 import urlparse
 import urllib
-TWITTER_WIDGET_URL = "widgets.twimg.com"
-
+TWITTER_WIDGET_NETLOC="widgets.twimg.com"
+TWITTER_WIDGET_SCRIPT_URL="http://widgets.twimg.com/j/2/widget.js"
 
 def is_twitter_widget_url(url):
     _, netloc, _, _, _, _ = urlparse.urlparse(url)
-    return netloc == TWITTER_WIDGET_URL
+    return netloc == TWITTER_WIDGET_NETLOC
 
 
 def grep_line(text, word):
