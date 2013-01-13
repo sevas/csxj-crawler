@@ -22,7 +22,8 @@ class TestMediaUtils(object):
 
     def test_embedded_script(self):
         """
-            The embedded <script> extraction works on a simple embedded script with <noscript> fallback
+            The embedded <script> extraction works on a simple embedded
+            script with <noscript> fallback
         """
         html_data = """
         <div>
@@ -40,7 +41,8 @@ class TestMediaUtils(object):
     @raises(ValueError)
     def test_embedded_script_without_noscript_fallback(self):
         """
-            The embedded <script> extraction raises a ValueError exception when encountering a script without <noscript> fallback
+            The embedded <script> extraction raises a ValueError exception
+            when encountering a script without <noscript> fallback
         """
         html_data = """
         <div>
@@ -72,8 +74,32 @@ class TestMediaUtils(object):
     @raises(ValueError)
     def test_embedded_javascript_code(self):
         """
-            The embedded <script> extraction raises a ValueError when processing a <script> tag with arbitrary Javascript code inside
+            The embedded <script> extraction raises a ValueError when processing
+            a <script> tag with arbitrary Javascript code inside
         """
         js_content = """<script type='text/javascript'>var pokey='penguin'; </script>"""
         soup = make_soup(js_content)
         media_utils.extract_tagged_url_from_embedded_script(soup, self.netloc, self.internal_sites)
+
+
+
+    def test_embedded_tweet_widget_splitted(self):
+        """
+            The embedded <script> extraction should work when an embedded tweet
+            is split between the widget.js inclusion and the actual
+            javascript code to instantiate it.
+        """
+        html_data = """
+        <div>
+            <script src={0}></script>
+            <script>
+            {1}
+            </script>
+        </div>
+        """.format(twitter_utils.TWITTER_WIDGET_SCRIPT_URL, test_twitter_utils.SAMPLE_TWIMG_PROFILE)
+
+        soup = make_soup(html_data)
+        tagged_URL = media_utils.extract_tagged_url_from_embedded_script(soup.script, self.netloc, self.internal_sites)
+        expected_tags = set(['twitter widget', 'twitter profile', 'script', 'external', 'embedded'])
+
+        eq_(tagged_URL.tags, expected_tags)

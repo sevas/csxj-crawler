@@ -20,7 +20,12 @@ def extract_tagged_url_from_embedded_script(script, site_netloc, site_internal_s
     if script.get('src'):
         script_url = script.get('src')
         if twitter_utils.is_twitter_widget_url(script_url):
-            title, url, tags = twitter_utils.get_widget_type(script.contents[0])
+            if script.contents:
+                title, url, tags = twitter_utils.get_widget_type(script.contents[0])
+            else:
+                # sometimes the TWTR.Widget code is in the next <script> container. Whee.
+                sibling_script = script.findNextSibling('script')
+                title, url, tags = twitter_utils.get_widget_type(sibling_script.contents[0])
             tags |= classify_and_tag(url, site_netloc, site_internal_sites)
             tags |= set(['script', 'embedded'])
             return make_tagged_url(url, title, tags)
