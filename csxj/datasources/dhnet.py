@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-import locale
 from datetime import datetime, time
 from itertools import chain
 import re
 import urlparse
+
 from BeautifulSoup import Tag
-from common.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, setup_locales
+
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
+from common.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
+from common.utils import extract_plaintext_urls_from_text, setup_locales
 from common import constants
 from common import ipm_utils
 
@@ -368,8 +369,6 @@ def get_frontpage_toc():
 
 
 if __name__ == "__main__":
-    import json
-
     urls = [
         "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html",
         "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html",
@@ -384,10 +383,3 @@ if __name__ == "__main__":
 
     for url in urls[-1:]:
         article, html = extract_article_data(url)
-#        if article:
-#            article.print_summary()
-#            print article.title
-#            for tagged_url in article.links:
-#                print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
-#
-#        print("\n" * 4)
