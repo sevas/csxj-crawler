@@ -193,29 +193,6 @@ def extract_category_from_maincontent(main_content):
     return [link.contents[0].rstrip().lstrip() for link in links]
 
 
-# def extract_associated_links_from_maincontent(main_content):
-#     """
-#     Finds the list of associated links. Returns a list of (title, url) tuples.
-#     """
-#     container = main_content.find('ul', {'class': 'articleLinks'}, recursive=False)
-
-#     # sometimes there are no links
-#     if container:
-#         def extract_link_and_title(list_item):
-#             return  list_item.a.get('href'), remove_text_formatting_markup_from_fragments(list_item.a.contents)
-#         tagged_urls = list()
-#         for list_item in container.findAll('li', recursive=False):
-#             url, title = extract_link_and_title(list_item)
-#             tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-
-#             tags.add('sidebar box')
-#             tagged_url = make_tagged_url(url, title,tags)
-#             tagged_urls.append(tagged_url)
-#         return tagged_urls
-#     else:
-#         return []
-
-
 DATE_MATCHER = re.compile('\(\d\d/\d\d/\d\d\d\d\)')
 
 
@@ -279,14 +256,6 @@ def extract_links_from_embedded_content(embedded_content):
 
 
 def extract_links_to_embedded_content(main_content):
-    """
-
-    Args:
-        main_content
-
-    Returns:
-
-    """
     items = main_content.findAll('div', {'class': 'embedContents'})
     return [ipm_utils.extract_tagged_url_from_embedded_item(item, DHNET_NETLOC, DHNET_INTERNAL_SITES) for item in items]
 
@@ -312,20 +281,20 @@ def extract_article_data(source):
         article_text = main_content.find('div', {'id': 'articleText'})
         if article_has_intro(article_text):
             intro = extract_intro_from_articletext(article_text)
-            text, in_text_urls = extract_text_content_and_links_from_articletext(article_text)
+            text, in_text_links = extract_text_content_and_links_from_articletext(article_text)
         else:
             intro = u""
-            text, in_text_urls = extract_text_content_and_links_from_articletext(article_text, False)
+            text, in_text_links = extract_text_content_and_links_from_articletext(article_text, False)
 
-        associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+        audio_content_links = ipm_utils.extract_embedded_audio_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+        sidebox_links = ipm_utils.extract_and_tag_associated_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
         bottom_links = ipm_utils.extract_bottom_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-
-        embedded_content_urls = extract_links_to_embedded_content(main_content)
+        embedded_content_links = extract_links_to_embedded_content(main_content)
 
         fetched_datetime = datetime.today()
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                                  in_text_urls + associated_tagged_urls + embedded_content_urls + bottom_links,
+                                  in_text_links + sidebox_links + embedded_content_links + bottom_links + audio_content_links,
                                   category, author_name, intro, text)
         return new_article, html_content
     else:
@@ -413,13 +382,12 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html"
     ]
 
-    for url in urls[:]:
+    for url in urls[-1:]:
         article, html = extract_article_data(url)
-
-        if article:
-            article.print_summary()
-            print article.title
-            for tagged_url in article.links:
-                print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
-
-        print("\n" * 4)
+#        if article:
+#            article.print_summary()
+#            print article.title
+#            for tagged_url in article.links:
+#                print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
+#
+#        print("\n" * 4)
