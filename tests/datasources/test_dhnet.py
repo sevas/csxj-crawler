@@ -1,27 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-Link extraction test suite for DHNet
+Link extraction test suite for dhnet.py
 """
 
 import os
-from nose.tools import nottest, eq_
+from nose.tools import eq_
 
 from csxj.common.tagging import make_tagged_url
 from csxj.datasources import dhnet
+
+from csxj_test_tools import assert_taggedURLs_equals
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'dhnet')
 
 
 class TestDHNetLinkExtraction(object):
-    @nottest
-    def assert_taggedURLs_equals(self, expected_links, extracted_links):
-        eq_(len(expected_links), len(extracted_links), msg="Expected {0} links. Extracted {1}".format(len(expected_links), len(extracted_links)))
-        for expected, extracted in zip(sorted(expected_links), sorted(extracted_links)):
-            eq_(expected[0], extracted[0], msg=u'URLs are not the same: \n\t{0} \n\t{1}'.format(expected[0], extracted[0]))
-            #eq_(expected[1], extracted[1], msg='titles are not the same')
-
-            eq_(expected[2], extracted[2], msg=u'[{0}]({1}): tags are not the same: \n\tExpected: {2} \n\tGot:      {3}'.format(expected[1], expected[0], expected[2], extracted[2]))
-
     def test_simple_link_extraction(self):
         """ DHNet parser can extract bottom links from an article. """
         with open(os.path.join(DATA_ROOT, "single_bottom_link.html")) as f:
@@ -31,7 +24,7 @@ class TestDHNetLinkExtraction(object):
             expected_links = [make_tagged_url("/infos/faits-divers/article/381491/protheses-pip-plus-de-330-belges-concernees.html",
                                               u"Prothèses PIP:  plus de 330 belges concernées",
                                               set(["internal", 'bottom box']))]
-            self.assert_taggedURLs_equals(expected_links, extracted_links)
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_removed_article(self):
         """ DHNet parser should return a None value when processing a URL to a removed article. """
@@ -64,7 +57,7 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_links = expected_sidebar_links + expected_bottom_links
-            self.assert_taggedURLs_equals(expected_links, extracted_links)
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_no_links(self):
         """ DHNet parser returns an empty link list if the article has no link. """
@@ -98,7 +91,7 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_links = expected_intext_links + expected_sidebox_links + expected_embedded_videos
-            self.assert_taggedURLs_equals(expected_links, extracted_links)
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_embedded_poll_script(self):
         """ DHNet can extract the link to an embedded js widget (e.g. from a polling service). """
@@ -121,7 +114,7 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_links = expected_sidebox_links + expected_in_text_links + expected_widget_links
-            self.assert_taggedURLs_equals(expected_links, extracted_links)
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_storify_gallery_videos(self):
         """ DHNet parser can extract a storify link, tag DHNet galleries, detect embedded videos. """
@@ -162,7 +155,7 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_links = expected_sidebox_links + expected_bottom_links + expected_embedded_media_links
-            self.assert_taggedURLs_equals(expected_links, extracted_links)
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_media_overload(self):
         """ DHNet parser can extract links from a page with a rich collection of embedded media (twitter widget, embedded videos, regular links, poll script). """
@@ -210,7 +203,7 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_links = expected_sidebox_links + expected_in_text_links + expected_bottom_links + expected_embedded_media_links
-            self.assert_taggedURLs_equals(expected_links, extracted_links)
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_embedded_audio_video(self):
         """ DHNet can extract links to embedded audio and video content """
@@ -263,4 +256,4 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_links = expected_sidebox_links + expected_bottom_links + expected_embedded_media_links
-            self.assert_taggedURLs_equals(expected_links, extracted_links)
+            assert_taggedURLs_equals(expected_links, extracted_links)
