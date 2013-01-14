@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime, time
-from BeautifulSoup import Tag
 import urlparse
+
+from csxj.common.tagging import classify_and_tag, make_tagged_url
+from csxj.db.article import ArticleData
 from common.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
 from common.utils import remove_text_formatting_markup_from_fragments
 from common import constants
-from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL, print_taggedURLs
-from csxj.db.article import ArticleData
 from common import ipm_utils
 
 LALIBRE_ASSOCIATED_SITES = {
@@ -65,9 +65,6 @@ def extract_date(main_content):
 
     pub_date = datetime.strptime(date_string, '%d/%m/%Y')
     return pub_date.date(), pub_time
-
-
-
 
 
 def separate_no_target_links(links):
@@ -172,6 +169,12 @@ def extract_article_data_from_file(source_url, source_file):
     return extract_article_data_from_html(html_content, source_url)
 
 
+def print_for_test(taggedURLs):
+    print "---"
+    for taggedURL in taggedURLs:
+        print u"""make_tagged_url("{0}", u\"\"\"{1}\"\"\", {2}),""".format(taggedURL.URL, taggedURL.title, taggedURL.tags)
+
+
 def extract_article_data_from_html(html_content, source_url):
     soup = make_soup_from_html_content(html_content)
 
@@ -190,10 +193,12 @@ def extract_article_data_from_html(html_content, source_url):
     intro = extract_intro(main_content)
     text_content, in_text_urls = extract_text_content_and_links(main_content)
 
+    embedded_audio_links = ipm_utils.extract_embedded_audio_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     bottom_links = ipm_utils.extract_bottom_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     embedded_content_links = extract_embedded_content_links(main_content)
-    all_links = in_text_urls + associated_tagged_urls + bottom_links + embedded_content_links
+
+    all_links = in_text_urls + associated_tagged_urls + bottom_links + embedded_content_links + embedded_audio_links
 
     new_article = ArticleData(source_url, title,
                               pub_date, pub_time, fetched_datetime,
@@ -239,36 +244,9 @@ def test_sample_data():
             "http://www.lalibre.be/sports/football/article/778966/suivez-anderlecht-milan-ac-en-live-des-20h30.html",
             ]
 
-    for url in urls[:]:
+    for url in urls[-1:]:
         article, html = extract_article_data(url)
-
-        if article:
-            print u"{0}".format(article.title)
-            article.print_summary()
-            print_taggedURLs(article.links)
-
-        print("\n" * 4)
-
-
-def list_frontpage_articles():
-    frontpage_items = get_frontpage_toc()
-    print len(frontpage_items)
-
-    for (title, url) in frontpage_items:
-        print 'fetching data for article :', title
-
-        article, html_content = extract_article_data(url)
-        article.print_summary()
-
-        for (url, title, tags) in article.internal_links:
-            print u'{0} -> {1} {2}'.format(url, title, tags)
-
-        for (url, title, tags) in article.external_links:
-            print u'{0} -> {1} {2}'.format(url, title, tags)
-
-        print '-' * 80
 
 
 if __name__ == '__main__':
-    #list_frontpage_articles()
     test_sample_data()
