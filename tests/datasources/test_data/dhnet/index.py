@@ -7,4 +7,5 @@ test_data = [
     ("http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html", "embedded_poll_script.html"),
     ("http://www.dhnet.be/infos/monde/article/413062/sandy-paralyse-le-nord-est-des-etats-unis.html", "storify_gallery_videos.html"),
     ("http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html", "media_overload.html"),
+    ("http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html", "embedded_audio_video.html"),
 ]

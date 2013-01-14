@@ -6,7 +6,7 @@ Link extraction test suite for DHNet
 import os
 from nose.tools import nottest, eq_
 
-from csxj.common.tagging import make_tagged_url, print_taggedURLs
+from csxj.common.tagging import make_tagged_url
 from csxj.datasources import dhnet
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'dhnet')
@@ -15,12 +15,12 @@ DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'dhnet')
 class TestDHNetLinkExtraction(object):
     @nottest
     def assert_taggedURLs_equals(self, expected_links, extracted_links):
-        eq_(len(expected_links), len(extracted_links))
+        eq_(len(expected_links), len(extracted_links), msg="Expected {0} links. Extracted {1}".format(len(expected_links), len(extracted_links)))
         for expected, extracted in zip(sorted(expected_links), sorted(extracted_links)):
             eq_(expected[0], extracted[0], msg=u'URLs are not the same: \n\t{0} \n\t{1}'.format(expected[0], extracted[0]))
             #eq_(expected[1], extracted[1], msg='titles are not the same')
 
-            eq_(expected[2], extracted[2], msg=u'[{0}]({1}): tags are not the same: \n\t{2} \n\t{3}'.format(expected[1], expected[0], expected[2], extracted[2]))
+            eq_(expected[2], extracted[2], msg=u'[{0}]({1}): tags are not the same: \n\tExpected: {2} \n\tGot:      {3}'.format(expected[1], expected[0], expected[2], extracted[2]))
 
     def test_simple_link_extraction(self):
         """ DHNet parser can extract bottom links from an article. """
@@ -165,7 +165,7 @@ class TestDHNetLinkExtraction(object):
             self.assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_media_overload(self):
-        """ DHNet can extract links from a page with a rich collection of embedded media (twitter widget, embedded videos, regular links, poll script). """
+        """ DHNet parser can extract links from a page with a rich collection of embedded media (twitter widget, embedded videos, regular links, poll script). """
         with open(os.path.join(DATA_ROOT, "media_overload.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links
@@ -210,4 +210,57 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_links = expected_sidebox_links + expected_in_text_links + expected_bottom_links + expected_embedded_media_links
+            self.assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_audio_video(self):
+        """ DHNet can extract links to embedded audio and video content """
+
+        with open(os.path.join(DATA_ROOT, "embedded_audio_video.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+
+            expected_sidebox_links = [
+                make_tagged_url("#embed_pos1", u"""Un jour de deuil national décrété après le drame de Sierre""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos2", u"""L'effroyable bilan de la tragédie en Suisse""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos3", u"""Vive émotion pour Elio Di Rupo après le drame de Sierre""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos6", u"""Les réactions de Vande Lanotte et Van Quickenborne""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos4", u"""Tragédie de Sierre : réaction de J. Milquet""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331708882.mp3", u"""Accident de car en Suisse: écoutez Didier Reynders""", set(['sidebar box', 'audio', 'embedded', 'internal site'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331708068.mp3", u"""Jan Luykx  revient sur l'accident de car de ce matin à Sierre""", set(['sidebar box', 'audio', 'embedded', 'internal site'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331708936.mp3", u"""Le chef des informations de la police du canton de Valais""", set(['sidebar box', 'audio', 'embedded', 'internal site'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331728657.mp3", u"""Le témoignage du chef de la police de Val d'anivier, reccueilli par Twizz Radio""", set(['sidebar box', 'audio', 'embedded', 'internal site'])),
+
+
+            ]
+
+            expected_bottom_links = [
+                make_tagged_url("/infos/faits-divers/article/388683/tragedie-de-sierre-vous-avez-laisse-vos-condoleances.html", u"""Tragédie de Sierre: vous avez laissé vos condoléances""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/faits-divers/article/388635/tragedie-de-sierre-3-enfants-encore-dans-un-etat-serieux.html", u'''Tragédie de Sierre: 3 enfants encore dans un "état sérieux"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/faits-divers/article/388704/tragedie-de-sierre-top-tours-possede-une-bonne-reputation.html", u"""Tragédie de Sierre: Top Tours possède une bonne réputation""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/faits-divers/article/388719/les-causes-de-l-accident-trois-pistes-possibles.html", u"""Les causes de l'accident ? Trois pistes possibles""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/faits-divers/article/388721/tragedie-de-sierre-vendredi-sera-une-journee-de-deuil-national.html", u"""Tragédie de Sierre: vendredi sera une journée de deuil national""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/faits-divers/article/388731/tragedie-de-sierre-les-enqueteurs-ne-confirment-pas-la-these-du-dvd.html", u"""Tragédie de Sierre: les enquêteurs ne confirment pas la thèse du DVD""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/faits-divers/article/388737/tragedie-de-sierre-qu-est-il-arrive-au-car-belge.html", u"""Tragédie de Sierre: qu'est-il arrivé au car belge?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/faits-divers/article/388736/tragedie-de-sierre-un-gros-boum-puis-le-bus-eventre.html", u"""Tragédie de Sierre: un gros boum,  puis le bus éventré""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/faits-divers/article/388782/tragedie-de-sierre-le-match-alost-lommel-remis.html", u"""Tragédie de Sierre: Le match Alost-Lommel remis""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/faits-divers/article/388805/tragedie-de-sierre-toptours-etait-dans-le-rouge.html", u"""Tragédie de Sierre : Toptours était dans le rouge""", set(['bottom box', 'internal'])),
+            ]
+
+            expected_embedded_media_links = [
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=b68aaa9d47cs&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=8e6437d5479s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=42dcc8dbd55s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=c4a038b7874s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=2561f1bd073s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=b97ce2d0dc1s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=82c2aa5fc83s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=3869c7bf503s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=b2bca84c11fs&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=e2bbfd134fds&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=d68d030739fs&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=fa32644185bs&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://storify.com/pocket_pau/tragedie-a-sierre", u"""View the story "Tragédie à Sierre" on Storify""", set(['external', 'embedded', 'script'])),
+            ]
+
+            expected_links = expected_sidebox_links + expected_bottom_links + expected_embedded_media_links
             self.assert_taggedURLs_equals(expected_links, extracted_links)
