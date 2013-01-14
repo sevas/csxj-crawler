@@ -37,12 +37,13 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             raise ValueError("Unknown media type with class: {0}. Update the parser.".format(item_div.get('class')))
 
 
-def extract_tagged_url_from_associated_link(link_list_item, netloc, associated_sites, tags=[]):
+def extract_tagged_url_from_associated_link(link_list_item, netloc, associated_sites, additional_tags=[]):
     # sometimes list items are used to show things which aren't links
     # but more like unclickable ads
-    url = link_list_item.a.get('href')  
+    url = link_list_item.a.get('href')
     title = remove_text_formatting_markup_from_fragments(link_list_item.a.contents)
     tags = classify_and_tag(url, netloc, associated_sites)
+    tags |= set(additional_tags)
     tagged_url = make_tagged_url(url, title, tags)
     return tagged_url
 
@@ -62,7 +63,7 @@ def extract_and_tag_associated_links(main_content, netloc, associated_sites):
     if link_list:
         for li in link_list.findAll('li', recursive=False):
             if li.a:
-                new_url = extract_tagged_url_from_associated_link(li, netloc, associated_sites, tags=['sidebar box'])
+                new_url = extract_tagged_url_from_associated_link(li, netloc, associated_sites, additional_tags=['sidebar box'])
                 tagged_urls.append(new_url)
 
     return tagged_urls
@@ -75,7 +76,7 @@ def extract_bottom_links(main_content, netloc, associated_sites):
     if link_list:
         for li in link_list[0].findAll('li', recursive=False):
             if li.a:
-                tagged_urls.append(extract_tagged_url_from_associated_link(li, netloc, associated_sites, tags=['bottom box']))
+                tagged_urls.append(extract_tagged_url_from_associated_link(li, netloc, associated_sites, additional_tags=['bottom box']))
             else:
                 raise ValueError()
     return tagged_urls
