@@ -1,14 +1,13 @@
 """
 Test suite for the embedded <script> extraction
 """
-from nose.tools import raises, eq_, ok_
+from nose.tools import raises, eq_
 from BeautifulSoup import BeautifulSoup
 
 from csxj.datasources.common import media_utils
 from csxj.datasources.common import twitter_utils
 
 import test_twitter_utils
-
 
 
 def make_soup(html_data):
@@ -70,8 +69,6 @@ class TestMediaUtils(object):
         soup = make_soup(js_content)
         media_utils.extract_tagged_url_from_embedded_script(soup, self.netloc, self.internal_sites)
 
-
-
     def test_embedded_tweet_widget_splitted(self):
         """ The embedded <script> extraction should work when an embedded tweet is split between the widget.js inclusion and the actual javascript code to instantiate it."""
         html_data = """
@@ -88,3 +85,23 @@ class TestMediaUtils(object):
         expected_tags = set(['twitter widget', 'twitter profile', 'script', 'external', 'embedded'])
 
         eq_(tagged_URL.tags, expected_tags)
+
+
+class TestDewPlayer(object):
+    def test_simple_url_extraction(self):
+        """ media_utils.extract_source_url_from_dewplayer() can extract he url to an mp3 file from an embedded dewplayer object. """
+        dewplayer_url = "http://download.saipm.com/flash/dewplayer/dewplayer.swf?mp3=http://podcast.dhnet.be/articles/audio_dh_388635_1331708882.mp3"
+        expected_mp3_url = "http://podcast.dhnet.be/articles/audio_dh_388635_1331708882.mp3"
+        extracted_url = media_utils.extract_source_url_from_dewplayer(dewplayer_url)
+        eq_(expected_mp3_url, extracted_url)
+
+    @raises(ValueError)
+    def test_empty_url(self):
+        """ media_utils.extract_source_url_from_dewplayer() raises ValueError when fed an empty string """
+        media_utils.extract_source_url_from_dewplayer("")
+
+    @raises(ValueError)
+    def test_bad_query_url(self):
+        """ media_utils.extract_source_url_from_dewplayer() raises ValueError when fed an unknown dewplayer query """
+        wrong_dewplayer_url = "http://download.saipm.com/flash/dewplayer/dewplayer.swf?foo=bar"
+        media_utils.extract_source_url_from_dewplayer(wrong_dewplayer_url)
