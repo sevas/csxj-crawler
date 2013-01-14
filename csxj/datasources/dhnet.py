@@ -316,9 +316,7 @@ def extract_article_data(source):
         else:
             intro = u""
             text, in_text_urls = extract_text_content_and_links_from_articletext(article_text, False)
-        
 
-        
         associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
         bottom_links = ipm_utils.extract_bottom_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
 

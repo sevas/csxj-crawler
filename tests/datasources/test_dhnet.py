@@ -17,7 +17,10 @@ class TestDHNetLinkExtraction(object):
     def assert_taggedURLs_equals(self, expected_links, extracted_links):
         eq_(len(expected_links), len(extracted_links))
         for expected, extracted in zip(sorted(expected_links), sorted(extracted_links)):
-            eq_(expected, extracted)
+            eq_(expected[0], extracted[0], msg=u'URLs are not the same: \n\t{0} \n\t{1}'.format(expected[0], extracted[0]))
+            #eq_(expected[1], extracted[1], msg='titles are not the same')
+
+            eq_(expected[2], extracted[2], msg=u'[{0}]({1}): tags are not the same: \n\t{2} \n\t{3}'.format(expected[1], expected[0], expected[2], extracted[2]))
 
     def test_simple_link_extraction(self):
         """ DHNet parser can extract bottom links from an article. """
@@ -27,7 +30,7 @@ class TestDHNetLinkExtraction(object):
             extracted_links = article.links
             expected_links = [make_tagged_url("/infos/faits-divers/article/381491/protheses-pip-plus-de-330-belges-concernees.html",
                                               u"Prothèses PIP:  plus de 330 belges concernées",
-                                              set(["internal"]))]
+                                              set(["internal", 'bottom box']))]
             self.assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_removed_article(self):
@@ -54,10 +57,10 @@ class TestDHNetLinkExtraction(object):
             expected_bottom_links = [
                 make_tagged_url("/infos/belgique/article/378094/400000-belges-toucheront-700-en-plus-par-an.html",
                                 u"400.000 Belges toucheront 700 € en plus par an",
-                                set(["internal"])),
+                                set(["internal", 'bottom box'])),
                 make_tagged_url("/infos/belgique/article/378135/chastel-il-faudra-trouver-quelques-centaines-de-millions-au-printemps.html",
                                 u"Chastel : \"il faudra trouver quelques centaines de millions au printemps\"",
-                                set(["internal"])),
+                                set(["internal", 'bottom box'])),
             ]
 
             expected_links = expected_sidebar_links + expected_bottom_links
@@ -77,8 +80,8 @@ class TestDHNetLinkExtraction(object):
             extracted_links = article.links
 
             expected_sidebox_links = [
-                make_tagged_url("#embed_pos1", u"Maingain : 'Charles Michel est tel quel !'", set(["sidebar box", "anchor"])),
-                make_tagged_url("#embed_pos2", u"'Elio Di Rupo spreekt Vlaams', il y a de l'espoir", set(["sidebar box", "anchor"]))
+                make_tagged_url("#embed_pos1", u"Maingain : 'Charles Michel est tel quel !'", set(["internal", "sidebar box", "anchor"])),
+                make_tagged_url("#embed_pos2", u"'Elio Di Rupo spreekt Vlaams', il y a de l'espoir", set(["internal", "sidebar box", "anchor"]))
             ]
 
             expected_intext_links = [
@@ -86,10 +89,10 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_embedded_videos = [
-                make_tagged_url("http://sll.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&vformat=&sig=iLyROoafrZiF&autostart=false)",
+                make_tagged_url("http://sll.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&vformat=&sig=iLyROoafrZiF&autostart=false",
                                 u"Maingain : 'Charles Michel est tel quel !'",
                                 set(['kplayer', 'video', 'external', 'embedded'])),
-                make_tagged_url("http://sll.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&vformat=&sig=iLyROoafrZRe&autostart=false)",
+                make_tagged_url("http://sll.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&vformat=&sig=iLyROoafrZRe&autostart=false",
                                 u"'Elio Di Rupo spreekt Vlaams', il y a de l'espoir",
                                 set(['kplayer', 'video', 'external', 'embedded']))
             ]
@@ -104,7 +107,7 @@ class TestDHNetLinkExtraction(object):
             extracted_links = article.links
 
             expected_sidebox_links = [
-                make_tagged_url("#embed_pos1", u"SONDAGE: Quel est l'événement qui constitue, pour vous, la meilleure nouvelle de 2011?", set(["sidebar box", "anchor"]))
+                make_tagged_url("#embed_pos1", u"SONDAGE: Quel est l'événement qui constitue, pour vous, la meilleure nouvelle de 2011?", set(["internal", "sidebar box", "anchor"]))
             ]
 
             expected_in_text_links = [
@@ -127,23 +130,23 @@ class TestDHNetLinkExtraction(object):
             extracted_links = article.links
 
             expected_sidebox_links = [
-                make_tagged_url("http://www.dhnet.be/infos/monde/article/413062/la-cote-est-des-etats-unis-se-barricade-pour-affronter-l-ouragan-sandy.html#encart", u"Sandy : 6 ou 7 Français disparus entre Martinique et Dominique", set([])),
-                make_tagged_url("#embed_pos1", u"Retrouvez les photos et les vidéos de l'ouragan", set([])),
-                make_tagged_url("/infos/monde/article/412959/sandy-presque-tous-les-vols-depuis-brussels-airport-vers-les-usa-annules.html", u"Sandy:  presque tous les vols depuis Brussels Airport vers les USA annulés", set([])),
-                make_tagged_url("#embed_pos3", u"VIDEO: Sandy menace 50 millions d'Américains", set([])),
-                make_tagged_url("http://galeries.dhnet.be/album/actumonde/ouragansandy/", u"La galerie photos de l'ouragan Sandy", set([])),
-                make_tagged_url("#embed_pos2", u"VIDEO: Sandy a déjà fait 21 morts", set([])),
+                make_tagged_url("http://www.dhnet.be/infos/monde/article/413062/la-cote-est-des-etats-unis-se-barricade-pour-affronter-l-ouragan-sandy.html#encart", u"Sandy : 6 ou 7 Français disparus entre Martinique et Dominique", set(["internal", "sidebar box"])),
+                make_tagged_url("#embed_pos1", u"Retrouvez les photos et les vidéos de l'ouragan", set(["internal", "sidebar box", "anchor"])),
+                make_tagged_url("/infos/monde/article/412959/sandy-presque-tous-les-vols-depuis-brussels-airport-vers-les-usa-annules.html", u"Sandy:  presque tous les vols depuis Brussels Airport vers les USA annulés", set(["internal", "sidebar box"])),
+                make_tagged_url("#embed_pos3", u"VIDEO: Sandy menace 50 millions d'Américains", set(["internal", "sidebar box", "anchor"])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/ouragansandy/", u"La galerie photos de l'ouragan Sandy", set(["internal", "sidebar box", "image gallery", "internal site"])),
+                make_tagged_url("#embed_pos2", u"VIDEO: Sandy a déjà fait 21 morts", set(["internal", "sidebar box", "anchor"])),
 
             ]
 
             expected_bottom_links = [
-                make_tagged_url("/infos/monde/article/412959/sandy-presque-tous-les-vols-depuis-brussels-airport-vers-les-usa-annules.html", u"Sandy:  presque tous les vols depuis Brussels Airport vers les USA annulés", set(["internal"])),
-                make_tagged_url("/infos/monde/article/412961/pour-eviter-l-ouragan-sandy-un-paquebot-se-refugie-dans-un-fjord-du-quebec.html", u"Pour éviter l'ouragan Sandy, un paquebot se réfugie dans un fjord du Québec", set(["internal"])),
-                make_tagged_url("/infos/monde/article/412976/sandy-s-invite-dans-la-campagne-presidentielle-americaine.html", u"Sandy s'invite dans la campagne présidentielle américaine", set(["internal"])),
-                make_tagged_url("/infos/monde/article/413089/sandy-11600-belges-concernes-par-l-ouragan.html", u"Sandy: 11.600 Belges concernés par l'ouragan", set(["internal"])),
-                make_tagged_url("/infos/monde/article/413108/sandy-au-moins-16-morts-aux-usa-deux-reacteurs-nucleaires-fermes.html", u"Sandy: au moins 16 morts aux USA, deux réacteurs nucléaires fermés", set(["internal"])),
-                make_tagged_url("http://www.dhnet.be/infos/monde/article/413062/la-cote-est-des-etats-unis-se-barricade-pour-affronter-l-ouragan-sandy.html#encart", u"Sandy : 6 ou 7 Français disparus entre Martinique et Dominique", set(["internal"])),
-                make_tagged_url("http://galeries.dhnet.be/album/actumonde/ouragansandy/", u"La galerie photos de l'ouragan Sandy", set(["internal", 'image gallery', 'internal site'])),
+                make_tagged_url("/infos/monde/article/412959/sandy-presque-tous-les-vols-depuis-brussels-airport-vers-les-usa-annules.html", u"Sandy:  presque tous les vols depuis Brussels Airport vers les USA annulés", set(["internal", 'bottom box'])),
+                make_tagged_url("/infos/monde/article/412961/pour-eviter-l-ouragan-sandy-un-paquebot-se-refugie-dans-un-fjord-du-quebec.html", u"Pour éviter l'ouragan Sandy, un paquebot se réfugie dans un fjord du Québec", set(["internal", 'bottom box'])),
+                make_tagged_url("/infos/monde/article/412976/sandy-s-invite-dans-la-campagne-presidentielle-americaine.html", u"Sandy s'invite dans la campagne présidentielle américaine", set(["internal", 'bottom box'])),
+                make_tagged_url("/infos/monde/article/413089/sandy-11600-belges-concernes-par-l-ouragan.html", u"Sandy: 11.600 Belges concernés par l'ouragan", set(["internal", 'bottom box'])),
+                make_tagged_url("/infos/monde/article/413108/sandy-au-moins-16-morts-aux-usa-deux-reacteurs-nucleaires-fermes.html", u"Sandy: au moins 16 morts aux USA, deux réacteurs nucléaires fermés", set(["internal", 'bottom box'])),
+                make_tagged_url("http://www.dhnet.be/infos/monde/article/413062/la-cote-est-des-etats-unis-se-barricade-pour-affronter-l-ouragan-sandy.html#encart", u"Sandy : 6 ou 7 Français disparus entre Martinique et Dominique", set(["internal", 'bottom box'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/ouragansandy/", u"La galerie photos de l'ouragan Sandy", set(["internal", 'bottom box', 'image gallery', 'internal site'])),
             ]
 
             expected_embedded_media_links = [
@@ -168,12 +171,12 @@ class TestDHNetLinkExtraction(object):
             extracted_links = article.links
 
             expected_sidebox_links = [
-                make_tagged_url("#embed_pos1", u"""Vidéo : Dexia devient Belfius""", set(["internal", "anchor"])),
-                make_tagged_url("#embed_pos2", u"""Jos Clijsters (CEO) présente Belfius""", set(["internal", "anchor"])),
-                make_tagged_url("#embed_pos6", u"""Twitter s'emballe avec #RemplaceLeTitreDunFilmParBelfius""", set(["internal", "anchor"])),
-                make_tagged_url("#embed_pos3", u"""Quel nom aurait-il fallu donner à la nouvelle Dexia ?""", set(["internal", "anchor"])),
-                make_tagged_url("#embed_pos4", u"""Sondage : le logo Belfius est...""", set(["internal", "anchor"])),
-                make_tagged_url("#embed_pos5", u"""Sondage: Le nom "Belfius", une bonne ou mauvaise idée ?""", set(["internal", "anchor"])),
+                make_tagged_url("#embed_pos1", u"""Vidéo : Dexia devient Belfius""", set(["sidebar box", "anchor", "internal"])),
+                make_tagged_url("#embed_pos2", u"""Jos Clijsters (CEO) présente Belfius""", set(["sidebar box", "anchor", "internal"])),
+                make_tagged_url("#embed_pos6", u"""Twitter s'emballe avec #RemplaceLeTitreDunFilmParBelfius""", set(["sidebar box", "anchor", "internal"])),
+                make_tagged_url("#embed_pos3", u"""Quel nom aurait-il fallu donner à la nouvelle Dexia ?""", set(["sidebar box", "anchor", "internal"])),
+                make_tagged_url("#embed_pos4", u"""Sondage : le logo Belfius est...""", set(["sidebar box", "anchor", "internal"])),
+                make_tagged_url("#embed_pos5", u"""Sondage: Le nom "Belfius", une bonne ou mauvaise idée ?""", set(["sidebar box", "anchor", "internal"])),
             ]
 
             expected_in_text_links = [
@@ -182,7 +185,7 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_bottom_links = [
-                make_tagged_url("/infos/economie/article/387096/dexia-s-appellera-belfius-et-voici-le-logo.html", u"""Dexia s'appellera Belfius... et voici le logo !""", set(['internal']))
+                make_tagged_url("/infos/economie/article/387096/dexia-s-appellera-belfius-et-voici-le-logo.html", u"""Dexia s'appellera Belfius... et voici le logo !""", set(['internal', 'bottom box']))
             ]
 
             expected_embedded_media_links = [
