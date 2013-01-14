@@ -42,7 +42,7 @@ def extract_tagged_url_from_associated_link(link_list_item, netloc, associated_s
     # sometimes list items are used to show things which aren't links
     # but more like unclickable ads
     url = link_list_item.a.get('href')
-    title = remove_text_formatting_markup_from_fragments(link_list_item.a.contents)
+    title = remove_text_formatting_markup_from_fragments(link_list_item.a.contents).strip()
     tags = classify_and_tag(url, netloc, associated_sites)
     tags |= set(additional_tags)
     tagged_url = make_tagged_url(url, title, tags)
