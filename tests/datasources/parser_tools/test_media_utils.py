@@ -1,13 +1,12 @@
 """
 Test suite for the embedded <script> extraction
 """
-from nose.tools import raises, eq_
 from BeautifulSoup import BeautifulSoup
 
+from nose.tools import raises, eq_
 from csxj.datasources.parser_tools import media_utils
 from csxj.datasources.parser_tools import twitter_utils
-
-import test_twitter_utils
+from tests.datasources.parser_tools import test_twitter_utils
 
 
 def make_soup(html_data):
