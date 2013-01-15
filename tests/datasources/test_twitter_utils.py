@@ -1,4 +1,4 @@
-from csxj.datasources.common import twitter_utils
+from csxj.datasources.parser_tools import twitter_utils
 from nose.tools import eq_, raises
 
 SAMPLE_TWIMG_PROFILE = """

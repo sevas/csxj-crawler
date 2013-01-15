@@ -3,8 +3,8 @@ import csxj
 
 setup(name='csxj',
       package_dir={'': '.'},
-      packages=['csxj', 'csxj.common',
-                'csxj.datasources', 'csxj.datasources.common',
+      packages=['csxj', 'csxj.parser_tools',
+                'csxj.datasources', 'csxj.datasources.parser_tools',
                 'csxj.db'],
       scripts=['scripts/csxj_update_all_queues.py',
                'scripts/csxj_download_queued_articles.py',

@@ -7,12 +7,12 @@ import urlparse
 import bs4
 import itertools
 from scrapy.selector import HtmlXPathSelector
-from common import utils
-from common import twitter_utils
+from parser_tools import utils
+from parser_tools import twitter_utils
 from csxj.common import tagging
 from csxj.db.article import ArticleData
-from common.utils import fetch_html_content
-from common.utils import setup_locales
+from parser_tools.utils import fetch_html_content
+from parser_tools.utils import setup_locales
 
 
 setup_locales()

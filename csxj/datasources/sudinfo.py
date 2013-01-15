@@ -11,10 +11,10 @@ import codecs
 
 from scrapy.selector import HtmlXPathSelector
 
-from common.utils import fetch_content_from_url, fetch_html_content
-from common.utils import extract_plaintext_urls_from_text
-from common.utils import convert_utf8_url_to_ascii
-from common.utils import setup_locales
+from parser_tools.utils import fetch_content_from_url, fetch_html_content
+from parser_tools.utils import extract_plaintext_urls_from_text
+from parser_tools.utils import convert_utf8_url_to_ascii
+from parser_tools.utils import setup_locales
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 

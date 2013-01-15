@@ -8,8 +8,8 @@ from itertools import chain
 from scrapy.selector import HtmlXPathSelector
 import bs4
 
-from common import utils
-from common import twitter_utils
+from parser_tools import utils
+from parser_tools import twitter_utils
 from csxj.common import tagging
 from csxj.db.article import ArticleData
 

@@ -4,10 +4,10 @@ from datetime import datetime, date, time
 from itertools import chain
 import urllib
 from BeautifulSoup import Tag
-from common.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
-from common.utils import extract_plaintext_urls_from_text
-from common.utils import remove_text_formatting_markup_from_fragments
-from common.utils import setup_locales
+from parser_tools.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
+from parser_tools.utils import extract_plaintext_urls_from_text
+from parser_tools.utils import remove_text_formatting_markup_from_fragments
+from parser_tools.utils import setup_locales
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 

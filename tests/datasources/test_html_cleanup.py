@@ -1,7 +1,7 @@
 import unittest
 from BeautifulSoup import BeautifulSoup
 
-from csxj.datasources.common.utils import remove_text_formatting_markup_from_fragments
+from csxj.datasources.parser_tools.utils import remove_text_formatting_markup_from_fragments
 
 
 def make_fragments(html_data):

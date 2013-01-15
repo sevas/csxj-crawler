@@ -4,8 +4,8 @@ Test suite for the embedded <script> extraction
 from nose.tools import raises, eq_
 from BeautifulSoup import BeautifulSoup
 
-from csxj.datasources.common import media_utils
-from csxj.datasources.common import twitter_utils
+from csxj.datasources.parser_tools import media_utils
+from csxj.datasources.parser_tools import twitter_utils
 
 import test_twitter_utils
 

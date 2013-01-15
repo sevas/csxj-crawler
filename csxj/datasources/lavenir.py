@@ -11,9 +11,9 @@ from scrapy.selector import HtmlXPathSelector
 
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
-from common.utils import fetch_html_content
-from common.utils import extract_plaintext_urls_from_text, setup_locales
-from common.utils import remove_text_formatting_markup_from_fragments
+from parser_tools.utils import fetch_html_content
+from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
+from parser_tools.utils import remove_text_formatting_markup_from_fragments
 
 
 setup_locales()

@@ -1,7 +1,7 @@
 #import unittest
 #import os.path
 #import csxj.db as csxjdb
-#from csxj.common.tagging import tag_URL
+#from csxj.parser_tools.tagging import tag_URL
 #
 #DB_ROOT = os.path.join(os.path.dirname(__file__), "../mock_db")
 #TEST_SOURCE_NAME="source1"

@@ -10,10 +10,10 @@ from BeautifulSoup import Tag
 
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
-from common.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
-from common.utils import extract_plaintext_urls_from_text, setup_locales
-from common import constants
-from common import ipm_utils
+from parser_tools.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
+from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
+from parser_tools import constants
+from parser_tools import ipm_utils
 
 setup_locales()
 

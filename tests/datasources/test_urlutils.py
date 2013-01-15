@@ -3,7 +3,7 @@
 
 import unittest
 
-from csxj.datasources.common.utils import convert_utf8_url_to_ascii
+from csxj.datasources.parser_tools.utils import convert_utf8_url_to_ascii
 
 
 class TestUTF8toASCIIConverter(unittest.TestCase):

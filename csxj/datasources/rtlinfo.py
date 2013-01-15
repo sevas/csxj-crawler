@@ -3,8 +3,8 @@ from datetime import datetime, time
 import locale
 from itertools import chain
 import codecs
-from common.utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
-from common.utils import extract_plaintext_urls_from_text, setup_locales
+from parser_tools.utils import fetch_content_from_url, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
+from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
 from csxj.db.article import ArticleData
 
