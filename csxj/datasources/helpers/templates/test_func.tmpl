@@ -1,6 +1,6 @@
-$def with (filename, function_name, parser_name, urls_by_group)
-def test_$(function_name)(self):
-    with open(os.path.join(DATA_ROOT, "$filename")) as f:
+$def with (name, parser_name, urls_by_group)
+def test_$(name)(self):
+    with open(os.path.join(DATA_ROOT, "$(name).html")) as f:
         article, raw_html = $(parser_name).extract_article_data(f)
         extracted_links = article.links
         $for group_name, tagged_urls in urls_by_group.items():

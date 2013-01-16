@@ -3,7 +3,7 @@ nose tests for the test_link_extraction_test_generator() function.
 This is so meta.
 """
 
-from nose.tools import eq_, ok_
+from nose.tools import ok_
 
 from csxj.datasources.helpers import unittest_generator
 from csxj.common.tagging import make_tagged_url
@@ -15,7 +15,7 @@ def test_link_extraction_test_generator():
     """
     expected_generated_code = u"""\
 def test_link_extraction_test(self):
-    with open(os.path.join(DATA_ROOT, "test_data_file.html")) as f:
+    with open(os.path.join(DATA_ROOT, "link_extraction_test.html")) as f:
         article, raw_html = some_parser.extract_article_data(f)
         extracted_links = article.links
         group1 = [
@@ -33,8 +33,7 @@ def test_link_extraction_test(self):
 
     group2 = []
 
-    generated_code = unittest_generator.generate_test_func("test_data_file.html",
-                                                           "link_extraction_test",
+    generated_code = unittest_generator.generate_test_func("link_extraction_test",
                                                            "some_parser",
                                                            dict(group1=group1, group2=group2))
     generated_code = generated_code.__body__
