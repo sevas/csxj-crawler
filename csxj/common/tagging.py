@@ -16,7 +16,6 @@ def tag_URL((url, title), tags):
 def classify_and_tag(url, own_netloc, associated_sites):
     """
 
-
     >>> classify_and_tag("http://www.foo.org", "foo.org", {})
     set(['internal site'])
 
@@ -28,7 +27,6 @@ def classify_and_tag(url, own_netloc, associated_sites):
 
     >>> classify_and_tag("/bar/baz", "foo.org", {})
     set(['internal'])
-
 
     >>> classify_and_tag("#anchor", "foo.org", {})
     set(['internal', 'anchor'])
