@@ -12,6 +12,7 @@ from parser_tools.utils import fetch_html_content, make_soup_from_html_content, 
 from parser_tools.utils import remove_text_formatting_markup_from_fragments
 from parser_tools import constants
 from parser_tools import ipm_utils
+from parser_tools import twitter_utils
 
 LALIBRE_ASSOCIATED_SITES = {
 
@@ -115,24 +116,31 @@ def sanitize_paragraph(paragraph):
 def extract_text_content_and_links(main_content):
     article_text = main_content.find('div', {'id': 'articleText'})
 
-    in_text_tagged_urls = extract_and_tag_in_text_links(article_text)
-
+    in_text_tagged_urls = []
     all_fragments = []
     all_plaintext_urls = []
+    embedded_tweets = []
+
     paragraphs = article_text.findAll('p', recursive=False)
 
     for paragraph in paragraphs:
         if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+
+            in_text_links = extract_and_tag_in_text_links(paragraph)
+            in_text_tagged_urls.extend(in_text_links)
+
             fragments = sanitize_paragraph(paragraph)
-            print fragments
             all_fragments.append(fragments)
             all_fragments.append('\n')
             plaintext_links = extract_plaintext_urls_from_text(fragments)
             urls_and_titles = zip(plaintext_links, plaintext_links)
             all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+        else:
+            embedded_tweets.extend(twitter_utils.extract_rendered_tweet(paragraph, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES))
 
     text_content = all_fragments
-    return text_content, in_text_tagged_urls + all_plaintext_urls
+
+    return text_content, in_text_tagged_urls + all_plaintext_urls + embedded_tweets
 
 
 def extract_category(main_content):
@@ -251,8 +259,12 @@ def test_sample_data():
             "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html"
             ]
 
+    from pprint import pprint
+
     for url in urls[-1:]:
         article, html = extract_article_data(url)
+        pprint(article.links)
+            
 
 
 if __name__ == '__main__':
