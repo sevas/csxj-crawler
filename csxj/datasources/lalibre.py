@@ -4,12 +4,15 @@
 from datetime import datetime, time
 import urlparse
 
+import BeautifulSoup
+
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
 from parser_tools.utils import remove_text_formatting_markup_from_fragments
 from parser_tools import constants
 from parser_tools import ipm_utils
+from parser_tools import twitter_utils
 
 LALIBRE_ASSOCIATED_SITES = {
 
@@ -86,7 +89,7 @@ def extract_and_tag_in_text_links(article_text):
     Returns a list of TaggedURL objects.
     """
     def extract_link_and_title(link):
-            return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
+        return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
     links = [extract_link_and_title(link)
              for link in article_text.findAll('a', recursive=True)]
 
@@ -104,29 +107,40 @@ def extract_and_tag_in_text_links(article_text):
 
 def sanitize_paragraph(paragraph):
     """Returns plain text article"""
-    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment) for fragment in paragraph.contents]
+    
+    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment) for fragment in paragraph.contents if not isinstance(fragment, BeautifulSoup.Comment)]
+
     return ''.join(sanitized_paragraph)
 
 
 def extract_text_content_and_links(main_content):
     article_text = main_content.find('div', {'id': 'articleText'})
 
-    in_text_tagged_urls = extract_and_tag_in_text_links(article_text)
-
+    in_text_tagged_urls = []
     all_fragments = []
     all_plaintext_urls = []
+    embedded_tweets = []
+
     paragraphs = article_text.findAll('p', recursive=False)
 
     for paragraph in paragraphs:
-        fragments = sanitize_paragraph(paragraph)
-        all_fragments.append(fragments)
-        all_fragments.append('\n')
-        plaintext_links = extract_plaintext_urls_from_text(fragments)
-        urls_and_titles = zip(plaintext_links, plaintext_links)
-        all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+        if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+
+            in_text_links = extract_and_tag_in_text_links(paragraph)
+            in_text_tagged_urls.extend(in_text_links)
+
+            fragments = sanitize_paragraph(paragraph)
+            all_fragments.append(fragments)
+            all_fragments.append('\n')
+            plaintext_links = extract_plaintext_urls_from_text(fragments)
+            urls_and_titles = zip(plaintext_links, plaintext_links)
+            all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+        else:
+            embedded_tweets.extend(twitter_utils.extract_rendered_tweet(paragraph, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES))
 
     text_content = all_fragments
-    return text_content, in_text_tagged_urls + all_plaintext_urls
+
+    return text_content, in_text_tagged_urls + all_plaintext_urls + embedded_tweets
 
 
 def extract_category(main_content):
@@ -242,10 +256,142 @@ def test_sample_data():
             "http://www.lalibre.be/actu/usa-2012/article/773294/obama-raille-les-chevaux-et-baionnettes-de-romney.html",
             "http://www.lalibre.be/actu/international/article/774524/sandy-le-calme-avant-la-tempete.html",
             "http://www.lalibre.be/sports/football/article/778966/suivez-anderlecht-milan-ac-en-live-des-20h30.html",
+            "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html"
             ]
 
-    for url in urls[-1:]:
-        article, html = extract_article_data(url)
+    files = [
+"2012-04-19/16.05.08/raw_data/3.html",
+"2012-04-19/16.05.08/raw_data/3.html",
+"2012-04-25/13.05.06/raw_data/5.html",
+"2012-04-25/13.05.06/raw_data/5.html",
+"2012-05-08/10.05.06/raw_data/4.html",
+"2012-05-08/10.05.06/raw_data/4.html",
+"2012-05-08/21.05.06/raw_data/0.html",
+"2012-05-08/21.05.06/raw_data/0.html",
+"2012-05-16/12.05.06/raw_data/0.html",
+"2012-05-17/10.05.05/raw_data/0.html",
+"2012-05-21/11.05.05/raw_data/4.html",
+"2012-05-23/10.05.06/raw_data/1.html",
+"2012-05-23/10.05.06/raw_data/1.html",
+"2012-05-23/10.05.06/raw_data/1.html",
+"2012-05-23/18.05.06/raw_data/4.html",
+"2012-05-23/18.05.06/raw_data/4.html",
+"2012-05-23/18.05.06/raw_data/4.html",
+"2012-06-12/14.05.06/raw_data/2.html",
+"2012-07-07/12.05.05/raw_data/4.html",
+"2012-08-02/06.05.06/raw_data/0.html",
+"2012-08-02/06.05.06/raw_data/0.html",
+"2012-08-13/15.05.05/raw_data/1.html",
+"2012-08-13/15.05.05/raw_data/1.html",
+"2012-08-13/15.05.05/raw_data/1.html",
+"2012-08-13/16.05.06/raw_data/5.html",
+"2012-08-13/16.05.06/raw_data/5.html",
+"2012-08-13/16.05.06/raw_data/5.html",
+"2012-08-14/09.05.05/raw_data/2.html",
+"2012-08-14/09.05.05/raw_data/2.html",
+"2012-08-14/09.05.05/raw_data/2.html",
+"2012-08-14/13.05.06/raw_data/1.html",
+"2012-08-14/13.05.06/raw_data/1.html",
+"2012-08-21/09.05.05/raw_data/4.html",
+"2012-08-31/10.05.05/raw_data/2.html",
+"2012-09-06/06.05.06/raw_data/0.html",
+"2012-09-18/10.05.06/raw_data/2.html",
+"2012-09-18/10.05.06/raw_data/2.html",
+"2012-09-18/10.05.06/raw_data/2.html",
+"2012-09-18/10.05.06/raw_data/2.html",
+"2012-10-03/10.05.05/raw_data/4.html",
+"2012-10-16/15.05.04/raw_data/3.html",
+"2012-10-16/15.05.04/raw_data/3.html",
+"2012-10-16/15.05.04/raw_data/3.html",
+"2012-10-18/10.05.04/raw_data/5.html",
+"2012-11-20/01.05.34/raw_data/1.html",
+"2012-11-20/06.05.34/raw_data/1.html",
+"2012-11-20/13.05.36/raw_data/4.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-12/12.05.34/raw_data/0.html",
+"2012-12-12/14.05.04/raw_data/0.html",
+"2012-12-26/11.05.04/raw_data/0.html",
+"2012-12-27/18.05.05/raw_data/3.html",
+"2013-01-03/08.05.04/raw_data/2.html",
+"2013-01-08/11.05.05/raw_data/1.html",
+"2013-01-08/14.05.04/raw_data/1.html",
+"2013-01-08/15.05.04/raw_data/1.html",
+
+
+    ]
+
+
+    root = r"/Volumes/Curst/csxj/tartiflette/json_db_0_5/lalibre"
+
+    from pprint import pprint
+    import os
+
+    for url in files[:]:
+        try:
+            url = os.path.join(root, url)
+            with open(url) as f:
+
+                article, html = extract_article_data(f)
+                
+                tweets = [l for l in article.links if 'tweet' in l.tags]
+                # print article.title
+                # print tweets
+                # print len(tweets)
+                # print "...................." * 3
+                print len(article.content)
+                print article.url
+                print article.title
+                print "...................." * 3
+                # if len(tweets) == 0:
+                #     print article.title
+                #     print article.url
+                #     print article.content
+        except ValueError as e:
+            print "something went wrong with: ", url
 
 
 if __name__ == '__main__':

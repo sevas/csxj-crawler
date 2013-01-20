@@ -1,5 +1,7 @@
 import urlparse
 import urllib
+from csxj.common import tagging
+
 TWITTER_WIDGET_NETLOC="widgets.twimg.com"
 TWITTER_WIDGET_SCRIPT_URL="http://widgets.twimg.com/j/2/widget.js"
 
@@ -67,3 +69,25 @@ def get_widget_type(script_content):
             raise ValueError("No type line was found in the TWTR.Widget script")
     else:
         raise ValueError("Detected script is not TWTR.Widget")
+
+
+
+def extract_rendered_tweet(paragraph, netloc, internal_site):
+    tagged_urls = []
+    tweets = paragraph.findAll(attrs = {"class" : "twitter-tweet"})
+    if tweets:
+        for tweet in tweets:
+            links = tweet.findAll("a")
+            for link in links :
+                if link.get("data-datetime"):
+                    url = link.get("href")
+                    tags = tagging.classify_and_tag(url, netloc, internal_site)
+                    tags.add('embedded media')
+                    tags.add('tweet')
+                    tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+
+    return tagged_urls
+
+
+
+
