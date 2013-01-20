@@ -6,10 +6,10 @@ import json
 from web import template
 
 
-def generate_test_func(fname, parser_name, urls_by_group):
+def generate_test_func(test_name, parser_name, urls_by_group):
     render = template.render(os.path.join(os.path.dirname(__file__), 'templates/'))
 
-    return render.test_func(fname, parser_name, urls_by_group)
+    return render.test_func(test_name, parser_name, urls_by_group)
 
 
 def save_sample_data_file(html_data, source_url, test_name, root_path):
@@ -25,8 +25,6 @@ def save_sample_data_file(html_data, source_url, test_name, root_path):
             with open(full_index_name) as f:
                 old_index = json.load(f)
                 index.update(old_index)
-            index['test_data'].append(('url', test_name+".html"))
+            index['test_data'].append((source_url, test_name+".html"))
             with open(full_index_name, 'w') as f:
                 json.dump(f, index, indent=2)
-
-
