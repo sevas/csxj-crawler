@@ -12,6 +12,7 @@ RAW_DATA_INDEX_FILENAME = 'references.json'
 REPROCESSED_DIR_PREFIX = 'reprocessed'
 
 RAW_DATA_DIR = 'raw_data'
+ERRORS_RAW_DATA_DIR = 'errors_raw_data'
 QUEUE_DIR = 'queue'
 
 QUEUE_ERROR_LOG_FILENAME = 'queue_errors.json'
