@@ -21,7 +21,7 @@ def save_sample_data_file(html_data, source_url, test_name, root_path):
 
         full_index_name =os.path.join(root_path, "index.json")
         index = dict(test_data=[])
-        if os.exists(full_index_name):
+        if os.path.exists(full_index_name):
             with open(full_index_name) as f:
                 old_index = json.load(f)
                 index.update(old_index)
