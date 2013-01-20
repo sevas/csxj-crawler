@@ -4,6 +4,8 @@
 from datetime import datetime, time
 import urlparse
 
+import BeautifulSoup
+
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
@@ -86,7 +88,7 @@ def extract_and_tag_in_text_links(article_text):
     Returns a list of TaggedURL objects.
     """
     def extract_link_and_title(link):
-            return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
+        return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
     links = [extract_link_and_title(link)
              for link in article_text.findAll('a', recursive=True)]
 
@@ -104,7 +106,9 @@ def extract_and_tag_in_text_links(article_text):
 
 def sanitize_paragraph(paragraph):
     """Returns plain text article"""
-    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment) for fragment in paragraph.contents]
+    
+    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment) for fragment in paragraph.contents if not isinstance(fragment, BeautifulSoup.Comment)]
+
     return ''.join(sanitized_paragraph)
 
 
@@ -118,12 +122,14 @@ def extract_text_content_and_links(main_content):
     paragraphs = article_text.findAll('p', recursive=False)
 
     for paragraph in paragraphs:
-        fragments = sanitize_paragraph(paragraph)
-        all_fragments.append(fragments)
-        all_fragments.append('\n')
-        plaintext_links = extract_plaintext_urls_from_text(fragments)
-        urls_and_titles = zip(plaintext_links, plaintext_links)
-        all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+        if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+            fragments = sanitize_paragraph(paragraph)
+            print fragments
+            all_fragments.append(fragments)
+            all_fragments.append('\n')
+            plaintext_links = extract_plaintext_urls_from_text(fragments)
+            urls_and_titles = zip(plaintext_links, plaintext_links)
+            all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
 
     text_content = all_fragments
     return text_content, in_text_tagged_urls + all_plaintext_urls
@@ -242,6 +248,7 @@ def test_sample_data():
             "http://www.lalibre.be/actu/usa-2012/article/773294/obama-raille-les-chevaux-et-baionnettes-de-romney.html",
             "http://www.lalibre.be/actu/international/article/774524/sandy-le-calme-avant-la-tempete.html",
             "http://www.lalibre.be/sports/football/article/778966/suivez-anderlecht-milan-ac-en-live-des-20h30.html",
+            "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html"
             ]
 
     for url in urls[-1:]:

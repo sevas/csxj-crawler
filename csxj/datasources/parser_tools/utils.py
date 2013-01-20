@@ -4,7 +4,7 @@ import urllib2
 import urlparse
 import re
 import random
-from BeautifulSoup import BeautifulSoup, Tag
+from BeautifulSoup import BeautifulSoup, Tag, Comment, NavigableString
 from useragents import USER_AGENT_STRINGS
 from datetime import datetime
 import bs4
@@ -51,7 +51,7 @@ def extract_plaintext_urls_from_text(some_text):
     return urls
 
 
-TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span', 'sub', 'sup', 'p' ]
+TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span', 'sub', 'sup', 'p', 'img' ]
 
 def remove_text_formatting_markup(formatted_text_fragment, strip_chars):
     """
@@ -61,6 +61,10 @@ def remove_text_formatting_markup(formatted_text_fragment, strip_chars):
 
     # A text fragment is either an HTML tag (with its own child text fragments)
     # or just a plain string.
+    
+    
+
+
     if isinstance(formatted_text_fragment, Tag) or isinstance(formatted_text_fragment, bs4.Tag):
         # If it's the former, we remove the tag and clean up all its children
         if formatted_text_fragment.name in TEXT_MARKUP_TAGS:
