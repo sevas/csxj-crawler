@@ -259,12 +259,139 @@ def test_sample_data():
             "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html"
             ]
 
-    from pprint import pprint
+    files = [
+"2012-04-19/16.05.08/raw_data/3.html",
+"2012-04-19/16.05.08/raw_data/3.html",
+"2012-04-25/13.05.06/raw_data/5.html",
+"2012-04-25/13.05.06/raw_data/5.html",
+"2012-05-08/10.05.06/raw_data/4.html",
+"2012-05-08/10.05.06/raw_data/4.html",
+"2012-05-08/21.05.06/raw_data/0.html",
+"2012-05-08/21.05.06/raw_data/0.html",
+"2012-05-16/12.05.06/raw_data/0.html",
+"2012-05-17/10.05.05/raw_data/0.html",
+"2012-05-21/11.05.05/raw_data/4.html",
+"2012-05-23/10.05.06/raw_data/1.html",
+"2012-05-23/10.05.06/raw_data/1.html",
+"2012-05-23/10.05.06/raw_data/1.html",
+"2012-05-23/18.05.06/raw_data/4.html",
+"2012-05-23/18.05.06/raw_data/4.html",
+"2012-05-23/18.05.06/raw_data/4.html",
+"2012-06-12/14.05.06/raw_data/2.html",
+"2012-07-07/12.05.05/raw_data/4.html",
+"2012-08-02/06.05.06/raw_data/0.html",
+"2012-08-02/06.05.06/raw_data/0.html",
+"2012-08-13/15.05.05/raw_data/1.html",
+"2012-08-13/15.05.05/raw_data/1.html",
+"2012-08-13/15.05.05/raw_data/1.html",
+"2012-08-13/16.05.06/raw_data/5.html",
+"2012-08-13/16.05.06/raw_data/5.html",
+"2012-08-13/16.05.06/raw_data/5.html",
+"2012-08-14/09.05.05/raw_data/2.html",
+"2012-08-14/09.05.05/raw_data/2.html",
+"2012-08-14/09.05.05/raw_data/2.html",
+"2012-08-14/13.05.06/raw_data/1.html",
+"2012-08-14/13.05.06/raw_data/1.html",
+"2012-08-21/09.05.05/raw_data/4.html",
+"2012-08-31/10.05.05/raw_data/2.html",
+"2012-09-06/06.05.06/raw_data/0.html",
+"2012-09-18/10.05.06/raw_data/2.html",
+"2012-09-18/10.05.06/raw_data/2.html",
+"2012-09-18/10.05.06/raw_data/2.html",
+"2012-09-18/10.05.06/raw_data/2.html",
+"2012-10-03/10.05.05/raw_data/4.html",
+"2012-10-16/15.05.04/raw_data/3.html",
+"2012-10-16/15.05.04/raw_data/3.html",
+"2012-10-16/15.05.04/raw_data/3.html",
+"2012-10-18/10.05.04/raw_data/5.html",
+"2012-11-20/01.05.34/raw_data/1.html",
+"2012-11-20/06.05.34/raw_data/1.html",
+"2012-11-20/13.05.36/raw_data/4.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-10/14.05.05/raw_data/0.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/01.05.05/raw_data/4.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-11/07.05.04/raw_data/7.html",
+"2012-12-12/12.05.34/raw_data/0.html",
+"2012-12-12/14.05.04/raw_data/0.html",
+"2012-12-26/11.05.04/raw_data/0.html",
+"2012-12-27/18.05.05/raw_data/3.html",
+"2013-01-03/08.05.04/raw_data/2.html",
+"2013-01-08/11.05.05/raw_data/1.html",
+"2013-01-08/14.05.04/raw_data/1.html",
+"2013-01-08/15.05.04/raw_data/1.html",
 
-    for url in urls[-1:]:
-        article, html = extract_article_data(url)
-        pprint(article.links)
-            
+
+    ]
+
+
+    root = r"/Volumes/Curst/csxj/tartiflette/json_db_0_5/lalibre"
+
+    from pprint import pprint
+    import os
+
+    for url in files[:]:
+        try:
+            url = os.path.join(root, url)
+            with open(url) as f:
+
+                article, html = extract_article_data(f)
+                
+                tweets = [l for l in article.links if 'tweet' in l.tags]
+                # print article.title
+                # print tweets
+                # print len(tweets)
+                # print "...................." * 3
+                print len(article.content)
+                print article.url
+                print article.title
+                print "...................." * 3
+                # if len(tweets) == 0:
+                #     print article.title
+                #     print article.url
+                #     print article.content
+        except ValueError as e:
+            print "something went wrong with: ", url
 
 
 if __name__ == '__main__':
