@@ -21,6 +21,25 @@ SOURCE_NAME = u"septsursept"
 SEPTSURSEPT_NETLOC = "www.7sur7.be"
 SEPTSURSEPT_INTERNAL_SITES = {}
 
+SEPTSURSEPT_SAME_OWNER = [
+    'regiojobs.be',
+    'vkbanen.nl',
+    'vacature.com',
+    'jobscareer.be',
+    'werkendichtbij.nl',
+    'autozone.be',
+    'echo.be',
+    'hln.be',
+    'parool.nl',
+    'ad.nl',
+    'trouw.nl',
+    'volkskrant.nl',
+    'demorgen.be',
+    'tijd.be',
+    'nina.be',
+    'goedgevoel.be'
+]
+
 
 def make_full_url(item):
     title, url = item
@@ -516,8 +535,10 @@ def extract_article_data(source):
 
         tagged_urls = tagged_urls_intext + tagged_urls_read_more_box + tagged_urls_sidebar_box + tagged_urls_embedded_media + tagged_urls_from_intro
 
+        updated_tagged_urls = tagging.update_tagged_urls(tagged_urls, SEPTSURSEPT_SAME_OWNER)
+
         return (ArticleData(source, title, pub_date, pub_time, dt.datetime.now(),
-                        tagged_urls,
+                        updated_tagged_urls,
                         category, author_name,
                         intro, text),
             html_data)

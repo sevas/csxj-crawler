@@ -9,7 +9,7 @@ from itertools import izip, chain
 from urlparse import urlparse
 from scrapy.selector import HtmlXPathSelector
 
-from csxj.common.tagging import classify_and_tag, make_tagged_url
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
@@ -25,10 +25,54 @@ LAVENIR_INTERNAL_BLOGS = {
     'lavenir.newspaperdirect.com': ['internal', 'pdf newspaper']
 }
 
-
 LAVENIR_NETLOC = 'www.lavenir.net'
 
 BLACKLIST = ["http://citysecrets.lavenir.net"]
+
+LAVENIR_SAME_OWNER = [
+    'corelioconnect.be',
+    'corelioclassifieds.be',
+    'travelspotter.be',
+    'wematch.be',
+    'notarisblad.be',
+    'inmemoriam.be',
+    'necrologies.net',
+    'jobat.be',
+    'gezondheid.be',
+    'passionsante.be',
+    'zimmo.be',
+    'immonot.be',
+    'vroom.be',
+    'siaffinites.be',
+    'citysecrets.be',
+    'coldsetprintingpartners.be',
+    'corelioprinting.be',
+    'arco.be',
+    'mifratel.be',
+    'queromedia.be',
+    'xpertize.be',
+    'larian.com',
+    'wataro.com',
+    'domaininvest.lu',
+    'oxynade.com',
+    'detondeldoos.be',
+    'adam.be',
+    'standaard.be',
+    'nieuwsblad.be',
+    'gentenaar.be',
+    'sportwereld.be',
+    'nostalgie.be',
+    'robtv.be',
+    'vier.be',
+    'vijf.be',
+    'humo.be',
+    'woestijnvis.be',
+    'thebulletin.be',
+    'xpats.com',
+    'passe-partout.be',
+    'passionsante.be',
+    'plusplus.be'
+]
 
 
 def is_internal_url(url):
@@ -175,10 +219,11 @@ def extract_article_data(source):
     sidebar_links = article_detail_hxs.select("./div/div[@class='article-side']/div[@class='article-related']//li/a")
     all_links.extend(extract_sidebar_links(sidebar_links))
 
+    updated_links = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
     # wrapping up
     article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                               all_links,
+                               updated_links,
                                category, author,
                                intro, content)
 
@@ -220,6 +265,7 @@ def get_frontpage_toc():
     nopic_story_list = hxs.select("//div[@id='content']//ul[@class='nobullets']//li//div[contains(@class, 'item-title')]//a")
 
     all_links = chain(story_links, more_story_links, local_sport_links, nopic_story_list)
+
 
     all_items = [extract_title_and_url(link_hxs) for link_hxs in all_links]
     news_items, blogpost_items = separate_blogposts(all_items)

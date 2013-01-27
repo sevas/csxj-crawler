@@ -14,6 +14,7 @@ from parser_tools.utils import remove_text_formatting_markup_from_fragments, ext
 from parser_tools.utils import setup_locales
 from parser_tools import constants
 from csxj.common import tagging
+import rossel_utils
 
 
 setup_locales()
@@ -310,9 +311,10 @@ def extract_article_data(source):
 
     all_links = sidebar_links + intext_links + embedded_content_links
 
+    updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.ROSSEL_SAME_OWNER)
 
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                              all_links,
+                              updated_tagged_urls,
                               category, author,
                               intro, content), html_content
 
