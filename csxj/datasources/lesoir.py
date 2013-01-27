@@ -7,14 +7,14 @@ from datetime import datetime
 from BeautifulSoup import  BeautifulStoneSoup,  Tag
 import urlparse
 import codecs
-from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
+from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
 from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
 from parser_tools.utils import setup_locales
 from parser_tools import constants
 from csxj.common import tagging
-import rossel_utils
+from parser_tools import rossel_utils
 
 
 setup_locales()
@@ -479,29 +479,32 @@ def dowload_one_article():
     url = "http://www.lesoir.be/actualite/france/2012-01-10/free-defie-les-telecoms-francais-avec-un-forfait-illimite-a-19-99-euros-889276.php"
     url = "http://www.lesoir.be/actualite/belgique/2012-08-21/guy-spitaels-est-decede-933203.php"
     url = "../../sample_data/lesoir/lesoir_storify2.html"
+    url = "http://www.lesoir.be/lifestyle/air_du_temps/2012-09-28/votre-week-end-en-15-clics-940246.php"
     art, raw_html = extract_article_data(url)
+    for link in art.links:
+        print link
 
-    maincontent_links = set(extract_main_content_links(url))
-    processed_links = set([(l.URL, l.title) for l in art.links])
+    # maincontent_links = set(extract_main_content_links(url))
+    # processed_links = set([(l.URL, l.title) for l in art.links])
 
 
-    missing_links = maincontent_links - processed_links
+    # missing_links = maincontent_links - processed_links
 
-    print "total links: ", len(maincontent_links)
-    print "processed links: ", len(processed_links)
-    print "missing: ", len(missing_links)
+    # print "total links: ", len(maincontent_links)
+    # print "processed links: ", len(processed_links)
+    # print "missing: ", len(missing_links)
 
 def test_sample_data():
-    filepath = '../../sample_data/lesoir/lesoir_storify2.html'
+    filepath = '../../sample_data/lesoir/same_owner_links.html'
 
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
         # article_data.print_summary()
 
-        # for link in article_data.links:
-        #     print link.title
-        #     print link.URL
-        #     print link.tags
+        for link in article_data.links:
+            print link.title
+            print link.URL
+            print link.tags
 
         # print article_data.intro
         # print article_data.content
