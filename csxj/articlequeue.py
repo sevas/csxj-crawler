@@ -1,3 +1,4 @@
+# Coding=utf8
 import sys
 import os
 from datetime import datetime
@@ -7,8 +8,11 @@ import logging
 import traceback
 
 from csxj.common.decorators import deprecated
+from csxj.datasources.parser_tools.utils import fetch_html_content
 from db import Provider, ProviderStats, make_error_log_entry2
 from db.constants import *
+
+from csxj.datasources import septsursept
 
 
 def write_dict_to_file(d, outdir, outfile):
@@ -40,7 +44,7 @@ class ArticleQueueFiller(object):
         self.log.info(self.make_log_message(message))
 
     def log_error(self, message):
-        self.log.error(self.make_log_message(message))
+        self.log.error(u"[{0}] !!! {1}".format(self.source_name, message))
 
     @classmethod
     def setup_logging(cls):
@@ -69,7 +73,6 @@ class ArticleQueueFiller(object):
             frontpage_toc, blogposts_toc = self.source.get_frontpage_toc()
             self.log_info("Found {0} stories and {1} blogposts on frontpage".format(len(frontpage_toc),
                                                                                     len(blogposts_toc)))
-
             if len(frontpage_toc):
                 last_stories_filename = os.path.join(self.db_root,
                                                      self.source_name,
@@ -153,6 +156,9 @@ class ArticleQueueDownloader(object):
     def log_info(self, message):
         self.log.info(self.make_log_message(message))
 
+    def log_error(self, message):
+        self.log.error(u"[{0}] !!! {1}".format(self.source_name, message))
+
     @classmethod
     def setup_logging(cls):
         if not os.path.exists(LOG_PATH):
@@ -181,8 +187,10 @@ class ArticleQueueDownloader(object):
                 day_directory = os.path.join(self.db_root, self.source_name, day_string)
                 for (i, batch) in enumerate(batches):
                     batch_hour_string, items = batch
-                    self.log.info(self.make_log_message("Downloading {0} articles for batch#{1} ({2})".format(len(items['articles']), i, batch_hour_string)))
 
+                    items['articles'], items['blogposts'] = septsursept.separate_articles_and_photoalbums(items['articles'])
+
+                    self.log.info(self.make_log_message("Downloading {0} articles for batch#{1} ({2})".format(len(items['articles']), i, batch_hour_string)))
                     articles, deleted_articles, errors, raw_data = self.download_batch(items['articles'])
 
                     self.log_info("Found data for {0} articles ({1} errors)".format(len(articles),
@@ -190,6 +198,7 @@ class ArticleQueueDownloader(object):
                     batch_output_directory = os.path.join(day_directory, batch_hour_string)
                     self.save_articles_to_db(articles, deleted_articles, errors, items['blogposts'], batch_output_directory)
                     self.save_raw_data_to_db(raw_data, batch_output_directory)
+                    self.save_errors_raw_data_to_db(errors, batch_output_directory)
 
                 self.log_info("Removing queue directory for day: {0}".format(day_string))
                 provider_db.cleanup_queue(day_string)
@@ -235,9 +244,29 @@ class ArticleQueueDownloader(object):
     def save_raw_data_to_db(self, raw_data, batch_outdir):
         """
         """
-        self.log_info("Writing raw html data to {0}".format(os.path.join(batch_outdir, RAW_DATA_DIR)))
-
         raw_data_dir = os.path.join(batch_outdir, RAW_DATA_DIR)
+        self.log_info("Writing raw html data to {0}".format(raw_data_dir))
+        self.save_raw_data_to_path(raw_data, raw_data_dir)
+
+    def save_errors_raw_data_to_db(self, errors, batch_outdir):
+        """
+        """
+        raw_data = list()
+        for i, error in enumerate(errors):
+            url, _, _ = error
+            try:
+                html_content = fetch_html_content(url)
+                raw_data.append((url, html_content))
+            except:
+                self.log_error("Could not fetch raw html data for error'd url: {0} (Reason: {1})".format(url, traceback.format_exc()))
+                continue
+
+        raw_data_dir = os.path.join(batch_outdir, ERRORS_RAW_DATA_DIR)
+        self.log_info("Writing raw html data to {0}".format(raw_data_dir))
+        self.save_raw_data_to_path(raw_data, raw_data_dir)
+
+    def save_raw_data_to_path(self, raw_data, root_path):
+        raw_data_dir = root_path
         if not os.path.exists(raw_data_dir):
             os.mkdir(raw_data_dir)
         references = []
@@ -282,12 +311,7 @@ def test_filler(json_db):
 
 def test_downloader(json_db):
     ArticleQueueDownloader.setup_logging()
-    from datasources import rtlinfo
-    for source in [rtlinfo]:
+    from datasources import septsursept
+    for source in [septsursept]:
         queue_downloader = ArticleQueueDownloader(source, source.SOURCE_NAME, json_db)
         queue_downloader.download_all_articles_in_queue()
-
-
-def main(json_db):
-    #test_filler(json_db)
-    test_downloader(json_db)
