@@ -88,8 +88,10 @@ def extract_and_tag_in_text_links(article_text):
     Detects which links are keyword and which aren't, sets the adequate tags.
     Returns a list of TaggedURL objects.
     """
+
     def extract_link_and_title(link):
         return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
+
     links = [extract_link_and_title(link)
              for link in article_text.findAll('a', recursive=True)]
 
@@ -107,8 +109,9 @@ def extract_and_tag_in_text_links(article_text):
 
 def sanitize_paragraph(paragraph):
     """Returns plain text article"""
-    
-    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment) for fragment in paragraph.contents if not isinstance(fragment, BeautifulSoup.Comment)]
+
+    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n') for fragment in paragraph.contents if
+                           not isinstance(fragment, BeautifulSoup.Comment)]
 
     return ''.join(sanitized_paragraph)
 
@@ -125,18 +128,17 @@ def extract_text_content_and_links(main_content):
 
     for paragraph in paragraphs:
         if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
-
             in_text_links = extract_and_tag_in_text_links(paragraph)
             in_text_tagged_urls.extend(in_text_links)
 
             fragments = sanitize_paragraph(paragraph)
             all_fragments.append(fragments)
-            all_fragments.append('\n')
             plaintext_links = extract_plaintext_urls_from_text(fragments)
             urls_and_titles = zip(plaintext_links, plaintext_links)
             all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
         else:
-            embedded_tweets.extend(twitter_utils.extract_rendered_tweet(paragraph, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES))
+            embedded_tweets.extend(
+                twitter_utils.extract_rendered_tweet(paragraph, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES))
 
     text_content = all_fragments
 
@@ -152,7 +154,8 @@ def extract_category(main_content):
 
 def extract_embedded_content_links(main_content):
     items = main_content.findAll('div', {'class': 'embedContents'})
-    return [ipm_utils.extract_tagged_url_from_embedded_item(item, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES) for item in items]
+    return [ipm_utils.extract_tagged_url_from_embedded_item(item, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES) for item in
+            items]
 
 
 def extract_author_name(main_content):
@@ -167,13 +170,12 @@ def extract_intro(main_content):
     hat = main_content.find('div', {'id': 'articleHat'})
 
     if hat:
-        return hat.contents[0].rstrip().lstrip()
+        return  remove_text_formatting_markup_from_fragments(hat.contents, strip_chars='\t\r\n ')
     else:
-        return ''
+        return u''
 
 
 def extract_article_data_from_file(source_url, source_file):
-
     if not hasattr(source_file, 'read'):
         f = open(source_file)
     else:
@@ -182,12 +184,11 @@ def extract_article_data_from_file(source_url, source_file):
     html_content = f.read()
     return extract_article_data_from_html(html_content, source_url)
 
-
 def print_for_test(taggedURLs):
     print "---"
     for taggedURL in taggedURLs:
-        print u"""make_tagged_url("{0}", u\"\"\"{1}\"\"\", {2}),""".format(taggedURL.URL, taggedURL.title, taggedURL.tags)
-
+        print u"""make_tagged_url("{0}", u\"\"\"{1}\"\"\", {2}),""".format(taggedURL.URL, taggedURL.title,
+                                                                           taggedURL.tags)
 
 def extract_article_data_from_html(html_content, source_url):
     soup = make_soup_from_html_content(html_content)
@@ -207,8 +208,10 @@ def extract_article_data_from_html(html_content, source_url):
     intro = extract_intro(main_content)
     text_content, in_text_urls = extract_text_content_and_links(main_content)
 
-    embedded_audio_links = ipm_utils.extract_embedded_audio_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
-    associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+    embedded_audio_links = ipm_utils.extract_embedded_audio_links(main_content, LALIBRE_NETLOC,
+                                                                  LALIBRE_ASSOCIATED_SITES)
+    associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC,
+                                                                        LALIBRE_ASSOCIATED_SITES)
     bottom_links = ipm_utils.extract_bottom_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     embedded_content_links = extract_embedded_content_links(main_content)
 
@@ -257,113 +260,112 @@ def test_sample_data():
             "http://www.lalibre.be/actu/international/article/774524/sandy-le-calme-avant-la-tempete.html",
             "http://www.lalibre.be/sports/football/article/778966/suivez-anderlecht-milan-ac-en-live-des-20h30.html",
             "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html"
-            ]
+    ]
 
     files = [
-"2012-04-19/16.05.08/raw_data/3.html",
-"2012-04-19/16.05.08/raw_data/3.html",
-"2012-04-25/13.05.06/raw_data/5.html",
-"2012-04-25/13.05.06/raw_data/5.html",
-"2012-05-08/10.05.06/raw_data/4.html",
-"2012-05-08/10.05.06/raw_data/4.html",
-"2012-05-08/21.05.06/raw_data/0.html",
-"2012-05-08/21.05.06/raw_data/0.html",
-"2012-05-16/12.05.06/raw_data/0.html",
-"2012-05-17/10.05.05/raw_data/0.html",
-"2012-05-21/11.05.05/raw_data/4.html",
-"2012-05-23/10.05.06/raw_data/1.html",
-"2012-05-23/10.05.06/raw_data/1.html",
-"2012-05-23/10.05.06/raw_data/1.html",
-"2012-05-23/18.05.06/raw_data/4.html",
-"2012-05-23/18.05.06/raw_data/4.html",
-"2012-05-23/18.05.06/raw_data/4.html",
-"2012-06-12/14.05.06/raw_data/2.html",
-"2012-07-07/12.05.05/raw_data/4.html",
-"2012-08-02/06.05.06/raw_data/0.html",
-"2012-08-02/06.05.06/raw_data/0.html",
-"2012-08-13/15.05.05/raw_data/1.html",
-"2012-08-13/15.05.05/raw_data/1.html",
-"2012-08-13/15.05.05/raw_data/1.html",
-"2012-08-13/16.05.06/raw_data/5.html",
-"2012-08-13/16.05.06/raw_data/5.html",
-"2012-08-13/16.05.06/raw_data/5.html",
-"2012-08-14/09.05.05/raw_data/2.html",
-"2012-08-14/09.05.05/raw_data/2.html",
-"2012-08-14/09.05.05/raw_data/2.html",
-"2012-08-14/13.05.06/raw_data/1.html",
-"2012-08-14/13.05.06/raw_data/1.html",
-"2012-08-21/09.05.05/raw_data/4.html",
-"2012-08-31/10.05.05/raw_data/2.html",
-"2012-09-06/06.05.06/raw_data/0.html",
-"2012-09-18/10.05.06/raw_data/2.html",
-"2012-09-18/10.05.06/raw_data/2.html",
-"2012-09-18/10.05.06/raw_data/2.html",
-"2012-09-18/10.05.06/raw_data/2.html",
-"2012-10-03/10.05.05/raw_data/4.html",
-"2012-10-16/15.05.04/raw_data/3.html",
-"2012-10-16/15.05.04/raw_data/3.html",
-"2012-10-16/15.05.04/raw_data/3.html",
-"2012-10-18/10.05.04/raw_data/5.html",
-"2012-11-20/01.05.34/raw_data/1.html",
-"2012-11-20/06.05.34/raw_data/1.html",
-"2012-11-20/13.05.36/raw_data/4.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-12/12.05.34/raw_data/0.html",
-"2012-12-12/14.05.04/raw_data/0.html",
-"2012-12-26/11.05.04/raw_data/0.html",
-"2012-12-27/18.05.05/raw_data/3.html",
-"2013-01-03/08.05.04/raw_data/2.html",
-"2013-01-08/11.05.05/raw_data/1.html",
-"2013-01-08/14.05.04/raw_data/1.html",
-"2013-01-08/15.05.04/raw_data/1.html",
+        "2012-04-19/16.05.08/raw_data/3.html",
+        "2012-04-19/16.05.08/raw_data/3.html",
+        "2012-04-25/13.05.06/raw_data/5.html",
+        "2012-04-25/13.05.06/raw_data/5.html",
+        "2012-05-08/10.05.06/raw_data/4.html",
+        "2012-05-08/10.05.06/raw_data/4.html",
+        "2012-05-08/21.05.06/raw_data/0.html",
+        "2012-05-08/21.05.06/raw_data/0.html",
+        "2012-05-16/12.05.06/raw_data/0.html",
+        "2012-05-17/10.05.05/raw_data/0.html",
+        "2012-05-21/11.05.05/raw_data/4.html",
+        "2012-05-23/10.05.06/raw_data/1.html",
+        "2012-05-23/10.05.06/raw_data/1.html",
+        "2012-05-23/10.05.06/raw_data/1.html",
+        "2012-05-23/18.05.06/raw_data/4.html",
+        "2012-05-23/18.05.06/raw_data/4.html",
+        "2012-05-23/18.05.06/raw_data/4.html",
+        "2012-06-12/14.05.06/raw_data/2.html",
+        "2012-07-07/12.05.05/raw_data/4.html",
+        "2012-08-02/06.05.06/raw_data/0.html",
+        "2012-08-02/06.05.06/raw_data/0.html",
+        "2012-08-13/15.05.05/raw_data/1.html",
+        "2012-08-13/15.05.05/raw_data/1.html",
+        "2012-08-13/15.05.05/raw_data/1.html",
+        "2012-08-13/16.05.06/raw_data/5.html",
+        "2012-08-13/16.05.06/raw_data/5.html",
+        "2012-08-13/16.05.06/raw_data/5.html",
+        "2012-08-14/09.05.05/raw_data/2.html",
+        "2012-08-14/09.05.05/raw_data/2.html",
+        "2012-08-14/09.05.05/raw_data/2.html",
+        "2012-08-14/13.05.06/raw_data/1.html",
+        "2012-08-14/13.05.06/raw_data/1.html",
+        "2012-08-21/09.05.05/raw_data/4.html",
+        "2012-08-31/10.05.05/raw_data/2.html",
+        "2012-09-06/06.05.06/raw_data/0.html",
+        "2012-09-18/10.05.06/raw_data/2.html",
+        "2012-09-18/10.05.06/raw_data/2.html",
+        "2012-09-18/10.05.06/raw_data/2.html",
+        "2012-09-18/10.05.06/raw_data/2.html",
+        "2012-10-03/10.05.05/raw_data/4.html",
+        "2012-10-16/15.05.04/raw_data/3.html",
+        "2012-10-16/15.05.04/raw_data/3.html",
+        "2012-10-16/15.05.04/raw_data/3.html",
+        "2012-10-18/10.05.04/raw_data/5.html",
+        "2012-11-20/01.05.34/raw_data/1.html",
+        "2012-11-20/06.05.34/raw_data/1.html",
+        "2012-11-20/13.05.36/raw_data/4.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-10/14.05.05/raw_data/0.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/01.05.05/raw_data/4.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-11/07.05.04/raw_data/7.html",
+        "2012-12-12/12.05.34/raw_data/0.html",
+        "2012-12-12/14.05.04/raw_data/0.html",
+        "2012-12-26/11.05.04/raw_data/0.html",
+        "2012-12-27/18.05.05/raw_data/3.html",
+        "2013-01-03/08.05.04/raw_data/2.html",
+        "2013-01-08/11.05.05/raw_data/1.html",
+        "2013-01-08/14.05.04/raw_data/1.html",
+        "2013-01-08/15.05.04/raw_data/1.html",
 
 
     ]
-
 
     root = r"/Volumes/Curst/csxj/tartiflette/json_db_0_5/lalibre"
 
@@ -374,9 +376,8 @@ def test_sample_data():
         try:
             url = os.path.join(root, url)
             with open(url) as f:
-
                 article, html = extract_article_data(f)
-                
+
                 tweets = [l for l in article.links if 'tweet' in l.tags]
                 # print article.title
                 # print tweets
@@ -395,4 +396,20 @@ def test_sample_data():
 
 
 if __name__ == '__main__':
-    test_sample_data()
+    url = "http://www.lalibre.be/actu/politique-belge/article/778553/accord-sur-le-budget-2013.html"
+    url = "http://www.lalibre.be/actu/belgique/article/788978/incendie-d-un-car-belge-en-suisse-plus-de-peur-que-de-mal.html"
+
+    fname = r"/Volumes/Curst/csxj/tartiflette/json_db_0_5/lalibre/"+"2013-01-08/15.05.04/raw_data/1.html"
+
+    f = open(fname)
+
+    article, html = extract_article_data(f)
+    print article.url
+    print len(article.content)
+    from pprint import pprint
+
+
+    pprint(article.intro)
+    pprint(article.content)
+
+    f.close()
