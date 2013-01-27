@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import sys
 from datetime import datetime
-import locale
 from itertools import chain
 import urllib
 import urllib2
@@ -17,6 +15,8 @@ from parser_tools.utils import convert_utf8_url_to_ascii
 from parser_tools.utils import setup_locales
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from csxj.db.article import ArticleData
+
+from helpers.unittest_generator import generate_test_func
 
 
 setup_locales()
@@ -114,7 +114,7 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
 
 
 def extract_intro_and_links(hxs):
-    intro_container = hxs.select("//div [@id='article']/p[starts-with(@class, 'chapeau')]/following-sibling::*[1]")
+    intro_container = hxs.select("//div [@id='article']//p[starts-with(@class, 'chapeau')]/following-sibling::*[1]")
     intro_text, tagged_urls = extract_text_and_links_from_paragraph(intro_container)
     return intro_text, tagged_urls
 
@@ -288,7 +288,7 @@ def extract_article_data(source):
             if err.code == 404:
                 return None, "<html><head><title>404</title></head><body></body></html>"
             else:
-                raise err
+                raise ValueError()
 
     hxs = HtmlXPathSelector(text=html_content)
 
@@ -296,18 +296,18 @@ def extract_article_data(source):
         return None, html_content
     else:
         category = hxs.select("//p[starts-with(@class, 'fil_ariane')]/a//text()").extract()
-        title = hxs.select("//div[@id='article']/h1/text()").extract()[0]
+        title = hxs.select("//div[@id='article']/article//h1/text()").extract()[0]
         pub_date, pub_time = extract_date(hxs)
         author = hxs.select("//p[@class='auteur']/text()").extract()[0]
         fetched_datetime = datetime.today()
 
         intro, intro_links = extract_intro_and_links(hxs)
-
         content, content_links = extract_content_and_links(hxs)
-
         associated_links = extract_associated_links(hxs)
-
         all_links = intro_links + content_links + associated_links
+
+        #generate_test_func('test_embedd')
+
 
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             all_links,
@@ -410,10 +410,10 @@ def show_article():
         u"http://www.sudinfo.be/534573/article/sports/foot-belge/standard/2012-09-25/jelle-van-damme-standard-menace-benjamin-deceuninck-en-direct-fais-gaffe-av",
         u"http://www.sudinfo.be/534931/article/actualite/sante/2012-09-26/la-prescription-des-medicaments-bon-marche-continue-de-progresser",
         u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/des-nus-partout-dans-bruxelles-qui-miment-l-acte-sexuel-l’incroyable-performance",
-        u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/schocking-in-brussles-des-hommes-nus-miment-l-acte-sexuel-au-palais-de-justice-a"
+        #u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/schocking-in-brussles-des-hommes-nus-miment-l-acte-sexuel-au-palais-de-justice-a"
     ]
 
-    for url in urls[:]:
+    for url in urls[0:1]:
         article_data, raw_html = extract_article_data(url)
 
         if article_data:
@@ -439,12 +439,4 @@ def show_frontpage_toc():
     print len(headlines), len(blogposts)
 
 if __name__ == '__main__':
-    #show_frontpage_toc()
-    #download_one_article()
-    #show_frontpage_articles()
-
-    url = "/Volumes/Curst/json_db_0_5/sudinfo/2012-06-05/14.05.07/raw_data/18.html"
-    f = open(url, "r")
-
-    article_data, content_html = extract_article_data(f)
-    article_data.print_summary()
+    db_root = "/Users/sevas/Desktop/json_db_"
