@@ -6,14 +6,16 @@ from itertools import chain
 import re
 import urlparse
 
-from BeautifulSoup import Tag
+import BeautifulSoup as bs
 
 from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
-from parser_tools.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
+from parser_tools.utils import fetch_html_content, make_soup_from_html_content
+from parser_tools.utils import remove_text_formatting_markup_from_fragments
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
 from parser_tools import constants
 from parser_tools import ipm_utils
+from parser_tools import twitter_utils
 
 from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
@@ -69,7 +71,7 @@ def cleanup_text_fragment(text_fragment):
     Recursively cleans up a text fragment (e.g. nested tags).
     Returns a plain text string with no formatting info whatsoever.
     """
-    if isinstance(text_fragment, Tag):
+    if isinstance(text_fragment, bs.Tag):
         return remove_text_formatting_markup_from_fragments(text_fragment.contents)
     else:
         return text_fragment
@@ -81,7 +83,7 @@ def filter_out_useless_fragments(text_fragments):
     extracted from an article.
     """
     def is_linebreak(text_fragment):
-        if isinstance(text_fragment, Tag):
+        if isinstance(text_fragment, bs.Tag):
             return text_fragment.name == 'br'
         else:
             return len(text_fragment.strip()) == 0
@@ -126,40 +128,57 @@ def extract_and_tag_in_text_links(article_text):
     return tagged_urls
 
 
-def extract_text_content_and_links_from_articletext(article_text, has_intro=True):
-    """
-    Cleans up the text from html tags, extracts and tags all
-    links (clickable _and_ plaintext).
+def sanitize_paragraph(paragraph):
+    """Returns plain text article"""
 
-    Returns a list of string (one item per paragraph) and a
-    list of TaggedURL objects.
+    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n') for fragment in paragraph.contents if
+                           not isinstance(fragment, bs.Comment)]
 
-    Note: sometimes paragraphs are clearly marked with nice <p> tags. When it's not
-    the case, we consider linebreaks to be paragraph separators.
-    """
+    return ''.join(sanitized_paragraph)
+
+
+def extract_text_content_and_links_from_articletext(main_content, has_intro=True):
+    article_text = main_content
+
+    in_text_tagged_urls = []
+    all_fragments = []
+    all_plaintext_urls = []
+    embedded_tweets = []
 
     in_text_tagged_urls = extract_and_tag_in_text_links(article_text)
 
-    children = filter_out_useless_fragments(article_text.contents)
-    # first child is the intro paragraph, discard it
-    if has_intro:
-        children = children[1:]
+    def is_text_content(blob):
+        if isinstance(blob, bs.Tag) and blob.name == 'p':
+            return True
+        if isinstance(blob, bs.NavigableString):
+            return True
+        return False
 
-    # the rest might be a list of paragraphs, but might also just be the text, sometimes with
-    # formatting.
+    paragraphs = [c for c in article_text.contents if is_text_content(c)]
 
-    cleaned_up_text_fragments = list()
-    for text_block in children:
-        cleaned_up_text_fragments.append(remove_text_formatting_markup_from_fragments(text_block, '\n\t '))
+    for paragraph in paragraphs:
+        if isinstance(paragraph, bs.NavigableString):
+            cleaned_up_text = remove_text_formatting_markup_from_fragments([paragraph], strip_chars='\r\n\t ')
+            if cleaned_up_text:
+                all_fragments.append(cleaned_up_text)
+                plaintext_links = extract_plaintext_urls_from_text(paragraph)
+                urls_and_titles = zip(plaintext_links, plaintext_links)
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+        else:
+            if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+                fragments = sanitize_paragraph(paragraph)
+                all_fragments.append(fragments)
+                plaintext_links = extract_plaintext_urls_from_text(fragments)
+                urls_and_titles = zip(plaintext_links, plaintext_links)
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+            else:
+                embedded_tweets.extend(
+                    twitter_utils.extract_rendered_tweet(paragraph, DHNET_NETLOC, DHNET_INTERNAL_SITES))
 
-    all_plaintext_urls = []
-    for text in cleaned_up_text_fragments:
-        all_plaintext_urls.extend(extract_plaintext_urls_from_text(text))
-    # plaintext urls are their own title
-    urls_and_titles = zip(all_plaintext_urls, all_plaintext_urls)
-    plaintext_tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext', 'in text']))
+    text_content = all_fragments
 
-    return cleaned_up_text_fragments, in_text_tagged_urls + plaintext_tagged_urls
+    return text_content, in_text_tagged_urls + all_plaintext_urls + embedded_tweets
+
 
 
 def article_has_intro(article_text):
@@ -397,10 +416,13 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
         "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html",
         "http://www.dhnet.be/people/show-biz/article/421868/rosie-huntington-whiteley-sens-dessus-dessous.html",
+        "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html"
         "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html"
     ]
 
-    for url in urls[-1:]:
+    from csxj.common.tagging import print_taggedURLs
+
+    for url in urls[:-1]:
         article, html = extract_article_data(url)
-        # for link in article.links:
+        print_taggedURLs(article.links)
         #     print link

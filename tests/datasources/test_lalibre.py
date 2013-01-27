@@ -89,7 +89,7 @@ class TestLalibreLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_storify_embedded_video_links(self):
-        """ """
+        """ lalibre parser can process an article with an embedded storify and embedded videos """
         with open(os.path.join(DATA_ROOT, "storify_video_links.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
@@ -121,7 +121,7 @@ class TestLalibreLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_embedded_videos_links(self):
-        """ """
+        """ lalibre parser can process an article with embedded videos """
         with open(os.path.join(DATA_ROOT, "embedded_videos.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
@@ -177,3 +177,33 @@ class TestLalibreLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+class TestLalibreContentExtraction(object):
+    def test_clean_paragraph_extraction(self):
+        """ lalibre parser extracts the paragraphs as a list of strings without bullshit characters (e.g. \\t, \\r, \\n)"""
+        with open(os.path.join(DATA_ROOT, "paragraphs_overload.html")) as f:
+            article, _ = lalibre.extract_article_data(f)
+            content = article.content
+
+            eq_(len(content), 45)
+            for line in content:
+                stripped_line = line.strip('\t\r\n')
+                eq_(line, stripped_line)
+
+    def test_clean_intro_extraction(self):
+        """ lalibre parser extracts the 'articleHat' div as the intro field"""
+        with open(os.path.join(DATA_ROOT, "intro_articleHat.html")) as f:
+            article, _ = lalibre.extract_article_data(f)
+
+            expected_intro = u"Une enquête a été ouverte pour déterminer les causes de l'incendie."
+            eq_(article.intro, expected_intro)
+
+    def test_no_paragraphs(self):
+        """ lalibre parser extracts text content even if there are no paragraphs"""
+        with open(os.path.join(DATA_ROOT, "no_paragraphs.html")) as f:
+            article, _ = lalibre.extract_article_data(f)
+
+            expected_content = [u"Mouss Diouf a été révélé au grand public grâce à son interprétation du lieutenant N'Guma dans la série française Julie Lescaut. \r\n\r\nVéronique Genest est resté très proche de Mouss Diouf après son accident vasculaire cérébral. Elle a réagi sur Twitter suite au décès de l'acteur."]
+            eq_(article.content, expected_content, msg="\n{0}\n{1}".format(article.content, expected_content))
+

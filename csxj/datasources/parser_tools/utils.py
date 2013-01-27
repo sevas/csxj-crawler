@@ -61,10 +61,6 @@ def remove_text_formatting_markup(formatted_text_fragment, strip_chars):
 
     # A text fragment is either an HTML tag (with its own child text fragments)
     # or just a plain string.
-    
-    
-
-
     if isinstance(formatted_text_fragment, Tag) or isinstance(formatted_text_fragment, bs4.Tag):
         # If it's the former, we remove the tag and clean up all its children
         if formatted_text_fragment.name in TEXT_MARKUP_TAGS:
