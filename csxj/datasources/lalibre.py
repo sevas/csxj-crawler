@@ -99,8 +99,10 @@ def extract_and_tag_in_text_links(article_text):
     Detects which links are keyword and which aren't, sets the adequate tags.
     Returns a list of TaggedURL objects.
     """
+
     def extract_link_and_title(link):
         return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
+
     links = [extract_link_and_title(link)
              for link in article_text.findAll('a', recursive=True)]
 
@@ -118,8 +120,9 @@ def extract_and_tag_in_text_links(article_text):
 
 def sanitize_paragraph(paragraph):
     """Returns plain text article"""
-    
-    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment) for fragment in paragraph.contents if not isinstance(fragment, BeautifulSoup.Comment)]
+
+    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n') for fragment in paragraph.contents if
+                           not isinstance(fragment, BeautifulSoup.Comment)]
 
     return ''.join(sanitized_paragraph)
 
@@ -132,22 +135,36 @@ def extract_text_content_and_links(main_content):
     all_plaintext_urls = []
     embedded_tweets = []
 
-    paragraphs = article_text.findAll('p', recursive=False)
+    def is_text_content(blob):
+        if isinstance(blob, BeautifulSoup.Tag) and blob.name == 'p':
+            return True
+        if isinstance(blob, BeautifulSoup.NavigableString):
+            return True
+        return False
+
+    paragraphs = [c for c in article_text.contents if is_text_content(c)]
 
     for paragraph in paragraphs:
-        if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
-
-            in_text_links = extract_and_tag_in_text_links(paragraph)
-            in_text_tagged_urls.extend(in_text_links)
-
-            fragments = sanitize_paragraph(paragraph)
-            all_fragments.append(fragments)
-            all_fragments.append('\n')
-            plaintext_links = extract_plaintext_urls_from_text(fragments)
-            urls_and_titles = zip(plaintext_links, plaintext_links)
-            all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+        if isinstance(paragraph, BeautifulSoup.NavigableString):
+            cleaned_up_text = remove_text_formatting_markup_from_fragments([paragraph], strip_chars='\r\n\t ')
+            if cleaned_up_text:
+                all_fragments.append(cleaned_up_text)
+                plaintext_links = extract_plaintext_urls_from_text(paragraph)
+                urls_and_titles = zip(plaintext_links, plaintext_links)
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
         else:
-            embedded_tweets.extend(twitter_utils.extract_rendered_tweet(paragraph, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES))
+            if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+                in_text_links = extract_and_tag_in_text_links(paragraph)
+                in_text_tagged_urls.extend(in_text_links)
+
+                fragments = sanitize_paragraph(paragraph)
+                all_fragments.append(fragments)
+                plaintext_links = extract_plaintext_urls_from_text(fragments)
+                urls_and_titles = zip(plaintext_links, plaintext_links)
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+            else:
+                embedded_tweets.extend(
+                    twitter_utils.extract_rendered_tweet(paragraph, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES))
 
     text_content = all_fragments
 
@@ -163,7 +180,8 @@ def extract_category(main_content):
 
 def extract_embedded_content_links(main_content):
     items = main_content.findAll('div', {'class': 'embedContents'})
-    return [ipm_utils.extract_tagged_url_from_embedded_item(item, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES) for item in items]
+    return [ipm_utils.extract_tagged_url_from_embedded_item(item, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES) for item in
+            items]
 
 
 def extract_author_name(main_content):
@@ -178,13 +196,12 @@ def extract_intro(main_content):
     hat = main_content.find('div', {'id': 'articleHat'})
 
     if hat:
-        return hat.contents[0].rstrip().lstrip()
+        return  remove_text_formatting_markup_from_fragments(hat.contents, strip_chars='\t\r\n ')
     else:
-        return ''
+        return u''
 
 
 def extract_article_data_from_file(source_url, source_file):
-
     if not hasattr(source_file, 'read'):
         f = open(source_file)
     else:
@@ -193,12 +210,11 @@ def extract_article_data_from_file(source_url, source_file):
     html_content = f.read()
     return extract_article_data_from_html(html_content, source_url)
 
-
 def print_for_test(taggedURLs):
     print "---"
     for taggedURL in taggedURLs:
-        print u"""make_tagged_url("{0}", u\"\"\"{1}\"\"\", {2}),""".format(taggedURL.URL, taggedURL.title, taggedURL.tags)
-
+        print u"""make_tagged_url("{0}", u\"\"\"{1}\"\"\", {2}),""".format(taggedURL.URL, taggedURL.title,
+                                                                           taggedURL.tags)
 
 def extract_article_data_from_html(html_content, source_url):
     soup = make_soup_from_html_content(html_content)
@@ -218,8 +234,10 @@ def extract_article_data_from_html(html_content, source_url):
     intro = extract_intro(main_content)
     text_content, in_text_urls = extract_text_content_and_links(main_content)
 
-    embedded_audio_links = ipm_utils.extract_embedded_audio_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
-    associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+    embedded_audio_links = ipm_utils.extract_embedded_audio_links(main_content, LALIBRE_NETLOC,
+                                                                  LALIBRE_ASSOCIATED_SITES)
+    associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC,
+                                                                        LALIBRE_ASSOCIATED_SITES)
     bottom_links = ipm_utils.extract_bottom_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     embedded_content_links = extract_embedded_content_links(main_content)
 
