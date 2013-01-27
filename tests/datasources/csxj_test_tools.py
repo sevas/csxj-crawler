@@ -22,6 +22,7 @@ def assert_taggedURLs_equals(expected_links, extracted_links):
         for expected, extracted in zip(sorted(expected_links), sorted(extracted_links)):
             eq_(expected[0], extracted[0], msg=u'URLs are not the same: \n\t{0} \n\t{1}'.format(expected[0], extracted[0]))
             #eq_(expected[1], extracted[1], msg='titles are not the same')
-            eq_(expected[2], extracted[2], msg=u'[{0}]({1}): tags are not the same: \n\tExpected: {2} \n\tGot:      {3}'.format(expected[1], expected[0], expected[2], extracted[2]))
+            ok_(expected[2].issubset(extracted[2]), msg=u'[{0}]({1}): tags are not the same: \n\tExpected: {2} \n\tGot:      {3}'.format(expected[1], expected[0], expected[2], extracted[2]))
+
     else:
         ok_(True)
