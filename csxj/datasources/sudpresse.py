@@ -13,6 +13,8 @@ from csxj.db.article import ArticleData
 
 from parser_tools import rossel_utils
 
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
+
 setup_locales()
 
 
@@ -194,10 +196,13 @@ def extract_article_data(source):
 
         all_links = intro_links + content_links + associated_links
 
-        updated_links = update_tagged_urls(all_links, rossel_utils.ROSSEL_SAME_OWNER)
+        updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.ROSSEL_SAME_OWNER)
 
+        #print generate_test_func('same_owner_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
+        save_sample_data_file(html_content, source, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
+        
         return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                           updated_links,
+                           updated_tagged_urls,
                            category, author,
                            intro, content), html_content
 
@@ -346,15 +351,12 @@ def test_sample_data():
     filepath = "../../sample_data/sudpresse/sudpresse_noTitle.html"
     filepath = "../../sample_data/sudpresse/sudpresse_noTitle2.html"
     filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_same_owner.html"
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
-        article_data.print_summary()
 
-        for link in article_data.links:
-            print link.title
-
-        print article_data.intro
-        print article_data.content
+        # for link in article_data.links:
+        #     print link
 
 
 def download_one_article():
@@ -362,15 +364,11 @@ def download_one_article():
     url = 'http://sudpresse.be/actualite/dossiers/2012-01-02/le-stage-du-standard-a-la-manga-infos-photos-tweets-928836.shtml'
     #url = 'http://sudpresse.be/%3C!--%20error:%20linked%20page%20doesn\'t%20exist:...%20--%3E'
     url = "http://sudpresse.be/actualite/faits_divers/2012-01-10/un-enfant-de-4-ans-orphelin-sa-mere-a-saute-sur-les-voies-pour-recuperer-son-gsm-930520.shtml"
-
+    url = "http://sudpresse.be/regions/tournai/2012-02-13/jean-dujardin-sera-ce-soir-a-lille-938309.shtml"
     article_data, raw_html = extract_article_data(url)
 
-    if article_data:
-        article_data.print_summary()
-        print article_data.intro
-        print article_data.content
-    else:
-        print 'no article found'
+    for link in article.links:
+        print link
 
 if __name__ == '__main__':
     #get_frontpage_toc()
