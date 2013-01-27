@@ -22,10 +22,14 @@ SOURCE_TITLE = u"Le Soir"
 SOURCE_NAME = u"lesoir"
 
 LESOIR_INTERNAL_BLOGS = {
-    'blog.lesoir.be':['internal blog', 'internal'],
-    'belgium-iphone.lesoir.be':['internal blog', 'internal', 'technology'],
+
     'archives.lesoir.be':['archives', 'internal'],
-    'football.lesoir.be':['internal blog', 'internal', 'sports']
+   
+    'belandroid.lesoir.be':['internal', 'jblog'],
+    'geeko.lesoir.be':['internal', 'jblog'],
+    'blog.lesoir.be':['internal', 'jblog'],
+
+    'pdf.lesoir.be' : ['internal', 'pdf newspaper']
 }
 
 LESOIR_NETLOC = 'www.lesoir.be'

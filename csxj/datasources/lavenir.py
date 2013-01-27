@@ -21,7 +21,9 @@ setup_locales()
 SOURCE_TITLE = u"L'Avenir"
 SOURCE_NAME = u"lavenir"
 
-LAVENIR_INTERNAL_BLOGS = {}
+LAVENIR_INTERNAL_BLOGS = {
+    'lavenir.newspaperdirect.com': ['internal', 'pdf newspaper']
+}
 
 
 LAVENIR_NETLOC = 'www.lavenir.net'

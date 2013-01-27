@@ -15,6 +15,15 @@ from parser_tools import ipm_utils
 from parser_tools import twitter_utils
 
 LALIBRE_ASSOCIATED_SITES = {
+    'ask.blogs.lalibre.be': ['internal', 'jblog'],
+    'irevolution.blogs.lalibre.be': ['internal', 'jblog'],
+    'laloidesseries.blogs.lalibre.be': ['internal', 'jblog'],
+    'letitsound.blogs.lalibre.be': ['internal', 'jblog'],
+    'parislibre.blogs.lalibre.be': ['internal', 'jblog'],
+    'momento.blogs.lalibre.be': ['internal', 'jblog'],
+    'lameteo.blogs.lalibre.be': ['internal', 'jblog'],
+
+    'pdf-online.lalibre.be' : ['internal', 'pdf newspaper']
 
 }
 
@@ -256,7 +265,11 @@ def test_sample_data():
             "http://www.lalibre.be/actu/usa-2012/article/773294/obama-raille-les-chevaux-et-baionnettes-de-romney.html",
             "http://www.lalibre.be/actu/international/article/774524/sandy-le-calme-avant-la-tempete.html",
             "http://www.lalibre.be/sports/football/article/778966/suivez-anderlecht-milan-ac-en-live-des-20h30.html",
-            "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html"
+            "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html",
+            "http://www.lalibre.be/actu/belgique/article/782423/intemperies-un-chaos-moins-important-que-prevu.html",
+            "http://www.lalibre.be/culture/mediastele/article/748553/veronique-genest-mon-coeur-est-en-berne.html",
+            "http://www.lalibre.be/culture/musique-festivals/article/792049/the-weeknd-de-retour-en-belgique.html",
+            "http://www.lalibre.be/actu/international/article/791997/israel-une-campagne-qui-n-a-pas-vole-haut.html"
             ]
 
     files = [
@@ -370,28 +383,35 @@ def test_sample_data():
     from pprint import pprint
     import os
 
-    for url in files[:]:
-        try:
-            url = os.path.join(root, url)
-            with open(url) as f:
+    article, html = extract_article_data(urls[-1])
+    print article.title
+    print article.content
+    for link in article.links:
+        print link
 
-                article, html = extract_article_data(f)
+
+    # for url in files[:]:
+    #     try:
+    #         url = os.path.join(root, url)
+    #         with open(url) as f:
+
+    #             article, html = extract_article_data(f)
                 
-                tweets = [l for l in article.links if 'tweet' in l.tags]
-                # print article.title
-                # print tweets
-                # print len(tweets)
-                # print "...................." * 3
-                print len(article.content)
-                print article.url
-                print article.title
-                print "...................." * 3
-                # if len(tweets) == 0:
-                #     print article.title
-                #     print article.url
-                #     print article.content
-        except ValueError as e:
-            print "something went wrong with: ", url
+    #             tweets = [l for l in article.links if 'tweet' in l.tags]
+    #             # print article.title
+    #             # print tweets
+    #             # print len(tweets)
+    #             # print "...................." * 3
+    #             print len(article.content)
+    #             print article.url
+    #             print article.title
+    #             print "...................." * 3
+    #             # if len(tweets) == 0:
+    #             #     print article.title
+    #             #     print article.url
+    #             #     print article.content
+    #     except ValueError as e:
+    #         print "something went wrong with: ", url
 
 
 if __name__ == '__main__':

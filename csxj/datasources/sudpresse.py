@@ -16,7 +16,13 @@ setup_locales()
 
 
 SUDPRESSE_INTERNAL_SITES = {
-    'portfolio.sudpresse.be': ['internal site', 'images', 'gallery']
+    'portfolio.sudpresse.be': ['internal', 'gallery'],
+
+    'pdf.lameuse.be': ['internal', 'pdf newspaper'],
+    'pdf.lacapitale.be': ['internal', 'pdf newspaper'],
+    'pdf.lanouvellegazette.be': ['internal', 'pdf newspaper'],
+    'pdf.laprovince.be': ['internal', 'pdf newspaper'],
+    'pdf.nordeclair.be': ['internal', 'pdf newspaper']
 }
 
 SUDPRESSE_OWN_NETLOC = 'www.sudpresse.be'

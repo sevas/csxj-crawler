@@ -18,7 +18,16 @@ from parser_tools.utils import setup_locales
 setup_locales()
 
 LESOIR_NETLOC = "www.lesoir.be"
-LESOIR_INTERNAL_SITES = {}
+LESOIR_INTERNAL_SITES = {
+
+    'archives.lesoir.be':['archives', 'internal'],
+   
+    'belandroid.lesoir.be':['internal', 'jblog'],
+    'geeko.lesoir.be':['internal', 'jblog'],
+    'blog.lesoir.be':['internal', 'jblog'],
+
+    'pdf.lesoir.be' : ['internal', 'pdf newspaper']
+}
 
 def extract_title_and_url(link_hxs):
     title = u"".join(link_hxs.select("text()").extract())

@@ -18,8 +18,16 @@ from parser_tools import ipm_utils
 setup_locales()
 
 DHNET_INTERNAL_SITES = {
-    'tackleonweb.blogs.dhnet.be': ['internal blog', 'internal', 'sports'],
-    'galeries.dhnet.be': ['internal site', 'internal', 'image gallery'],
+
+    'galeries.dhnet.be': ['internal', 'image gallery'],
+
+    'tackleonweb.blogs.dhnet.be': ['internal', 'jblog'],
+    'dubus.blogs.dhnet.be': ['internal', 'jblog'],
+    'alorsonbuzz.blogs.dhnet.be': ['internal', 'jblog'],
+    'letitsound.blogs.dhnet.be': ['internal', 'jblog'],
+
+    'pdf-online.dhnet.be' : ['internal', 'pdf newspaper']
+
 }
 
 DHNET_NETLOC = 'www.dhnet.be'
@@ -383,3 +391,4 @@ if __name__ == "__main__":
 
     for url in urls[-1:]:
         article, html = extract_article_data(url)
+        print article
