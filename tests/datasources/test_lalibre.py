@@ -164,7 +164,7 @@ class TestLalibreContentExtraction(object):
             article, _ = lalibre.extract_article_data(f)
             content = article.content
 
-            eq_(len(content), 44)
+            eq_(len(content), 45)
             for line in content:
                 stripped_line = line.strip('\t\r\n')
                 eq_(line, stripped_line)
@@ -177,3 +177,10 @@ class TestLalibreContentExtraction(object):
             expected_intro = u"Une enquête a été ouverte pour déterminer les causes de l'incendie."
             eq_(article.intro, expected_intro)
 
+    def test_no_paragraphs(self):
+        """ lalibre parser extracts text content even if there are no paragraphs"""
+        with open(os.path.join(DATA_ROOT, "no_paragraphs.html")) as f:
+            article, _ = lalibre.extract_article_data(f)
+
+            expected_content = [u"Mouss Diouf a été révélé au grand public grâce à son interprétation du lieutenant N'Guma dans la série française Julie Lescaut. \r\n\r\nVéronique Genest est resté très proche de Mouss Diouf après son accident vasculaire cérébral. Elle a réagi sur Twitter suite au décès de l'acteur."]
+            eq_(article.content, expected_content, msg="\n{0}\n{1}".format(article.content, expected_content))

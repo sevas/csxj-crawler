@@ -124,21 +124,36 @@ def extract_text_content_and_links(main_content):
     all_plaintext_urls = []
     embedded_tweets = []
 
-    paragraphs = article_text.findAll('p', recursive=False)
+    def is_text_content(blob):
+        if isinstance(blob, BeautifulSoup.Tag) and blob.name == 'p':
+            return True
+        if isinstance(blob, BeautifulSoup.NavigableString):
+            return True
+        return False
+
+    paragraphs = [c for c in article_text.contents if is_text_content(c)]
 
     for paragraph in paragraphs:
-        if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
-            in_text_links = extract_and_tag_in_text_links(paragraph)
-            in_text_tagged_urls.extend(in_text_links)
-
-            fragments = sanitize_paragraph(paragraph)
-            all_fragments.append(fragments)
-            plaintext_links = extract_plaintext_urls_from_text(fragments)
-            urls_and_titles = zip(plaintext_links, plaintext_links)
-            all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+        if isinstance(paragraph, BeautifulSoup.NavigableString):
+            cleaned_up_text = remove_text_formatting_markup_from_fragments([paragraph], strip_chars='\r\n\t ')
+            if cleaned_up_text:
+                all_fragments.append(cleaned_up_text)
+                plaintext_links = extract_plaintext_urls_from_text(paragraph)
+                urls_and_titles = zip(plaintext_links, plaintext_links)
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
         else:
-            embedded_tweets.extend(
-                twitter_utils.extract_rendered_tweet(paragraph, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES))
+            if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+                in_text_links = extract_and_tag_in_text_links(paragraph)
+                in_text_tagged_urls.extend(in_text_links)
+
+                fragments = sanitize_paragraph(paragraph)
+                all_fragments.append(fragments)
+                plaintext_links = extract_plaintext_urls_from_text(fragments)
+                urls_and_titles = zip(plaintext_links, plaintext_links)
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+            else:
+                embedded_tweets.extend(
+                    twitter_utils.extract_rendered_tweet(paragraph, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES))
 
     text_content = all_fragments
 
@@ -397,19 +412,13 @@ def test_sample_data():
 
 if __name__ == '__main__':
     url = "http://www.lalibre.be/actu/politique-belge/article/778553/accord-sur-le-budget-2013.html"
-    url = "http://www.lalibre.be/actu/belgique/article/788978/incendie-d-un-car-belge-en-suisse-plus-de-peur-que-de-mal.html"
+    #url = "http://www.lalibre.be/actu/belgique/article/788978/incendie-d-un-car-belge-en-suisse-plus-de-peur-que-de-mal.html"
+    #url = "http://www.lalibre.be/culture/mediastele/article/748553/veronique-genest-mon-coeur-est-en-berne.html"
+    #fname = r"/Volumes/Curst/csxj/tartiflette/json_db_0_5/lalibre/"+"2013-01-08/15.05.04/raw_data/1.html"
 
-    fname = r"/Volumes/Curst/csxj/tartiflette/json_db_0_5/lalibre/"+"2013-01-08/15.05.04/raw_data/1.html"
-
-    f = open(fname)
-
-    article, html = extract_article_data(f)
+    article, html = extract_article_data(url)
     print article.url
     print len(article.content)
     from pprint import pprint
 
-
-    pprint(article.intro)
     pprint(article.content)
-
-    f.close()
