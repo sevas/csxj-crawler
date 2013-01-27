@@ -228,7 +228,7 @@ def extract_article_data_from_html(html_content, source_url):
     updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.IPM_SAME_OWNER)
 
     #print generate_test_func('same_owner_tagging', 'lalibre', dict(tagged_urls=updated_tagged_urls))
-    save_sample_data_file(html_content, source_url, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lalibre')
+    #save_sample_data_file(html_content, source_url, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lalibre')
 
 
 

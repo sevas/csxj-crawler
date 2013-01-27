@@ -8,9 +8,10 @@ from parser_tools.utils import make_soup_from_html_content, fetch_content_from_u
 from parser_tools.utils import extract_plaintext_urls_from_text
 from parser_tools.utils import remove_text_formatting_markup_from_fragments
 from parser_tools.utils import setup_locales
-from csxj.common.tagging import classify_and_tag, make_tagged_url
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 
+from parser_tools import rossel_utils
 
 setup_locales()
 
@@ -191,8 +192,12 @@ def extract_article_data(source):
 
         associated_links = extract_associated_links(article)
 
+        all_links = intro_links + content_links + associated_links
+
+        updated_links = update_tagged_urls(all_links, rossel_utils.ROSSEL_SAME_OWNER)
+
         return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                           intro_links + content_links + associated_links,
+                           updated_links,
                            category, author,
                            intro, content), html_content
 

@@ -9,7 +9,7 @@ from itertools import izip, chain
 from urlparse import urlparse
 from scrapy.selector import HtmlXPathSelector
 
-from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales

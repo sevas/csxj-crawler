@@ -15,8 +15,10 @@ from parser_tools.utils import fetch_content_from_url, fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text
 from parser_tools.utils import convert_utf8_url_to_ascii
 from parser_tools.utils import setup_locales
-from csxj.common.tagging import classify_and_tag, make_tagged_url
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
+
+from parser_tools import rossel_utils
 
 
 setup_locales()
@@ -418,8 +420,10 @@ def extract_article_data(source):
 
         all_links = intro_links + content_links + associated_links
 
+        updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.ROSSEL_SAME_OWNER)
+
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                            all_links,
+                            updated_tagged_urls,
                             category, author,
                             intro, content),
                 html_content)

@@ -16,6 +16,7 @@ from parser_tools import constants
 from csxj.common import tagging
 from parser_tools import rossel_utils
 
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
 setup_locales()
 
@@ -312,6 +313,10 @@ def extract_article_data(source):
     all_links = sidebar_links + intext_links + embedded_content_links
 
     updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.ROSSEL_SAME_OWNER)
+
+
+    #print generate_test_func('same_owner_tagging', 'lesoir', dict(tagged_urls=updated_tagged_urls))
+    #save_sample_data_file(html_content, source_url, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir')
 
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                               updated_tagged_urls,
