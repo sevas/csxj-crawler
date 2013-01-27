@@ -155,3 +155,25 @@ class TestLalibreLinkExtraction(object):
 
             expected_links = expected_sidebox_links + expected_bottom_links + expected_embbeded_media_links
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+    def test_same_owner_tagging(self):
+        with open(os.path.join(DATA_ROOT, "same_owner_tagging.html")) as f:
+            article, raw_html = lalibre.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("/societe/sciences-sante/article/779520/ejaculation-precoce-le-remede-medical-miracle.html", u"""Éjaculation précoce: le remède médical miracle?""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.essentielle.be/", u"""Essentielle.be, le site des femmes actives""", set(['sidebar box', 'external', 'same owner'])),
+                make_tagged_url("/societe/general/article/774960/amitie-hommefemme-possible.html", u"""Amitié homme/femme, possible?""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/societe/general/article/774515/la-meilleure-musique-pendant-le-sexe-est.html", u"""La meilleure musique pendant le sexe est""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/societe/general/article/773803/ces-etudiantes-qui-commercialisent-leur-corps.html", u"""Ces étudiantes qui commercialisent leur corps""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/societe/general/article/772893/qui-des-hommes-ou-des-femmes-mentent-le-plus.html", u"""Qui des hommes ou des femmes mentent le plus ?""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/societe/sciences-sante/article/779520/ejaculation-precoce-le-remede-medical-miracle.html", u"""Éjaculation précoce: le remède médical miracle?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/societe/general/article/774960/amitie-hommefemme-possible.html", u"""Amitié homme/femme, possible?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/societe/general/article/774515/la-meilleure-musique-pendant-le-sexe-est.html", u"""La meilleure musique pendant le sexe est""", set(['bottom box', 'internal'])),
+                make_tagged_url("/societe/general/article/773803/ces-etudiantes-qui-commercialisent-leur-corps.html", u"""Ces étudiantes qui commercialisent leur corps""", set(['bottom box', 'internal'])),
+                make_tagged_url("/societe/general/article/772893/qui-des-hommes-ou-des-femmes-mentent-le-plus.html", u"""Qui des hommes ou des femmes mentent le plus ?""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://www.essentielle.be/", u"""Essentielle.be, le site des femmes actives""", set(['bottom box', 'external', 'same owner'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)

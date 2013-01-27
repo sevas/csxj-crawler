@@ -6,13 +6,15 @@ import urlparse
 
 import BeautifulSoup
 
-from csxj.common.tagging import classify_and_tag, make_tagged_url
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
 from parser_tools.utils import remove_text_formatting_markup_from_fragments
 from parser_tools import constants
 from parser_tools import ipm_utils
 from parser_tools import twitter_utils
+
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
 LALIBRE_ASSOCIATED_SITES = {
     'ask.blogs.lalibre.be': ['internal', 'jblog'],
@@ -223,9 +225,16 @@ def extract_article_data_from_html(html_content, source_url):
 
     all_links = in_text_urls + associated_tagged_urls + bottom_links + embedded_content_links + embedded_audio_links
 
+    updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.IPM_SAME_OWNER)
+
+    #print generate_test_func('same_owner_tagging', 'lalibre', dict(tagged_urls=updated_tagged_urls))
+    save_sample_data_file(html_content, source_url, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lalibre')
+
+
+
     new_article = ArticleData(source_url, title,
                               pub_date, pub_time, fetched_datetime,
-                              all_links,
+                              updated_tagged_urls,
                               category, author,
                               intro, text_content)
 
@@ -269,149 +278,14 @@ def test_sample_data():
             "http://www.lalibre.be/actu/belgique/article/782423/intemperies-un-chaos-moins-important-que-prevu.html",
             "http://www.lalibre.be/culture/mediastele/article/748553/veronique-genest-mon-coeur-est-en-berne.html",
             "http://www.lalibre.be/culture/musique-festivals/article/792049/the-weeknd-de-retour-en-belgique.html",
-            "http://www.lalibre.be/actu/international/article/791997/israel-une-campagne-qui-n-a-pas-vole-haut.html"
-            ]
-
-    files = [
-"2012-04-19/16.05.08/raw_data/3.html",
-"2012-04-19/16.05.08/raw_data/3.html",
-"2012-04-25/13.05.06/raw_data/5.html",
-"2012-04-25/13.05.06/raw_data/5.html",
-"2012-05-08/10.05.06/raw_data/4.html",
-"2012-05-08/10.05.06/raw_data/4.html",
-"2012-05-08/21.05.06/raw_data/0.html",
-"2012-05-08/21.05.06/raw_data/0.html",
-"2012-05-16/12.05.06/raw_data/0.html",
-"2012-05-17/10.05.05/raw_data/0.html",
-"2012-05-21/11.05.05/raw_data/4.html",
-"2012-05-23/10.05.06/raw_data/1.html",
-"2012-05-23/10.05.06/raw_data/1.html",
-"2012-05-23/10.05.06/raw_data/1.html",
-"2012-05-23/18.05.06/raw_data/4.html",
-"2012-05-23/18.05.06/raw_data/4.html",
-"2012-05-23/18.05.06/raw_data/4.html",
-"2012-06-12/14.05.06/raw_data/2.html",
-"2012-07-07/12.05.05/raw_data/4.html",
-"2012-08-02/06.05.06/raw_data/0.html",
-"2012-08-02/06.05.06/raw_data/0.html",
-"2012-08-13/15.05.05/raw_data/1.html",
-"2012-08-13/15.05.05/raw_data/1.html",
-"2012-08-13/15.05.05/raw_data/1.html",
-"2012-08-13/16.05.06/raw_data/5.html",
-"2012-08-13/16.05.06/raw_data/5.html",
-"2012-08-13/16.05.06/raw_data/5.html",
-"2012-08-14/09.05.05/raw_data/2.html",
-"2012-08-14/09.05.05/raw_data/2.html",
-"2012-08-14/09.05.05/raw_data/2.html",
-"2012-08-14/13.05.06/raw_data/1.html",
-"2012-08-14/13.05.06/raw_data/1.html",
-"2012-08-21/09.05.05/raw_data/4.html",
-"2012-08-31/10.05.05/raw_data/2.html",
-"2012-09-06/06.05.06/raw_data/0.html",
-"2012-09-18/10.05.06/raw_data/2.html",
-"2012-09-18/10.05.06/raw_data/2.html",
-"2012-09-18/10.05.06/raw_data/2.html",
-"2012-09-18/10.05.06/raw_data/2.html",
-"2012-10-03/10.05.05/raw_data/4.html",
-"2012-10-16/15.05.04/raw_data/3.html",
-"2012-10-16/15.05.04/raw_data/3.html",
-"2012-10-16/15.05.04/raw_data/3.html",
-"2012-10-18/10.05.04/raw_data/5.html",
-"2012-11-20/01.05.34/raw_data/1.html",
-"2012-11-20/06.05.34/raw_data/1.html",
-"2012-11-20/13.05.36/raw_data/4.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-10/14.05.05/raw_data/0.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/01.05.05/raw_data/4.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-11/07.05.04/raw_data/7.html",
-"2012-12-12/12.05.34/raw_data/0.html",
-"2012-12-12/14.05.04/raw_data/0.html",
-"2012-12-26/11.05.04/raw_data/0.html",
-"2012-12-27/18.05.05/raw_data/3.html",
-"2013-01-03/08.05.04/raw_data/2.html",
-"2013-01-08/11.05.05/raw_data/1.html",
-"2013-01-08/14.05.04/raw_data/1.html",
-"2013-01-08/15.05.04/raw_data/1.html",
-
-
-    ]
-
-
-    root = r"/Volumes/Curst/csxj/tartiflette/json_db_0_5/lalibre"
+            "http://www.lalibre.be/actu/international/article/791997/israel-une-campagne-qui-n-a-pas-vole-haut.html",
+            "http://www.lalibre.be/economie/actualite/article/789261/le-fmi-s-est-trompe-et-fait-son-mea-culpa.html",
+            "http://www.lalibre.be/societe/general/article/779522/la-pornographie-une-affaire-d-hommes-pas-seulement.html"]
 
     from pprint import pprint
     import os
 
     article, html = extract_article_data(urls[-1])
-    print article.title
-    print article.content
-    for link in article.links:
-        print link
-
-
-    # for url in files[:]:
-    #     try:
-    #         url = os.path.join(root, url)
-    #         with open(url) as f:
-
-    #             article, html = extract_article_data(f)
-                
-    #             tweets = [l for l in article.links if 'tweet' in l.tags]
-    #             # print article.title
-    #             # print tweets
-    #             # print len(tweets)
-    #             # print "...................." * 3
-    #             print len(article.content)
-    #             print article.url
-    #             print article.title
-    #             print "...................." * 3
-    #             # if len(tweets) == 0:
-    #             #     print article.title
-    #             #     print article.url
-    #             #     print article.content
-    #     except ValueError as e:
-    #         print "something went wrong with: ", url
 
 
 if __name__ == '__main__':

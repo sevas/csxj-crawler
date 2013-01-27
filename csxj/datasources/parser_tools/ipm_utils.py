@@ -5,6 +5,16 @@ from csxj.common.tagging import classify_and_tag, make_tagged_url
 from utils import remove_text_formatting_markup_from_fragments
 import media_utils
 
+IPM_SAME_OWNER = [
+    'essentielle.be',
+    'tribunedebruxelles.be',
+    'twizzradio.be',
+    'cielradio.be',
+    'cinebel.be',
+    'tremplinpourlemploi.be',
+    'betfirst.dhnet.be',
+    'goodeal.lalibre.be'
+]
 
 def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_sites):
     if item_div.iframe:

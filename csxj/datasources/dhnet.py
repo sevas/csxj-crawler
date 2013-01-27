@@ -8,7 +8,7 @@ import urlparse
 
 from BeautifulSoup import Tag
 
-from csxj.common.tagging import classify_and_tag, make_tagged_url
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
@@ -299,11 +299,14 @@ def extract_article_data(source):
         sidebox_links = ipm_utils.extract_and_tag_associated_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
         bottom_links = ipm_utils.extract_bottom_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
         embedded_content_links = extract_links_to_embedded_content(main_content)
+        all_links = in_text_links + sidebox_links + embedded_content_links + bottom_links + audio_content_links
+
+        updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.IPM_SAME_OWNER)
 
         fetched_datetime = datetime.today()
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                                  in_text_links + sidebox_links + embedded_content_links + bottom_links + audio_content_links,
+                                  updated_tagged_urls,
                                   category, author_name, intro, text)
         return new_article, html_content
     else:
@@ -386,9 +389,12 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html",
         "http://www.dhnet.be/infos/monde/article/413062/sandy-paralyse-le-nord-est-des-etats-unis.html",
         "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
-        "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html"
+        "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html",
+        "http://www.dhnet.be/people/show-biz/article/421868/rosie-huntington-whiteley-sens-dessus-dessous.html",
+        "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html"
     ]
 
     for url in urls[-1:]:
         article, html = extract_article_data(url)
-        print article
+        for link in article.links:
+            print link
