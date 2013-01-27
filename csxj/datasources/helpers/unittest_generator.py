@@ -14,7 +14,11 @@ def generate_test_func(fname, parser_name, urls_by_group):
 
 def save_sample_data_file(html_data, source_url, test_name, root_path):
     if os.path.exists(root_path):
+
         full_path_name = os.path.join(root_path, test_name+".html")
+        if os.path.exists(full_path_name):
+            print "{0} already exists. Delete it if you want to overwrite it".format(full_path_name)
+            return
 
         with open(full_path_name, 'w') as f:
             f.write(html_data)
