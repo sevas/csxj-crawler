@@ -1,11 +1,22 @@
 # -*- coding: utf-8 -*-
 from nose.tools import eq_, ok_, nottest
+import itertools as it
 
+from csxj.common.tagging import TaggedURL
 
 @nottest
 def to_frozensets(taggedURLs):
     return set([(url, title, frozenset(tags)) for url, title, tags in taggedURLs])
 
+
+@nottest
+def format_as_two_columns(expected, extracted):
+    expected, extracted = sorted(expected), sorted(extracted)
+
+    def make_pairs():
+        for left, right in it.izip_longest(expected, extracted, fillvalue=TaggedURL("NONE", "NONE", set())):
+            yield "{0:100}    {1:100}".format(left.URL[:100], right.URL[:100])
+    return "\n".join(make_pairs())
 
 @nottest
 def assert_taggedURLs_equals(expected_links, extracted_links):
@@ -16,7 +27,7 @@ def assert_taggedURLs_equals(expected_links, extracted_links):
         issues make me cry. A lot.
     """
     expected_count, extracted_count = len(expected_links), len(extracted_links)
-    eq_(expected_count, extracted_count, msg="Expected {0} links. Extracted {1}".format(expected_count, extracted_count))
+    eq_(expected_count, extracted_count, msg="Expected {0} links. Extracted {1}\n{2}".format(expected_count, extracted_count, format_as_two_columns(expected_links, extracted_links)))
 
     if to_frozensets(expected_links) != to_frozensets(extracted_links):
         for expected, extracted in zip(sorted(expected_links), sorted(extracted_links)):
