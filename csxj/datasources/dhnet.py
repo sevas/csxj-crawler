@@ -15,6 +15,8 @@ from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
 from parser_tools import constants
 from parser_tools import ipm_utils
 
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
+
 setup_locales()
 
 DHNET_INTERNAL_SITES = {
@@ -304,6 +306,10 @@ def extract_article_data(source):
         updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.IPM_SAME_OWNER)
 
         fetched_datetime = datetime.today()
+        
+        #print generate_test_func('same_owner_tagging', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        #save_sample_data_file(html_content, source, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                                   updated_tagged_urls,
@@ -396,5 +402,5 @@ if __name__ == "__main__":
 
     for url in urls[-1:]:
         article, html = extract_article_data(url)
-        for link in article.links:
-            print link
+        # for link in article.links:
+        #     print link

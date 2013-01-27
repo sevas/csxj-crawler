@@ -257,3 +257,18 @@ class TestDHNetLinkExtraction(object):
 
             expected_links = expected_sidebox_links + expected_bottom_links + expected_embedded_media_links
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_same_owner_tagging(self):
+        with open(os.path.join(DATA_ROOT, "same_owner_tagging.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.essentielle.be/", u"""L'info au féminin sur Essentielle.be""", set(['sidebar box', 'external', 'same owner'])),
+                make_tagged_url("http://babescm.blogs.dhnet.be/", u"""Retrouvez les plus belles sur notre blog Babes""", set(['sidebar box', 'internal site'])),
+                make_tagged_url("/infos/societe/article/420071/un-nouveau-regime-miracle-75kg-en-six-semaines.html", u"""Un nouveau régime miracle : - 7,5 kg en six semaines""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/infos/societe/article/420071/un-nouveau-regime-miracle-75kg-en-six-semaines.html", u"""Un nouveau régime miracle : - 7,5 kg en six semaines""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://www.essentielle.be/", u"""L'info au féminin sur Essentielle.be""", set(['bottom box', 'external', 'same owner'])),
+                make_tagged_url("http://babescm.blogs.dhnet.be/", u"""Retrouvez les plus belles sur notre blog Babes""", set(['bottom box', 'internal site'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
