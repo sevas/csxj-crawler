@@ -14,7 +14,7 @@ from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
 from parser_tools.utils import remove_text_formatting_markup_from_fragments
-
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
 setup_locales()
 
@@ -219,11 +219,15 @@ def extract_article_data(source):
     sidebar_links = article_detail_hxs.select("./div/div[@class='article-side']/div[@class='article-related']//li/a")
     all_links.extend(extract_sidebar_links(sidebar_links))
 
-    updated_links = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
+    updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
+
+    #print generate_test_func('same_owner_tagging', 'lavenir', dict(tagged_urls=updated_tagged_urls))
+    #save_sample_data_file(html_content, source, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
+
 
     # wrapping up
     article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                               updated_links,
+                               updated_tagged_urls,
                                category, author,
                                intro, content)
 
@@ -300,14 +304,20 @@ def show_sample_articles():
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00199041",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199541",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482", ]
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002"
 
-    for url in urls[:]:
-        article, raw_html = extract_article_data(url)
-        article.print_summary()
-        for tagged_link in article.links:
-            print tagged_link.URL, tagged_link.title, tagged_link.tags
+            ]
 
+    # for url in urls[:]:
+    #     article, raw_html = extract_article_data(url)
+    #     article.print_summary()
+    #     for tagged_link in article.links:
+    #         print tagged_link.URL, tagged_link.title, tagged_link.tags
+    
+    article, html = extract_article_data(urls[-1])
+    # for link in article.links:
+    #     print link
 
 
 def show_frontpage():
