@@ -259,6 +259,7 @@ class TestDHNetLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_same_owner_tagging(self):
+        """ DHNet parser correctly tags 'same owner' links """
         with open(os.path.join(DATA_ROOT, "same_owner_tagging.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links

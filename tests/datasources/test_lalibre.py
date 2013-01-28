@@ -158,6 +158,7 @@ class TestLalibreLinkExtraction(object):
 
 
     def test_same_owner_tagging(self):
+        """ lalibre parser correctly tags 'same owner' links """
         with open(os.path.join(DATA_ROOT, "same_owner_tagging.html")) as f:
             article, raw_html = lalibre.extract_article_data(f)
             extracted_links = article.links
