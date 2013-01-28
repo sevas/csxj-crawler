@@ -15,9 +15,13 @@ from parser_tools.utils import fetch_html_content
 from parser_tools.utils import setup_locales
 from parser_tools import rossel_utils
 
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
 
 setup_locales()
+
+SOURCE_TITLE = u"Le Soir"
+SOURCE_NAME = u"lesoir_new"
 
 LESOIR_NETLOC = "www.lesoir.be"
 LESOIR_INTERNAL_SITES = {
@@ -320,7 +324,10 @@ def extract_article_data(source):
 
     updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
-    return (ArticleData(url, title, pub_date, pub_time, fetched_datetime,
+    #print generate_test_func('same_owner_tagging', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
+    save_sample_data_file(html_data, source, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+
+    return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                 updated_tagged_urls,
                 category, author_name,
                 intro, text),
@@ -331,8 +338,8 @@ def test_sample_data():
     filepath = '../../sample_data/lesoir2/lesoir2.html'
     with open(filepath) as f:
         article, raw = extract_article_data(f)
-        from csxj.common.tagging import print_taggedURLs
-        print_taggedURLs(article.links)
+        # from csxj.common.tagging import print_taggedURLs
+        # print_taggedURLs(article.links)
  
 
 if __name__ == '__main__':
@@ -354,9 +361,8 @@ if __name__ == '__main__':
     url = "http://www.lesoir.be/159937/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-%C2%ABbruxelles-doit-travailler-avec-wallonie-et-flandre%C2%BB"
     url = "http://www.lesoir.be/138219/article/styles/air-du-temps/2012-12-14/votre-week-end-en-15-clics"
     
-    # article, html = extract_article_data(url)
+    article, html = extract_article_data(url)
 
-    test_sample_data()
 
     # from csxj.common.tagging import print_taggedURLs
     # print_taggedURLs(article.links)
