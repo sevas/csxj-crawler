@@ -407,7 +407,7 @@ def extract_article_data(source):
         return None, html_content
     else:
         category = hxs.select("//p[starts-with(@class, 'fil_ariane')]/a//text()").extract()
-        title = hxs.select("//div[@id='article']/h1/text()").extract()[0]
+        title = hxs.select("//div[@id='article']/article//h1/text()").extract()[0]
         pub_date, pub_time = extract_date(hxs)
         author = hxs.select("//p[@class='auteur']/text()").extract()[0]
         fetched_datetime = datetime.today()
@@ -523,21 +523,16 @@ def show_article():
         u"http://www.sudinfo.be/534573/article/sports/foot-belge/standard/2012-09-25/jelle-van-damme-standard-menace-benjamin-deceuninck-en-direct-fais-gaffe-av",
         u"http://www.sudinfo.be/534931/article/actualite/sante/2012-09-26/la-prescription-des-medicaments-bon-marche-continue-de-progresser",
         u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/des-nus-partout-dans-bruxelles-qui-miment-l-acte-sexuel-l’incroyable-performance",
-        u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/schocking-in-brussles-des-hommes-nus-miment-l-acte-sexuel-au-palais-de-justice-a"
+        
+        # liens 'same owner'
+        u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/schocking-in-brussles-des-hommes-nus-miment-l-acte-sexuel-au-palais-de-justice-a",
+        u"http://www.sudinfo.be/535396/article/culture/musique/2012-09-27/mylene-farmer-donnera-deux-concerts-en-belgique-l’an-prochain"
+        
     ]
 
-    for url in urls[:]:
-        article_data, raw_html = extract_article_data(url)
-
-        if article_data:
-            article_data.print_summary()
-            print article_data.intro
-            print article_data.content
-
-            for tagged_url in article_data.links:
-                print u"{0} [{1}] {2!r}".format(*tagged_url)
-        else:
-            print 'no article found'
+    article, html = extract_article_data(urls[-1])
+    for link in article.links:
+        print link
 
 
 def show_frontpage_toc():
@@ -555,9 +550,10 @@ if __name__ == '__main__':
     #show_frontpage_toc()
     #download_one_article()
     #show_frontpage_articles()
+    show_article()
 
-    url = "/Volumes/Curst/json_db_0_5/sudinfo/2012-06-05/14.05.07/raw_data/18.html"
-    f = open(url, "r")
+    # url = "/Volumes/Curst/json_db_0_5/sudinfo/2012-06-05/14.05.07/raw_data/18.html"
+    # f = open(url, "r")
 
-    article_data, content_html = extract_article_data(f)
-    article_data.print_summary()
+    # article_data, content_html = extract_article_data(f)
+    # article_data.print_summary()

@@ -140,9 +140,9 @@ def extract_sidebar_links(sidebar_links):
         if title:
             title =  remove_text_formatting_markup_from_fragments(title[0])
             tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-            tags = tags.union(['sidebar'])
+            tags = tags.union(['sidebar box'])
         else:
-            tags = set(['sidebar', 'ghost link'])
+            tags = set(['sidebar box', 'ghost link'])
             title = '__GHOST_LINK__'
         return make_tagged_url(url, title, tags)
 
