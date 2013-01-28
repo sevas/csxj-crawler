@@ -316,8 +316,8 @@ def show_sample_articles():
     #         print tagged_link.URL, tagged_link.title, tagged_link.tags
     
     article, html = extract_article_data(urls[-1])
-    # for link in article.links:
-    #     print link
+    for link in article.links:
+        print link
 
 
 def show_frontpage():

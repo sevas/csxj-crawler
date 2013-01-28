@@ -197,15 +197,16 @@ def extract_category(soup):
 
 def extract_links_from_sidebar_box(soup):
     tagged_urls = list()
-    sidebar_box = soup.find('div', {'class': 'box alt'})
-    if sidebar_box:
-        links = sidebar_box.find_all('a')
-        titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
-        for title, url, base_tags in titles_and_urls:
-            tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-            tags.update(base_tags)
-            tags.add('sidebar box')
-            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+    sidebar_boxes = soup.find_all('div', {'class': 'box alt'})
+    if sidebar_boxes:
+        for sidebar_box in sidebar_boxes:
+            links = sidebar_box.find_all('a')
+            titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
+            for title, url, base_tags in titles_and_urls:
+                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+                tags.update(base_tags)
+                tags.add('sidebar box')
+                tagged_urls.append(tagging.make_tagged_url(url, title, tags))
     return tagged_urls
 
 def extract_embedded_media_from_top_box(soup):
@@ -305,8 +306,9 @@ def extract_article_data(url):
     embedded_media = embedded_media_from_top_box + embedded_media_from_bottom + embedded_media_in_article
     tagged_urls = tagged_urls_intext + sidebar_links + article_tags + embedded_media
     pub_date, pub_time = extract_date_and_time(soup)
+    fetched_datetime = datetime.today()
 
-    return (ArticleData(url, title, pub_date, pub_time, dt.datetime.now(),
+    return (ArticleData(url, title, pub_date, pub_time, fetched_datetime,
                 tagged_urls,
                 category, author_name,
                 intro, text),
@@ -329,7 +331,12 @@ if __name__ == '__main__':
     url = "http://www.lesoir.be/144465/article/actualite/belgique/2012-12-26/di-rupo-discours-du-roi-un-message-%C2%AB-humaniste-%C2%BB"
     url = "http://www.lesoir.be/144352/article/culture/cinema/2012-12-26/spike-lee-boycotte-prochain-film-quentin-tarantino"
     url = "http://www.lesoir.be/159937/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-%C2%ABbruxelles-doit-travailler-avec-wallonie-et-flandre%C2%BB"
-    extract_article_data(url)
+    url = "http://www.lesoir.be/159937/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-%C2%ABbruxelles-doit-travailler-avec-wallonie-et-flandre%C2%BB"
+    article, html = extract_article_data(url)
+    
+    from csxj.common.tagging import print_taggedURLs
+    print_taggedURLs(article.links)
+
 
     # toc, blogposts = get_frontpage_toc()
     # for t, u in toc:
