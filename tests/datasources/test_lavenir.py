@@ -21,8 +21,8 @@ class TestLavenirLinkExtraction(object):
             extracted_links = article.links
             tagged_urls = [
                 make_tagged_url("http://www.jobat.be/fr/articles/de-quel-bois-sont-faits-vos-cadets-au-boulot/?utm_source=lavenir&utm_medium=content&utm_campaign=artikel&utm_content=link", u"""Une volonté d’engagement et encore 2 autres caractéristiques de ces jeunes recrues""", set(['same owner', 'external', 'in text'])),
-                make_tagged_url("http://www.jobat.be/fr/articles/cinq-types-de-collegues-insupportables-que-nous-connaissons-tous/?utm_source=lavenir&utm_medium=content&utm_campaign=artikel&utm_content=link", u"""Nico le petit comique et 4 autres collègues que nous connaissons tous""", set(['sidebar', 'external', 'same owner'])),
-                make_tagged_url("http://www.jobat.be/fr/articles/5-ruses-pour-obtenir-plus-de-ses-collegues/?utm_source=lavenir&utm_medium=content&utm_campaign=artikel&utm_content=link", u"""5 ruses pour en obtenir plus de ses collègues""", set(['sidebar', 'external', 'same owner'])),
+                make_tagged_url("http://www.jobat.be/fr/articles/cinq-types-de-collegues-insupportables-que-nous-connaissons-tous/?utm_source=lavenir&utm_medium=content&utm_campaign=artikel&utm_content=link", u"""Nico le petit comique et 4 autres collègues que nous connaissons tous""", set(['sidebar box', 'external', 'same owner'])),
+                make_tagged_url("http://www.jobat.be/fr/articles/5-ruses-pour-obtenir-plus-de-ses-collegues/?utm_source=lavenir&utm_medium=content&utm_campaign=artikel&utm_content=link", u"""5 ruses pour en obtenir plus de ses collègues""", set(['sidebar box', 'external', 'same owner'])),
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
