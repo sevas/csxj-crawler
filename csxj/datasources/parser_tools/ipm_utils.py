@@ -15,6 +15,12 @@ IPM_SAME_OWNER = [
     'betfirst.dhnet.be',
     'goodeal.lalibre.be'
 ]
+DHNET_SAME_OWNER = []
+DHNET_SAME_OWNER.extend(IPM_SAME_OWNER)
+DHNET_SAME_OWNER.append("lalibre.be")
+LALIBRE_SAME_OWNER = []
+LALIBRE_SAME_OWNER.extend(IPM_SAME_OWNER)
+LALIBRE_SAME_OWNER.append("dhnet.be")
 
 def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_sites):
     if item_div.iframe:

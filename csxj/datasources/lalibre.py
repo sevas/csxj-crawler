@@ -243,7 +243,7 @@ def extract_article_data_from_html(html_content, source_url):
 
     all_links = in_text_urls + associated_tagged_urls + bottom_links + embedded_content_links + embedded_audio_links
 
-    updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.IPM_SAME_OWNER)
+    updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.LALIBRE_SAME_OWNER)
 
     #print generate_test_func('same_owner_tagging', 'lalibre', dict(tagged_urls=updated_tagged_urls))
     #save_sample_data_file(html_content, source_url, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lalibre')

@@ -322,7 +322,7 @@ def extract_article_data(source):
         embedded_content_links = extract_links_to_embedded_content(main_content)
         all_links = in_text_links + sidebox_links + embedded_content_links + bottom_links + audio_content_links
 
-        updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.IPM_SAME_OWNER)
+        updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.DHNET_SAME_OWNER)
 
         fetched_datetime = datetime.today()
         
