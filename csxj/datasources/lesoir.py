@@ -316,7 +316,7 @@ def extract_article_data(source):
 
 
     #print generate_test_func('same_owner_tagging', 'lesoir', dict(tagged_urls=updated_tagged_urls))
-    #save_sample_data_file(html_content, source_url, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir')
+    #save_sample_data_file(html_content, source.name, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir')
 
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                               updated_tagged_urls,
@@ -484,7 +484,6 @@ def dowload_one_article():
     url = "http://www.lesoir.be/actualite/france/2012-01-10/free-defie-les-telecoms-francais-avec-un-forfait-illimite-a-19-99-euros-889276.php"
     url = "http://www.lesoir.be/actualite/belgique/2012-08-21/guy-spitaels-est-decede-933203.php"
     url = "../../sample_data/lesoir/lesoir_storify2.html"
-    url = "http://www.lesoir.be/lifestyle/air_du_temps/2012-09-28/votre-week-end-en-15-clics-940246.php"
     art, raw_html = extract_article_data(url)
     for link in art.links:
         print link
@@ -501,15 +500,17 @@ def dowload_one_article():
 
 def test_sample_data():
     filepath = '../../sample_data/lesoir/same_owner_links.html'
+    filepath = '../../tests/datasources/test_data/lesoir/same_owner_tagging.html'
 
     with open(filepath) as f:
-        article_data, raw = extract_article_data(f)
+        article, raw = extract_article_data(f)
+        print article.category
         # article_data.print_summary()
 
-        for link in article_data.links:
-            print link.title
-            print link.URL
-            print link.tags
+        # for link in article_data.links:
+        #     print link.title
+        #     print link.URL
+        #     print link.tags
 
         # print article_data.intro
         # print article_data.content
