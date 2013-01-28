@@ -66,3 +66,8 @@ ROSSEL_SAME_OWNER = [
     'lechodelalys.fr',
     'journaldemontreuil.fr'
 ]
+
+LESOIR_SAME_OWNER = ROSSEL_SAME_OWNER
+LESOIR_SAME_OWNER.append("sudinfo.be")
+SUDINFO_SAME_OWNER = ROSSEL_SAME_OWNER
+SUDINFO_SAME_OWNER.append("lesoir.be")

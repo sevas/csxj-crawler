@@ -13,6 +13,8 @@ from csxj.common import tagging
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import setup_locales
+from parser_tools import rossel_utils
+
 
 
 setup_locales()
@@ -141,21 +143,27 @@ def extract_title_and_url_from_bslink(link):
 def extract_text_content_and_links(soup) :
     article_text = []
     inline_links = []
+    plaintext_urls = []
 
     text = soup.find(attrs = {"class" : "article-body"})
     paragraphs = text.find_all("p")
-    clean_text = utils.remove_text_formatting_markup_from_fragments(paragraphs, strip_chars = "\n")
-    article_text.append(clean_text)
-    for p in paragraphs:
+    for p in paragraphs :
+        clean_text = utils.remove_text_formatting_markup_from_fragments(p, strip_chars = "\n")
+        article_text.append(clean_text)
         link = p.find_all("a")
         inline_links.extend(link)
 
-    
-    plaintext_urls = []
+        for fragment in p:
+            if type(fragment) is bs4.element.Tag:
+                if not fragment.name == "a":
+                    clean_fragment = utils.remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")
+                    plaintext_links = utils.extract_plaintext_urls_from_text(clean_fragment)
+                    plaintext_urls.extend(plaintext_links)
+            if type(fragment) is bs4.NavigableString:
+                clean_fragment = clean_fragment = utils.remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")   
+                plaintext_links = utils.extract_plaintext_urls_from_text(clean_fragment)
+                plaintext_urls.extend(plaintext_links)
 
-    for x in article_text:
-        plaintext_links = utils.extract_plaintext_urls_from_text(x)
-        plaintext_urls.extend(plaintext_links)
 
     titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
 
@@ -286,11 +294,13 @@ def extract_embedded_media_in_article(soup):
                 tagged_urls.append(tagging.make_tagged_url(url, url, all_tags | set(['embedded'])))
     return tagged_urls
 
-def extract_article_data(url):
+def extract_article_data(source):
 
+    if hasattr(source, 'read'):
+        html_data = source.read()
+    else:
+        html_data = fetch_html_content(source)
 
-    request  = urllib.urlopen(url)
-    html_data = request.read()
 
     soup  = bs4.BeautifulSoup(html_data)
     title = extract_title(soup)
@@ -304,15 +314,25 @@ def extract_article_data(url):
     embedded_media_from_bottom = extract_embedded_media_from_bottom(soup)
     embedded_media_in_article = extract_embedded_media_in_article(soup)
     embedded_media = embedded_media_from_top_box + embedded_media_from_bottom + embedded_media_in_article
-    tagged_urls = tagged_urls_intext + sidebar_links + article_tags + embedded_media
+    all_links = tagged_urls_intext + sidebar_links + article_tags + embedded_media
     pub_date, pub_time = extract_date_and_time(soup)
     fetched_datetime = datetime.today()
 
+    updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
+
     return (ArticleData(url, title, pub_date, pub_time, fetched_datetime,
-                tagged_urls,
+                updated_tagged_urls,
                 category, author_name,
                 intro, text),
     html_data)
+
+
+def test_sample_data():
+    filepath = '../../sample_data/lesoir2/lesoir2.html'
+    with open(filepath) as f:
+        article, raw = extract_article_data(f)
+        from csxj.common.tagging import print_taggedURLs
+        print_taggedURLs(article.links)
  
 
 if __name__ == '__main__':
@@ -332,10 +352,14 @@ if __name__ == '__main__':
     url = "http://www.lesoir.be/144352/article/culture/cinema/2012-12-26/spike-lee-boycotte-prochain-film-quentin-tarantino"
     url = "http://www.lesoir.be/159937/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-%C2%ABbruxelles-doit-travailler-avec-wallonie-et-flandre%C2%BB"
     url = "http://www.lesoir.be/159937/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-%C2%ABbruxelles-doit-travailler-avec-wallonie-et-flandre%C2%BB"
-    article, html = extract_article_data(url)
+    url = "http://www.lesoir.be/138219/article/styles/air-du-temps/2012-12-14/votre-week-end-en-15-clics"
     
-    from csxj.common.tagging import print_taggedURLs
-    print_taggedURLs(article.links)
+    # article, html = extract_article_data(url)
+
+    test_sample_data()
+
+    # from csxj.common.tagging import print_taggedURLs
+    # print_taggedURLs(article.links)
 
 
     # toc, blogposts = get_frontpage_toc()

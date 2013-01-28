@@ -196,7 +196,7 @@ def extract_article_data(source):
 
         all_links = intro_links + content_links + associated_links
 
-        updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.ROSSEL_SAME_OWNER)
+        updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
         #print generate_test_func('same_owner_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
         #save_sample_data_file(html_content, source.name, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')

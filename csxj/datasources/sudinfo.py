@@ -420,7 +420,7 @@ def extract_article_data(source):
 
         all_links = intro_links + content_links + associated_links
 
-        updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.ROSSEL_SAME_OWNER)
+        updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             updated_tagged_urls,

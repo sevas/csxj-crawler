@@ -312,7 +312,7 @@ def extract_article_data(source):
 
     all_links = sidebar_links + intext_links + embedded_content_links
 
-    updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.ROSSEL_SAME_OWNER)
+    updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
 
     #print generate_test_func('same_owner_tagging', 'lesoir', dict(tagged_urls=updated_tagged_urls))
