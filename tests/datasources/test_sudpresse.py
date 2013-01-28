@@ -13,6 +13,7 @@ from csxj_test_tools import assert_taggedURLs_equals
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'sudpresse')
 
 class TestSudpresseLinkExtraction(object):
+    """ Sudpresse parser correctly tags 'same owner' links """
     def test_same_owner_tagging(self):
         with open(os.path.join(DATA_ROOT, "same_owner_tagging.html")) as f:
             article, raw_html = sudpresse.extract_article_data(f)
