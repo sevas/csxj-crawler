@@ -9,7 +9,7 @@ import BeautifulSoup
 from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
-from parser_tools.utils import remove_text_formatting_markup_from_fragments
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, TEXT_MARKUP_TAGS
 from parser_tools import constants
 from parser_tools import ipm_utils
 from parser_tools import twitter_utils
@@ -136,7 +136,7 @@ def extract_text_content_and_links(main_content):
     embedded_tweets = []
 
     def is_text_content(blob):
-        if isinstance(blob, BeautifulSoup.Tag) and blob.name == 'p':
+        if isinstance(blob, BeautifulSoup.Tag) and blob.name in TEXT_MARKUP_TAGS:
             return True
         if isinstance(blob, BeautifulSoup.NavigableString):
             return True
@@ -245,11 +245,6 @@ def extract_article_data_from_html(html_content, source_url):
 
     updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.LALIBRE_SAME_OWNER)
 
-    #print generate_test_func('same_owner_tagging', 'lalibre', dict(tagged_urls=updated_tagged_urls))
-    #save_sample_data_file(html_content, source_url, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lalibre')
-
-
-
     new_article = ArticleData(source_url, title,
                               pub_date, pub_time, fetched_datetime,
                               updated_tagged_urls,
@@ -299,9 +294,6 @@ def test_sample_data():
             "http://www.lalibre.be/actu/international/article/791997/israel-une-campagne-qui-n-a-pas-vole-haut.html",
             "http://www.lalibre.be/economie/actualite/article/789261/le-fmi-s-est-trompe-et-fait-son-mea-culpa.html",
             "http://www.lalibre.be/societe/general/article/779522/la-pornographie-une-affaire-d-hommes-pas-seulement.html"]
-
-    from pprint import pprint
-    import os
 
     article, html = extract_article_data(urls[-1])
 
