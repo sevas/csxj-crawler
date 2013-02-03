@@ -19,6 +19,8 @@ from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged
 from csxj.db.article import ArticleData
 
 from parser_tools import rossel_utils
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
+
 
 
 setup_locales()
@@ -366,6 +368,8 @@ def extract_associated_links(hxs):
             if link_type and link_type[0] in LINK_TYPE_TO_TAG:
                 tags.update(LINK_TYPE_TO_TAG[link_type])
 
+            tags.add("sidebar box")
+
             all_tagged_urls.append(make_tagged_url(url, title, tags))
 
     media_links = hxs.select("//div[@id='picture']/descendant::div[@class='bloc-01 pf_article']//a")
@@ -407,7 +411,10 @@ def extract_article_data(source):
         return None, html_content
     else:
         category = hxs.select("//p[starts-with(@class, 'fil_ariane')]/a//text()").extract()
-        title = hxs.select("//div[@id='article']/article//h1/text()").extract()[0]
+        title = hxs.select("//div[@id='article']/h1/text()").extract()[0]
+        # new version :
+        # #title = hxs.select("//div[@id='article']/article//h1/text()").extract()[0]
+
         pub_date, pub_time = extract_date(hxs)
         author = hxs.select("//p[@class='auteur']/text()").extract()[0]
         fetched_datetime = datetime.today()
@@ -422,6 +429,10 @@ def extract_article_data(source):
 
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
+
+        #print generate_test_func('sidebar_box_tagging', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
+        #save_sample_data_file(html_content, source.name, 'sidebar_box_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
+        
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             updated_tagged_urls,
                             category, author,
@@ -490,17 +501,17 @@ def show_frontpage_articles():
 
 
 def test_sample_data():
-    filepath = '../../sample_data/sudpresse_some_error.html'
-    filepath = '../../sample_data/sudpresse_associated_link_error.html'
+    filepath = '../../sample_data/sudinfo/sudinfo_internal_links_in_sidebar_box.html'
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
-        article_data.print_summary()
+        # article_data.print_summary()
 
-        for link in article_data.links:
-            print link.title
+        # for link in article_data.links:
+        #     print link.title
+        #     print link.tags
 
-        print article_data.intro
-        print article_data.content
+        # print article_data.intro
+        # print article_data.content
 
 
 def show_article():
@@ -555,10 +566,11 @@ if __name__ == '__main__':
     #show_frontpage_toc()
     #download_one_article()
     #show_frontpage_articles()
-    show_article()
+    # show_article()
 
     # url = "/Volumes/Curst/json_db_0_5/sudinfo/2012-06-05/14.05.07/raw_data/18.html"
     # f = open(url, "r")
 
     # article_data, content_html = extract_article_data(f)
     # article_data.print_summary()
+    test_sample_data()
