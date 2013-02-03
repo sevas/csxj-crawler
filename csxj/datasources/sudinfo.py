@@ -372,15 +372,19 @@ def extract_associated_links(hxs):
 
             all_tagged_urls.append(make_tagged_url(url, title, tags))
 
-    media_links = hxs.select("//div[@id='picture']/descendant::div[@class='bloc-01 pf_article']//a")
+    media_links = hxs.select("//div[@id='picture']/descendant::div[@class='wrappAllMedia']/div")
 
-    if media_links:
-        for i, item in enumerate(media_links):
-            item_id = item.select("./@href").extract()
-            url = item_id
-            title = u"EMBEDDED MEDIA {0}".format(i)
-            tags = set(['media', 'embedded'])
-            all_tagged_urls.append(make_tagged_url(url, title, tags))
+    
+    for i, item in enumerate(media_links):
+        if item.select('./img'):
+            pass
+        else:
+            raise ValueError("The media box contains something other than an image. Update your parser")
+            # item_id = item.select("./@class").extract()
+            # url = item_id[0]
+            # title = u"EMBEDDED MEDIA {0}".format(i)
+            # tags = set(['media', 'embedded'])
+            # all_tagged_urls.append(make_tagged_url(url, title, tags))
 
     return all_tagged_urls
 
@@ -503,13 +507,15 @@ def show_frontpage_articles():
 def test_sample_data():
     filepath = '../../sample_data/sudinfo/sudinfo_internal_links_in_sidebar_box.html'
     filepath = '../../sample_data/sudinfo/sudinfo_video.html'
+    filepath = '../../sample_data/sudinfo/embedded_photos.html'
+
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
         # article_data.print_summary()
 
-        # for link in article_data.links:
-        #     print link.title
-        #     print link.tags
+        for link in article_data.links:
+            print link
+            
 
         # print article_data.intro
         # print article_data.content
