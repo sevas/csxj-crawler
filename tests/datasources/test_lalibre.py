@@ -17,7 +17,7 @@ DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', lalibre.SOURCE_
 class TestLalibreLinkExtraction(object):
     def test_same_sidebox_and_bottom_links(self):
         """ lalibre parser can extract bottom links from an article. """
-        with open(os.path.join(DATA_ROOT, "single_bottom_sidebox_link.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_single_bottom_sidebox_link.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
 
@@ -34,13 +34,13 @@ class TestLalibreLinkExtraction(object):
 
     def test_removed_article(self):
         """ lalibre parser returns None when processing a removed article """
-        with open(os.path.join(DATA_ROOT, "removed_article.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_removed_article.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             eq_(article, None)
 
     def test_intext_links(self):
         """ lalibre parser can extract in-text urls"""
-        with open(os.path.join(DATA_ROOT, "intext_links.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_intext.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
 
@@ -57,7 +57,7 @@ class TestLalibreLinkExtraction(object):
 
     def test_storify_sidebox_bottom_links(self):
         """ lalibre parser can extract embedded storify links """
-        with open(os.path.join(DATA_ROOT, "storify_sidebox_bottom_links.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_storify_sidebox_bottom_links.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
 
@@ -90,7 +90,7 @@ class TestLalibreLinkExtraction(object):
 
     def test_storify_embedded_video_links(self):
         """ lalibre parser can process an article with an embedded storify and embedded videos """
-        with open(os.path.join(DATA_ROOT, "storify_video_links.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_storify_video_links.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
 
@@ -122,7 +122,7 @@ class TestLalibreLinkExtraction(object):
 
     def test_embedded_videos_links(self):
         """ lalibre parser can process an article with embedded videos """
-        with open(os.path.join(DATA_ROOT, "embedded_videos.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_embedded_videos.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
 
@@ -159,7 +159,7 @@ class TestLalibreLinkExtraction(object):
 
     def test_same_owner_tagging(self):
         """ lalibre parser correctly tags 'same owner' links """
-        with open(os.path.join(DATA_ROOT, "same_owner_tagging.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_same_owner_tagging.html")) as f:
             article, raw_html = lalibre.extract_article_data(f)
             extracted_links = article.links
             tagged_urls = [
@@ -183,7 +183,7 @@ class TestLalibreLinkExtraction(object):
 class TestLalibreContentExtraction(object):
     def test_clean_paragraph_extraction(self):
         """ lalibre parser extracts the paragraphs as a list of strings without bullshit characters (e.g. \\t, \\r, \\n)"""
-        with open(os.path.join(DATA_ROOT, "paragraphs_overload.html")) as f:
+        with open(os.path.join(DATA_ROOT, "content_paragraphs_overload.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             content = article.content
 
@@ -194,7 +194,7 @@ class TestLalibreContentExtraction(object):
 
     def test_clean_intro_extraction(self):
         """ lalibre parser extracts the 'articleHat' div as the intro field"""
-        with open(os.path.join(DATA_ROOT, "intro_articleHat.html")) as f:
+        with open(os.path.join(DATA_ROOT, "content_intro_articleHat.html")) as f:
             article, _ = lalibre.extract_article_data(f)
 
             expected_intro = u"Une enquête a été ouverte pour déterminer les causes de l'incendie."
@@ -202,7 +202,7 @@ class TestLalibreContentExtraction(object):
 
     def test_no_paragraphs(self):
         """ lalibre parser extracts text content even if there are no paragraphs"""
-        with open(os.path.join(DATA_ROOT, "no_paragraphs.html")) as f:
+        with open(os.path.join(DATA_ROOT, "content_no_paragraphs.html")) as f:
             article, _ = lalibre.extract_article_data(f)
 
             expected_content = [u"Mouss Diouf a été révélé au grand public grâce à son interprétation du lieutenant N'Guma dans la série française Julie Lescaut. \r\n\r\nVéronique Genest est resté très proche de Mouss Diouf après son accident vasculaire cérébral. Elle a réagi sur Twitter suite au décès de l'acteur."]
