@@ -33,13 +33,16 @@ def flatten_list(entries):
     return [e[0] for e in entries if e]
 
 
-def list_errors(db_root, outfile):
+def list_errors(db_root, outfile, source_list):
     res = dict()
     all_errors = dict()
-    source_names = get_all_provider_names(db_root)
+    if not source_list:
+        source_names = get_all_provider_names(db_root)
+    else:
+        source_names = source_list.split(",")
+
     for source_name in source_names:
         provider_db = Provider(db_root, source_name)
-#        datasource = NAME_TO_SOURCE_MODULE_MAPPING[source_name]
         error_count = 0
         all_errors[source_name] = dict()
         all_errors[source_name] = list()
@@ -59,9 +62,10 @@ def list_errors(db_root, outfile):
                         new_item = ((u"{0}/{1}".format(date_string, batch_time)), (e.url, e.title, e.stacktrace))
                         print u"+++ [{0}] {1}   ({2})".format(new_item[0], new_item[1][1], new_item[1][0])
                         all_errors[source_name].append(new_item)
-#                       print "*** Reprocessing: {0})".format(e.url)
-#                       article_data, html = datasource.extract_article_data(e.url)
-#                       article_data.print_summary()
+                        source_parser = NAME_TO_SOURCE_MODULE_MAPPING[source_name]
+                        print "*** Reprocessing: {0})".format(e.url)
+                        article_data, html = source_parser.extract_article_data(e.url)
+                        article_data.print_summary()
 
         res[source_name] = error_count
 
@@ -74,15 +78,16 @@ def list_errors(db_root, outfile):
             json.dump(all_errors, f, indent=2)
 
 
-def main(db_root, outfile):
-    list_errors(db_root, outfile)
+def main(db_root, outfile, source_list):
+    list_errors(db_root, outfile, source_list)
 
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='Utility prgram to list errors')
+    parser = argparse.ArgumentParser(description='Utility program to list errors')
     parser.add_argument('--jsondb', type=str, dest='jsondb', required=True, help='json db root directory')
     parser.add_argument('--outfile', type=str, dest='outfile', required=True, help='file to output json file')
+    parser.add_argument('--sources', type=str, dest='sources', help='comma-separated list of sources to report errors for')
     args = parser.parse_args()
 
-    main(args.jsondb, args.outfile)
+    main(args.jsondb, args.outfile, args.sources)
