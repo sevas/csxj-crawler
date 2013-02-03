@@ -200,8 +200,8 @@ def extract_article_data(source):
 
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
-        #print generate_test_func('same_owner_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_content, source.name, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
+        #print generate_test_func('sidebar_box_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
+        #save_sample_data_file(html_content, source.name, 'sidebar_box_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
         
         return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                            updated_tagged_urls,
@@ -358,11 +358,11 @@ def test_sample_data():
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
 
-        for link in article_data.links:
-            print link.URL
-            print link.title
-            print link.tags
-            print "**********************"
+        # for link in article_data.links:
+        #     print link.URL
+        #     print link.title
+        #     print link.tags
+        #     print "**********************"
 
 
 def download_one_article():
