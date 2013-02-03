@@ -7,14 +7,16 @@ from datetime import datetime
 from BeautifulSoup import  BeautifulStoneSoup,  Tag
 import urlparse
 import codecs
-from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
+from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL, update_tagged_urls
 from csxj.db.article import ArticleData
-from common.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
-from common.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
-from common.utils import setup_locales
-from common import constants
+from parser_tools.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
+from parser_tools.utils import setup_locales
+from parser_tools import constants
 from csxj.common import tagging
+from parser_tools import rossel_utils
 
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
 setup_locales()
 
@@ -22,10 +24,14 @@ SOURCE_TITLE = u"Le Soir"
 SOURCE_NAME = u"lesoir"
 
 LESOIR_INTERNAL_BLOGS = {
-    'blog.lesoir.be':['internal blog', 'internal'],
-    'belgium-iphone.lesoir.be':['internal blog', 'internal', 'technology'],
+
     'archives.lesoir.be':['archives', 'internal'],
-    'football.lesoir.be':['internal blog', 'internal', 'sports']
+   
+    'belandroid.lesoir.be':['internal', 'jblog'],
+    'geeko.lesoir.be':['internal', 'jblog'],
+    'blog.lesoir.be':['internal', 'jblog'],
+
+    'pdf.lesoir.be' : ['internal', 'pdf newspaper']
 }
 
 LESOIR_NETLOC = 'www.lesoir.be'
@@ -306,9 +312,14 @@ def extract_article_data(source):
 
     all_links = sidebar_links + intext_links + embedded_content_links
 
+    updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
+
+
+    #print generate_test_func('same_owner_tagging', 'lesoir', dict(tagged_urls=updated_tagged_urls))
+    #save_sample_data_file(html_content, source.name, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir')
 
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                              all_links,
+                              updated_tagged_urls,
                               category, author,
                               intro, content), html_content
 
@@ -474,22 +485,26 @@ def dowload_one_article():
     url = "http://www.lesoir.be/actualite/belgique/2012-08-21/guy-spitaels-est-decede-933203.php"
     url = "../../sample_data/lesoir/lesoir_storify2.html"
     art, raw_html = extract_article_data(url)
+    for link in art.links:
+        print link
 
-    maincontent_links = set(extract_main_content_links(url))
-    processed_links = set([(l.URL, l.title) for l in art.links])
+    # maincontent_links = set(extract_main_content_links(url))
+    # processed_links = set([(l.URL, l.title) for l in art.links])
 
 
-    missing_links = maincontent_links - processed_links
+    # missing_links = maincontent_links - processed_links
 
-    print "total links: ", len(maincontent_links)
-    print "processed links: ", len(processed_links)
-    print "missing: ", len(missing_links)
+    # print "total links: ", len(maincontent_links)
+    # print "processed links: ", len(processed_links)
+    # print "missing: ", len(missing_links)
 
 def test_sample_data():
-    filepath = '../../sample_data/lesoir/lesoir_storify2.html'
+    filepath = '../../sample_data/lesoir/same_owner_links.html'
+    filepath = '../../tests/datasources/test_data/lesoir/same_owner_tagging.html'
 
     with open(filepath) as f:
-        article_data, raw = extract_article_data(f)
+        article, raw = extract_article_data(f)
+        print article.category
         # article_data.print_summary()
 
         # for link in article_data.links:

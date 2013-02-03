@@ -1,7 +1,7 @@
 
 import unittest
 
-from csxj.datasources.common.utils import is_date_in_range
+from csxj.datasources.parser_tools.utils import is_date_in_range
 
 class DateManipulationTestCases(unittest.TestCase):
     def setUp(self):

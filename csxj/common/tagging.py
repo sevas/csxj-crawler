@@ -16,7 +16,6 @@ def tag_URL((url, title), tags):
 def classify_and_tag(url, own_netloc, associated_sites):
     """
 
-
     >>> classify_and_tag("http://www.foo.org", "foo.org", {})
     set(['internal site'])
 
@@ -28,7 +27,6 @@ def classify_and_tag(url, own_netloc, associated_sites):
 
     >>> classify_and_tag("/bar/baz", "foo.org", {})
     set(['internal'])
-
 
     >>> classify_and_tag("#anchor", "foo.org", {})
     set(['internal', 'anchor'])
@@ -55,8 +53,29 @@ def classify_and_tag(url, own_netloc, associated_sites):
 
     return set(tags)
 
+def tag_same_owner(url, same_owner_sites):
+    tags = []
+    parsed = urlparse.urlparse(url)
+    _, netloc, _, _, _, _  = parsed
+    if netloc :
+        for site in same_owner_sites:
+            if netloc.lower().endswith(site):
+                tags.append('same owner')
+
+    return set(tags)
+
+def update_tagged_urls(all_links, same_owner_sites):
+
+    updated_tagged_urls = []
+
+    for url, title, tags in all_links:
+        additional_tags = tag_same_owner(url, same_owner_sites)
+        tags.update(additional_tags)
+        updated_tagged_urls.append(make_tagged_url(url, title, tags))
+    return updated_tagged_urls
+
 
 def print_taggedURLs(tagged_urls):
     print "Count: ", len(tagged_urls)
     for tagged_url in tagged_urls:
-        print(u"{0:80} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
+        print(u"{0:80} ({1:100}) \t {2}".format(tagged_url.title[:80], tagged_url.URL[:100], tagged_url.tags))

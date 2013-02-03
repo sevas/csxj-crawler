@@ -7,7 +7,7 @@
 #import matplotlib.pyplot as plt
 #import numpy as np
 #
-#from csxj.datasources.common.article import ArticleData
+#from csxj.datasources.parser_tools.article import ArticleData
 #
 #
 #

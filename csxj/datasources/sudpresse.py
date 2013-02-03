@@ -4,22 +4,32 @@ from datetime import datetime, date, time
 import itertools as it
 import urllib
 from BeautifulSoup import Tag
-
-from csxj.common.tagging import classify_and_tag, make_tagged_url, print_taggedURLs
+from parser_tools.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
+from parser_tools.utils import extract_plaintext_urls_from_text
+from parser_tools.utils import remove_text_formatting_markup_from_fragments
+from parser_tools.utils import setup_locales
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 
-from common.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
+from parser_tools import rossel_utils
 from common.utils import extract_plaintext_urls_from_text
 from common.utils import remove_text_formatting_markup_from_fragments
 from common.utils import setup_locales
 from common import media_utils
 
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
 setup_locales()
 
 
 SUDPRESSE_INTERNAL_SITES = {
-    'portfolio.sudpresse.be': ['internal site', 'images', 'gallery']
+    'portfolio.sudpresse.be': ['internal', 'gallery'],
+
+    'pdf.lameuse.be': ['internal', 'pdf newspaper'],
+    'pdf.lacapitale.be': ['internal', 'pdf newspaper'],
+    'pdf.lanouvellegazette.be': ['internal', 'pdf newspaper'],
+    'pdf.laprovince.be': ['internal', 'pdf newspaper'],
+    'pdf.nordeclair.be': ['internal', 'pdf newspaper']
 }
 
 SUDPRESSE_OWN_NETLOC = 'www.sudpresse.be'
@@ -156,6 +166,7 @@ def extract_associated_links(article):
 
 
 def is_page_error_404(soup):
+
     return soup.head.title.contents[0] == '404'
 
 
@@ -221,9 +232,16 @@ def extract_article_data(source):
         content, content_links = extract_content_and_links(article)
 
         associated_links = extract_associated_links(article)
-        embedded_media_links = extract_embedded_media_links(article)
+
+        all_links = intro_links + content_links + associated_links
+
+        updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
+
+        #print generate_test_func('same_owner_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
+        #save_sample_data_file(html_content, source.name, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
+        
         return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                           intro_links + content_links + associated_links + embedded_media_links,
+                           updated_tagged_urls,
                            category, author,
                            intro, content), html_content
 
@@ -366,18 +384,30 @@ def show_frontpage_articles():
 
 
 def test_sample_data():
-    import glob
-    filepaths = glob.glob("sample_data/sudpresse/*.html")
-    filepaths = ["sample_data/sudpresse/0 2.html"]
-    #filepath = "/Volumes/Curst/json_db_0_5/sudpresse/2012-01-09/11.05.13/raw_data/0.html"
+    filepath = '../../sample_data/sudpresse_some_error.html'
+    filepath = '../../sample_data/sudpresse_associated_link_error.html'
+    filepath = "/Volumes/Curst/json_db_0_5/sudpresse/2012-01-09/11.05.13/raw_data/0.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_noTitle.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_noTitle2.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_same_owner.html"
+    with open(filepath) as f:
+        article_data, raw = extract_article_data(f)
 
-    for filepath in filepaths:
-        with open(filepath) as f:
-            article_data, raw = extract_article_data(f)
-            article_data.print_summary()
+        # for link in article_data.links:
+        #     print link
 
-            print_taggedURLs(article_data.links)
 
+def download_one_article():
+    url = 'http://www.sudpresse.be/regions/liege/2012-01-09/liege-un-mineur-d-age-et-un-majeur-apprehendes-pour-un-viol-collectif-930314.shtml'
+    url = 'http://sudpresse.be/actualite/dossiers/2012-01-02/le-stage-du-standard-a-la-manga-infos-photos-tweets-928836.shtml'
+    #url = 'http://sudpresse.be/%3C!--%20error:%20linked%20page%20doesn\'t%20exist:...%20--%3E'
+    url = "http://sudpresse.be/actualite/faits_divers/2012-01-10/un-enfant-de-4-ans-orphelin-sa-mere-a-saute-sur-les-voies-pour-recuperer-son-gsm-930520.shtml"
+    url = "http://sudpresse.be/regions/tournai/2012-02-13/jean-dujardin-sera-ce-soir-a-lille-938309.shtml"
+    article_data, raw_html = extract_article_data(url)
+
+    for link in article.links:
+        print link
 
 if __name__ == '__main__':
     #get_frontpage_toc()

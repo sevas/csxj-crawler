@@ -4,7 +4,7 @@ import urllib2
 import urlparse
 import re
 import random
-from BeautifulSoup import BeautifulSoup, Tag
+from BeautifulSoup import BeautifulSoup, Tag, Comment, NavigableString
 from useragents import USER_AGENT_STRINGS
 from datetime import datetime
 import bs4
@@ -51,7 +51,7 @@ def extract_plaintext_urls_from_text(some_text):
     return urls
 
 
-TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span', 'sub', 'sup', 'p' ]
+TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1',  'h2',  'h3',  'h4',  'h5', 'span', 'sub', 'sup', 'p', 'img' ]
 
 def remove_text_formatting_markup(formatted_text_fragment, strip_chars):
     """

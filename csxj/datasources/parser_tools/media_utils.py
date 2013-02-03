@@ -4,6 +4,8 @@ Note: functions listed here depends on BeautifulSoup3.x interfaces
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from urlparse import urlparse
+
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from utils import remove_text_formatting_markup_from_fragments
 
@@ -20,7 +22,12 @@ def extract_tagged_url_from_embedded_script(script, site_netloc, site_internal_s
     if script.get('src'):
         script_url = script.get('src')
         if twitter_utils.is_twitter_widget_url(script_url):
-            title, url, tags = twitter_utils.get_widget_type(script.contents[0])
+            if script.contents:
+                title, url, tags = twitter_utils.get_widget_type(script.contents[0])
+            else:
+                # sometimes the TWTR.Widget code is in the next <script> container. Whee.
+                sibling_script = script.findNextSibling('script')
+                title, url, tags = twitter_utils.get_widget_type(sibling_script.contents[0])
             tags |= classify_and_tag(url, site_netloc, site_internal_sites)
             tags |= set(['script', 'embedded'])
             return make_tagged_url(url, title, tags)
@@ -41,3 +48,15 @@ def extract_tagged_url_from_embedded_script(script, site_netloc, site_internal_s
     else:
         raise ValueError("Embedded script of unknown type was detected. Update the parser.")
 
+
+def extract_source_url_from_dewplayer(dewplayer_link):
+    """
+        Extracts the source url from a DewPlayer query
+        (e.g. "http://download.saipm.com/flash/dewplayer/dewplayer.swf?mp3=http://podcast.dhnet.be/articles/audio_dh_388635_1331708882.mp3")
+    """
+    _, _, _, _, query, _ = urlparse(dewplayer_link)
+    k, v = query.split('=')
+    if k == 'mp3':
+        return v
+    else:
+        raise ValueError("A DewPlayer object was instantiated with an unhandled query. Fix your parser")

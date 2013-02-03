@@ -1,0 +1,8 @@
+{
+  "test_data": [
+    [
+      "../../sample_data/sudpresse/sudpresse_same_owner.html", 
+      "same_owner_tagging.html"
+    ]
+  ]
+}

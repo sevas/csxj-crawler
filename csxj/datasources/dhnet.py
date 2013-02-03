@@ -1,24 +1,37 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-import locale
 from datetime import datetime, time
 from itertools import chain
 import re
 import urlparse
-from BeautifulSoup import Tag
-from common.utils import fetch_html_content, make_soup_from_html_content, remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, setup_locales
-from csxj.common.tagging import classify_and_tag, make_tagged_url
+
+import BeautifulSoup as bs
+
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
-from common import constants
-from common import ipm_utils
+from parser_tools.utils import fetch_html_content, make_soup_from_html_content, TEXT_MARKUP_TAGS
+from parser_tools.utils import remove_text_formatting_markup_from_fragments
+from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
+from parser_tools import constants
+from parser_tools import ipm_utils
+from parser_tools import twitter_utils
+
+from helpers.unittest_generator import generate_unittest
 
 setup_locales()
 
 DHNET_INTERNAL_SITES = {
-    'tackleonweb.blogs.dhnet.be': ['internal blog', 'internal', 'sports'],
-    'galeries.dhnet.be': ['internal site', 'internal', 'image gallery'],
+
+    'galeries.dhnet.be': ['internal', 'image gallery'],
+
+    'tackleonweb.blogs.dhnet.be': ['internal', 'jblog'],
+    'dubus.blogs.dhnet.be': ['internal', 'jblog'],
+    'alorsonbuzz.blogs.dhnet.be': ['internal', 'jblog'],
+    'letitsound.blogs.dhnet.be': ['internal', 'jblog'],
+
+    'pdf-online.dhnet.be': ['internal', 'pdf newspaper']
+
 }
 
 DHNET_NETLOC = 'www.dhnet.be'
@@ -58,7 +71,7 @@ def cleanup_text_fragment(text_fragment):
     Recursively cleans up a text fragment (e.g. nested tags).
     Returns a plain text string with no formatting info whatsoever.
     """
-    if isinstance(text_fragment, Tag):
+    if isinstance(text_fragment, bs.Tag):
         return remove_text_formatting_markup_from_fragments(text_fragment.contents)
     else:
         return text_fragment
@@ -70,7 +83,7 @@ def filter_out_useless_fragments(text_fragments):
     extracted from an article.
     """
     def is_linebreak(text_fragment):
-        if isinstance(text_fragment, Tag):
+        if isinstance(text_fragment, bs.Tag):
             return text_fragment.name == 'br'
         else:
             return len(text_fragment.strip()) == 0
@@ -115,40 +128,57 @@ def extract_and_tag_in_text_links(article_text):
     return tagged_urls
 
 
-def extract_text_content_and_links_from_articletext(article_text, has_intro=True):
-    """
-    Cleans up the text from html tags, extracts and tags all
-    links (clickable _and_ plaintext).
+def sanitize_paragraph(paragraph):
+    """Returns plain text article"""
 
-    Returns a list of string (one item per paragraph) and a
-    list of TaggedURL objects.
+    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n') for fragment in paragraph.contents if
+                           not isinstance(fragment, bs.Comment)]
 
-    Note: sometimes paragraphs are clearly marked with nice <p> tags. When it's not
-    the case, we consider linebreaks to be paragraph separators.
-    """
+    return ''.join(sanitized_paragraph)
 
-    in_text_tagged_urls = extract_and_tag_in_text_links(article_text)
 
-    children = filter_out_useless_fragments(article_text.contents)
-    # first child is the intro paragraph, discard it
-    if has_intro:
-        children = children[1:]
+def extract_text_content_and_links_from_articletext(main_content, has_intro=True):
+    article_text = main_content
 
-    # the rest might be a list of paragraphs, but might also just be the text, sometimes with
-    # formatting.
-
-    cleaned_up_text_fragments = list()
-    for text_block in children:
-        cleaned_up_text_fragments.append(remove_text_formatting_markup_from_fragments(text_block, '\n\t '))
-
+    in_text_tagged_urls = []
+    all_fragments = []
     all_plaintext_urls = []
-    for text in cleaned_up_text_fragments:
-        all_plaintext_urls.extend(extract_plaintext_urls_from_text(text))
-    # plaintext urls are their own title
-    urls_and_titles = zip(all_plaintext_urls, all_plaintext_urls)
-    plaintext_tagged_urls = classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext url', 'in text']))
+    embedded_tweets = []
 
-    return cleaned_up_text_fragments, in_text_tagged_urls + plaintext_tagged_urls
+    def is_text_content(blob):
+        if isinstance(blob, bs.Tag) and blob.name in TEXT_MARKUP_TAGS:
+            return True
+        if isinstance(blob, bs.NavigableString):
+            return True
+        return False
+
+    paragraphs = [c for c in article_text.contents if is_text_content(c)]
+
+    for paragraph in paragraphs:
+        if isinstance(paragraph, bs.NavigableString):
+            cleaned_up_text = remove_text_formatting_markup_from_fragments([paragraph], strip_chars='\r\n\t ')
+            if cleaned_up_text:
+                all_fragments.append(cleaned_up_text)
+                plaintext_links = extract_plaintext_urls_from_text(paragraph)
+                urls_and_titles = zip(plaintext_links, plaintext_links)
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+        else:
+            if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+                in_text_links = extract_and_tag_in_text_links(paragraph)
+                in_text_tagged_urls.extend(in_text_links)
+
+                fragments = sanitize_paragraph(paragraph)
+                all_fragments.append(fragments)
+                plaintext_links = extract_plaintext_urls_from_text(fragments)
+                urls_and_titles = zip(plaintext_links, plaintext_links)
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+            else:
+                embedded_tweets.extend(
+                    twitter_utils.extract_rendered_tweet(paragraph, DHNET_NETLOC, DHNET_INTERNAL_SITES))
+
+    text_content = all_fragments
+
+    return text_content, in_text_tagged_urls + all_plaintext_urls + embedded_tweets
 
 
 def article_has_intro(article_text):
@@ -191,55 +221,6 @@ def extract_category_from_maincontent(main_content):
     links = breadcrumbs.findAll('a', recursive=False)
 
     return [link.contents[0].rstrip().lstrip() for link in links]
-
-
-icon_type_to_tags = {
-    'pictoType0': ['internal', 'full url'],
-    'pictoType1': ['internal', 'local url'],
-    'pictoType2': ['images', 'gallery'],
-    'pictoType3': ['video'],
-    'pictoType4': ['animation'],
-    'pictoType5': ['audio'],
-    'pictoType6': ['images', 'gallery'],
-    'pictoType9': ['internal blog'],
-    'pictoType12': ['external']
-}
-
-
-def make_tagged_url_from_pictotype(url, title, icon_type):
-    """
-    Attempts to tag a url using the icon used. Mapping is incomplete at the moment.
-    Still keeps the icon type as part of the tags for future uses.
-    """
-    tags = set([icon_type])
-    if icon_type in icon_type_to_tags:
-        tags = tags.union(set(icon_type_to_tags[icon_type]))
-
-    return make_tagged_url(url, title, tags)
-
-
-def extract_associated_links_from_maincontent(main_content):
-    """
-    Finds the list of associated links. Returns a list of (title, url) tuples.
-    """
-    container = main_content.find('ul', {'class': 'articleLinks'}, recursive=False)
-
-    # sometimes there are no links
-    if container:
-        def extract_link_and_title(list_item):
-            return  list_item.a.get('href'), remove_text_formatting_markup_from_fragments(list_item.a.contents)
-        tagged_urls = list()
-        for list_item in container.findAll('li', recursive=False):
-            url, title = extract_link_and_title(list_item)
-            pictotype = list_item.get('class')
-            tagged_url = make_tagged_url_from_pictotype(url, title, pictotype)
-            tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-
-            tagged_url.tags.update(set(tags))
-            tagged_urls.append(tagged_url)
-        return tagged_urls
-    else:
-        return []
 
 
 DATE_MATCHER = re.compile('\(\d\d/\d\d/\d\d\d\d\)')
@@ -285,34 +266,8 @@ def extract_date_from_maincontent(main_content):
     return pub_date, pub_time
 
 
-def extract_links_from_embedded_content(embedded_content):
-    if embedded_content.iframe:
-        url = embedded_content.iframe.get('src')
-        title = u"Embedded content"
-        all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-        return [make_tagged_url(url, title, all_tags | set(['embedded']))]
-    else:
-        divs = embedded_content.findAll('div', recursive=False)
-        kplayer = embedded_content.find('div', {'class': 'containerKplayer'})
-        if kplayer:
-            kplayer_infos = kplayer.find('video')
-            url = kplayer_infos.get('data-src')
-            title = remove_text_formatting_markup_from_fragments(divs[1].contents)
-            all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-            return [make_tagged_url(url, title, all_tags | set(['video', 'embedded', 'kplayer']))]
-        else:
-            return []
-
 
 def extract_links_to_embedded_content(main_content):
-    """
-
-    Args:
-        main_content
-
-    Returns:
-
-    """
     items = main_content.findAll('div', {'class': 'embedContents'})
     return [ipm_utils.extract_tagged_url_from_embedded_item(item, DHNET_NETLOC, DHNET_INTERNAL_SITES) for item in items]
 
@@ -338,18 +293,23 @@ def extract_article_data(source):
         article_text = main_content.find('div', {'id': 'articleText'})
         if article_has_intro(article_text):
             intro = extract_intro_from_articletext(article_text)
-            text, in_text_urls = extract_text_content_and_links_from_articletext(article_text)
+            text, in_text_links = extract_text_content_and_links_from_articletext(article_text)
         else:
             intro = u""
-            text, in_text_urls = extract_text_content_and_links_from_articletext(article_text, False)
-        associated_urls = extract_associated_links_from_maincontent(main_content)
+            text, in_text_links = extract_text_content_and_links_from_articletext(article_text, False)
 
-        embedded_content_urls = extract_links_to_embedded_content(main_content)
+        audio_content_links = ipm_utils.extract_embedded_audio_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+        sidebox_links = ipm_utils.extract_and_tag_associated_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+        bottom_links = ipm_utils.extract_bottom_links(main_content, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+        embedded_content_links = extract_links_to_embedded_content(main_content)
+        all_links = in_text_links + sidebox_links + embedded_content_links + bottom_links + audio_content_links
+
+        updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.DHNET_SAME_OWNER)
 
         fetched_datetime = datetime.today()
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                                  in_text_urls + associated_urls + embedded_content_urls,
+                                  updated_tagged_urls,
                                   category, author_name, intro, text)
         return new_article, html_content
     else:
@@ -423,8 +383,6 @@ def get_frontpage_toc():
 
 
 if __name__ == "__main__":
-    import json
-
     urls = [
         "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html",
         "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html",
@@ -434,16 +392,15 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html",
         "http://www.dhnet.be/infos/monde/article/413062/sandy-paralyse-le-nord-est-des-etats-unis.html",
         "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
-        "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html"
+        "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html",
+        "http://www.dhnet.be/people/show-biz/article/421868/rosie-huntington-whiteley-sens-dessus-dessous.html",
+        "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html",
+        "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html",
     ]
 
-    for url in urls[:]:
+    from csxj.common.tagging import print_taggedURLs
+
+    for url in urls[4:5]:
         article, html = extract_article_data(url)
+        print_taggedURLs(article.links)
 
-        if article:
-            article.print_summary()
-            print article.title
-            for tagged_url in article.links:
-                print(u"{0:100} ({1:100}) \t {2}".format(tagged_url.title, tagged_url.URL, tagged_url.tags))
-
-        print("\n" * 4)

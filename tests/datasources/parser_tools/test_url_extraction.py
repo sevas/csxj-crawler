@@ -2,7 +2,7 @@ __author__ = 'sevas'
 
 import unittest
 
-from csxj.datasources.common.utils import extract_plaintext_urls_from_text
+from csxj.datasources.parser_tools.utils import extract_plaintext_urls_from_text
 
 
 class PlainTextURLExtractorTestCases(unittest.TestCase):

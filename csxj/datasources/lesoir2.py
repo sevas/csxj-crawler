@@ -8,8 +8,8 @@ from urllib2 import urlparse
 from scrapy.selector import HtmlXPathSelector
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
 from csxj.db.article import ArticleData
-from common.utils import fetch_html_content
-from common.utils import setup_locales
+from parser_tools.utils import fetch_html_content
+from parser_tools.utils import setup_locales
 
 
 setup_locales()

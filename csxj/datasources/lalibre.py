@@ -2,15 +2,30 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime, time
-from BeautifulSoup import Tag
 import urlparse
-from common.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
-from common import constants
-from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL, print_taggedURLs
+
+import BeautifulSoup
+
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
-from common import ipm_utils
+from parser_tools.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, TEXT_MARKUP_TAGS
+from parser_tools import constants
+from parser_tools import ipm_utils
+from parser_tools import twitter_utils
+
+from helpers.unittest_generator import generate_unittest
 
 LALIBRE_ASSOCIATED_SITES = {
+    'ask.blogs.lalibre.be': ['internal', 'jblog'],
+    'irevolution.blogs.lalibre.be': ['internal', 'jblog'],
+    'laloidesseries.blogs.lalibre.be': ['internal', 'jblog'],
+    'letitsound.blogs.lalibre.be': ['internal', 'jblog'],
+    'parislibre.blogs.lalibre.be': ['internal', 'jblog'],
+    'momento.blogs.lalibre.be': ['internal', 'jblog'],
+    'lameteo.blogs.lalibre.be': ['internal', 'jblog'],
+
+    'pdf-online.lalibre.be': ['internal', 'pdf newspaper']
 
 }
 
@@ -66,17 +81,6 @@ def extract_date(main_content):
     return pub_date.date(), pub_time
 
 
-def sanitize_fragment(fragment):
-    if isinstance(fragment, Tag):
-        # sometimes, we just get <p></p>
-        if fragment.contents:
-            return ''.join(sanitize_fragment(f) for f in fragment.contents)
-        else:
-            return ''
-    else:
-        return fragment
-
-
 def separate_no_target_links(links):
     no_target_links = [(target, title) for (target, title) in links if not target]
     other_links = list(set(links) - set(no_target_links))
@@ -95,8 +99,10 @@ def extract_and_tag_in_text_links(article_text):
     Detects which links are keyword and which aren't, sets the adequate tags.
     Returns a list of TaggedURL objects.
     """
+
     def extract_link_and_title(link):
-            return link.get('href'), sanitize_fragment(link.contents[0])
+        return link.get('href'), remove_text_formatting_markup_from_fragments(link.contents)
+
     links = [extract_link_and_title(link)
              for link in article_text.findAll('a', recursive=True)]
 
@@ -114,29 +120,55 @@ def extract_and_tag_in_text_links(article_text):
 
 def sanitize_paragraph(paragraph):
     """Returns plain text article"""
-    sanitized_paragraph = [sanitize_fragment(fragment) for fragment in paragraph.contents]
+
+    sanitized_paragraph = [remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n') for fragment in paragraph.contents if
+                           not isinstance(fragment, BeautifulSoup.Comment)]
+
     return ''.join(sanitized_paragraph)
 
 
 def extract_text_content_and_links(main_content):
     article_text = main_content.find('div', {'id': 'articleText'})
 
-    in_text_tagged_urls = extract_and_tag_in_text_links(article_text)
-
+    in_text_tagged_urls = []
     all_fragments = []
     all_plaintext_urls = []
-    paragraphs = article_text.findAll('p', recursive=False)
+    embedded_tweets = []
+
+    def is_text_content(blob):
+        if isinstance(blob, BeautifulSoup.Tag) and blob.name in TEXT_MARKUP_TAGS:
+            return True
+        if isinstance(blob, BeautifulSoup.NavigableString):
+            return True
+        return False
+
+    paragraphs = [c for c in article_text.contents if is_text_content(c)]
 
     for paragraph in paragraphs:
-        fragments = sanitize_paragraph(paragraph)
-        all_fragments.append(fragments)
-        all_fragments.append('\n')
-        plaintext_links = extract_plaintext_urls_from_text(fragments)
-        urls_and_titles = zip(plaintext_links, plaintext_links)
-        all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+        if isinstance(paragraph, BeautifulSoup.NavigableString):
+            cleaned_up_text = remove_text_formatting_markup_from_fragments([paragraph], strip_chars='\r\n\t ')
+            if cleaned_up_text:
+                all_fragments.append(cleaned_up_text)
+                plaintext_links = extract_plaintext_urls_from_text(paragraph)
+                urls_and_titles = zip(plaintext_links, plaintext_links)
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+        else:
+            if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+                in_text_links = extract_and_tag_in_text_links(paragraph)
+                in_text_tagged_urls.extend(in_text_links)
+
+                fragments = sanitize_paragraph(paragraph)
+                all_fragments.append(fragments)
+                plaintext_links = extract_plaintext_urls_from_text(fragments)
+                urls_and_titles = zip(plaintext_links, plaintext_links)
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+            else:
+                embedded_tweets.extend(
+                    twitter_utils.extract_rendered_tweet(paragraph, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES))
 
     text_content = all_fragments
-    return text_content, in_text_tagged_urls + all_plaintext_urls
+
+    return text_content, in_text_tagged_urls + all_plaintext_urls + embedded_tweets
 
 
 def extract_category(main_content):
@@ -146,80 +178,10 @@ def extract_category(main_content):
     return [link.contents[0].rstrip().lstrip() for link in links]
 
 
-icon_type_to_tags = {
-    'pictoType0': ['internal', 'full url'],
-    'pictoType1': ['internal', 'local url'],
-    'pictoType2': ['images', 'gallery'],
-    'pictoType3': ['video'],
-    'pictoType4': ['animation'],
-    'pictoType5': ['audio'],
-    'pictoType6': ['images', 'gallery'],
-    'pictoType9': ['internal blog'],
-    'pictoType12': ['external']
-}
-
-
-def make_tagged_url_from_pictotype(url, title, icon_type):
-    """
-    Attempts to tag a url using the icon used. Mapping is incomplete at the moment.
-    Still keeps the icon type as part of the tags for future uses.
-    """
-    tags = set([icon_type])
-    if icon_type in icon_type_to_tags:
-        tags.update(set(icon_type_to_tags[icon_type]))
-
-    return tag_URL((url, title), tags)
-
-
-def extract_tagged_url_from_associated_link(link_list_item, tags=[]):
-    # sometimes list items are used to show things which aren't links
-    # but more like unclickable ads
-    url = link_list_item.a.get('href')
-    title = sanitize_fragment(link_list_item.a.contents[0].rstrip().lstrip())
-    icon_type = link_list_item.get('class')
-    tagged_url = make_tagged_url_from_pictotype(url, title, icon_type)
-    additional_tags = classify_and_tag(url, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
-    tagged_url.tags.update(additional_tags | set(tags))
-    return tagged_url
-
-
-def extract_and_tag_associated_links(main_content):
-    """
-    Extract the associated links. Uses the icon type to tag it.
-
-    """
-    strong_article_links = main_content.find('div', {'id': 'strongArticleLinks'})
-    if not strong_article_links:
-        return []
-
-    link_list = strong_article_links.find('ul', {'class': 'articleLinks'})
-    tagged_urls = []
-    # sometimes there are no links, and thus no placeholder
-    if link_list:
-        for li in link_list.findAll('li', recursive=False):
-            if li.a:
-                new_url = extract_tagged_url_from_associated_link(li)
-                tagged_urls.append(new_url)
-
-    return tagged_urls
-
-
-def extract_bottom_links(main_content):
-    link_list = main_content.findAll('ul', {'class': 'articleLinks'}, recursive=False)
-
-    tagged_urls = []
-    if link_list:
-        for li in link_list[0].findAll('li', recursive=False):
-            if li.a:
-                tagged_urls.append(extract_tagged_url_from_associated_link(li, tags=['bottom']))
-            else:
-                raise ValueError()
-    return tagged_urls
-
-
 def extract_embedded_content_links(main_content):
     items = main_content.findAll('div', {'class': 'embedContents'})
-    return [ipm_utils.extract_tagged_url_from_embedded_item(item, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES) for item in items]
+    return [ipm_utils.extract_tagged_url_from_embedded_item(item, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES) for item in
+            items]
 
 
 def extract_author_name(main_content):
@@ -234,13 +196,12 @@ def extract_intro(main_content):
     hat = main_content.find('div', {'id': 'articleHat'})
 
     if hat:
-        return hat.contents[0].rstrip().lstrip()
+        return  remove_text_formatting_markup_from_fragments(hat.contents, strip_chars='\t\r\n ')
     else:
-        return ''
+        return u''
 
 
 def extract_article_data_from_file(source_url, source_file):
-
     if not hasattr(source_file, 'read'):
         f = open(source_file)
     else:
@@ -248,6 +209,13 @@ def extract_article_data_from_file(source_url, source_file):
 
     html_content = f.read()
     return extract_article_data_from_html(html_content, source_url)
+
+
+def print_for_test(taggedURLs):
+    print "---"
+    for taggedURL in taggedURLs:
+        print u"""make_tagged_url("{0}", u\"\"\"{1}\"\"\", {2}),""".format(taggedURL.URL, taggedURL.title,
+                                                                           taggedURL.tags)
 
 
 def extract_article_data_from_html(html_content, source_url):
@@ -266,16 +234,20 @@ def extract_article_data_from_html(html_content, source_url):
     fetched_datetime = datetime.today()
 
     intro = extract_intro(main_content)
-    text_content, in_text_urls = extract_text_content_and_links(main_content)
+    text_content, in_text_links = extract_text_content_and_links(main_content)
 
-    associated_tagged_urls = extract_and_tag_associated_links(main_content)
-    bottom_links = extract_bottom_links(main_content)
+    embedded_audio_links = ipm_utils.extract_embedded_audio_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+    associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+    bottom_links = ipm_utils.extract_bottom_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     embedded_content_links = extract_embedded_content_links(main_content)
-    all_links = in_text_urls + associated_tagged_urls + bottom_links + embedded_content_links
+
+    all_links = in_text_links + associated_tagged_urls + bottom_links + embedded_content_links + embedded_audio_links
+
+    updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.LALIBRE_SAME_OWNER)
 
     new_article = ArticleData(source_url, title,
                               pub_date, pub_time, fetched_datetime,
-                              all_links,
+                              updated_tagged_urls,
                               category, author,
                               intro, text_content)
 
@@ -315,38 +287,17 @@ def test_sample_data():
             "http://www.lalibre.be/actu/usa-2012/article/773294/obama-raille-les-chevaux-et-baionnettes-de-romney.html",
             "http://www.lalibre.be/actu/international/article/774524/sandy-le-calme-avant-la-tempete.html",
             "http://www.lalibre.be/sports/football/article/778966/suivez-anderlecht-milan-ac-en-live-des-20h30.html",
-            ]
+            "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html",
+            "http://www.lalibre.be/actu/belgique/article/782423/intemperies-un-chaos-moins-important-que-prevu.html",
+            "http://www.lalibre.be/culture/mediastele/article/748553/veronique-genest-mon-coeur-est-en-berne.html",
+            "http://www.lalibre.be/culture/musique-festivals/article/792049/the-weeknd-de-retour-en-belgique.html",
+            "http://www.lalibre.be/actu/international/article/791997/israel-une-campagne-qui-n-a-pas-vole-haut.html",
+            "http://www.lalibre.be/economie/actualite/article/789261/le-fmi-s-est-trompe-et-fait-son-mea-culpa.html",
+            "http://www.lalibre.be/societe/general/article/779522/la-pornographie-une-affaire-d-hommes-pas-seulement.html",
+            "http://www.lalibre.be/actu/belgique/article/788978/incendie-d-un-car-belge-en-suisse-plus-de-peur-que-de-mal.html"]
 
-    for url in urls[:]:
-        article, html = extract_article_data(url)
-
-        if article:
-            print u"{0}".format(article.title)
-            article.print_summary()
-            print_taggedURLs(article.links)
-
-        print("\n" * 4)
-
-
-def list_frontpage_articles():
-    frontpage_items = get_frontpage_toc()
-    print len(frontpage_items)
-
-    for (title, url) in frontpage_items:
-        print 'fetching data for article :', title
-
-        article, html_content = extract_article_data(url)
-        article.print_summary()
-
-        for (url, title, tags) in article.internal_links:
-            print u'{0} -> {1} {2}'.format(url, title, tags)
-
-        for (url, title, tags) in article.external_links:
-            print u'{0} -> {1} {2}'.format(url, title, tags)
-
-        print '-' * 80
+    article, html = extract_article_data(urls[-1])
 
 
 if __name__ == '__main__':
-    #list_frontpage_articles()
     test_sample_data()

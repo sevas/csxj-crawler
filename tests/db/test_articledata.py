@@ -1,87 +1,8 @@
-import unittest
-from datetime import datetime, date, time
 
-from csxj.common.tagging import classify_and_tag, tag_URL, TaggedURL
-
-
-class URLClassificationTestCases(unittest.TestCase):
-    def setUp(self):
-        self.own_netloc = 'www.foo.com'
-        self.associated_sites = {
-            'awesomeblog.foo.com':['internal blog'],
-            'elections.foo.com':['internal blog', 'politics'],
-            'community.foo.com':['community forum'],
-        }
-
-
-    def test_internal_url(self):
-        url = '/this/is/just/a/path.php'
-        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, set(['internal']))
-
-
-    def test_internal_url_with_netloc(self):
-        url = 'http://www.foo.com/this/is/just/a/path.php'
-        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, set(['internal']))
-    
-
-    def test_external_url(self):
-        url = 'http://www.bar.org'
-        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, set(['external']))
-
-
-    def test_internal_blog(self):
-        url = 'http://awesomeblog.foo.com/bestest-article-of-the-day.aspx?hl=nl'
-        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, set(['internal site', 'internal blog']))
-
-
-    def test_internal_biased_blog(self):
-        url = 'http://elections.foo.com/bestest-article-of-the-day.aspx?hl=nl'
-        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, set(['internal site', 'internal blog', 'politics']))
-
-
-    def test_other_internal_site(self):
-        url = 'http://community.foo.com/index.php?section=humor&show_rows=30'
-        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, set(['internal site', 'community forum']))
-
-
-
-    def test_tag_URL(self):
-        url, title = ('/news/category/2438985/', 'There is a hole in the world')
-        tags = ['internal']
-        taggedURL = TaggedURL(URL=url, title=title, tags=tags)
-        self.assertEqual(tag_URL((url, title), tags), taggedURL)
-
-
-    def test_no_URL(self):
-        url = ''
-        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, set())
-
-
-    def test_anchor(self):
-        url = '#anchor'
-        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, set(['internal', 'anchor']))
-
-
-    def test_external_hashbang_url(self):
-        url = 'http://twitter.com/!#/foo'
-        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, set(['external']))
-
-    def test_internal_hashbang_url(self):
-        url = 'http://twitter.com/!#/foo'
-        tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        self.assertEqual(tags, set(['external']))
-
+from datetime import date, time, datetime
+from csxj.common.tagging import TaggedURL
         
-class JSONSerializationTestCases(unittest.TestCase):
+class TestJSONSerializationTestCases(object):
     def setUp(self):
         self.url = 'http://www.foo.com/news/category'
         self.title = 'Fuck yeah royal wedding god damnit'
@@ -111,6 +32,3 @@ class JSONSerializationTestCases(unittest.TestCase):
 #        self.assertEqual(article, article2)
 
 
-
-if __name__ == '__main__':
-    unittest.main()
