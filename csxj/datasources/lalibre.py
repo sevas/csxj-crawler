@@ -14,7 +14,7 @@ from parser_tools import constants
 from parser_tools import ipm_utils
 from parser_tools import twitter_utils
 
-from helpers.unittest_generator import generate_test_func, save_sample_data_file
+from helpers.unittest_generator import generate_unittest
 
 LALIBRE_ASSOCIATED_SITES = {
     'ask.blogs.lalibre.be': ['internal', 'jblog'],
@@ -25,7 +25,7 @@ LALIBRE_ASSOCIATED_SITES = {
     'momento.blogs.lalibre.be': ['internal', 'jblog'],
     'lameteo.blogs.lalibre.be': ['internal', 'jblog'],
 
-    'pdf-online.lalibre.be' : ['internal', 'pdf newspaper']
+    'pdf-online.lalibre.be': ['internal', 'pdf newspaper']
 
 }
 
@@ -210,11 +210,13 @@ def extract_article_data_from_file(source_url, source_file):
     html_content = f.read()
     return extract_article_data_from_html(html_content, source_url)
 
+
 def print_for_test(taggedURLs):
     print "---"
     for taggedURL in taggedURLs:
         print u"""make_tagged_url("{0}", u\"\"\"{1}\"\"\", {2}),""".format(taggedURL.URL, taggedURL.title,
                                                                            taggedURL.tags)
+
 
 def extract_article_data_from_html(html_content, source_url):
     soup = make_soup_from_html_content(html_content)
@@ -232,16 +234,14 @@ def extract_article_data_from_html(html_content, source_url):
     fetched_datetime = datetime.today()
 
     intro = extract_intro(main_content)
-    text_content, in_text_urls = extract_text_content_and_links(main_content)
+    text_content, in_text_links = extract_text_content_and_links(main_content)
 
-    embedded_audio_links = ipm_utils.extract_embedded_audio_links(main_content, LALIBRE_NETLOC,
-                                                                  LALIBRE_ASSOCIATED_SITES)
-    associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC,
-                                                                        LALIBRE_ASSOCIATED_SITES)
+    embedded_audio_links = ipm_utils.extract_embedded_audio_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+    associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     bottom_links = ipm_utils.extract_bottom_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     embedded_content_links = extract_embedded_content_links(main_content)
 
-    all_links = in_text_urls + associated_tagged_urls + bottom_links + embedded_content_links + embedded_audio_links
+    all_links = in_text_links + associated_tagged_urls + bottom_links + embedded_content_links + embedded_audio_links
 
     updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.LALIBRE_SAME_OWNER)
 
@@ -293,7 +293,8 @@ def test_sample_data():
             "http://www.lalibre.be/culture/musique-festivals/article/792049/the-weeknd-de-retour-en-belgique.html",
             "http://www.lalibre.be/actu/international/article/791997/israel-une-campagne-qui-n-a-pas-vole-haut.html",
             "http://www.lalibre.be/economie/actualite/article/789261/le-fmi-s-est-trompe-et-fait-son-mea-culpa.html",
-            "http://www.lalibre.be/societe/general/article/779522/la-pornographie-une-affaire-d-hommes-pas-seulement.html"]
+            "http://www.lalibre.be/societe/general/article/779522/la-pornographie-une-affaire-d-hommes-pas-seulement.html",
+            "http://www.lalibre.be/actu/belgique/article/788978/incendie-d-un-car-belge-en-suisse-plus-de-peur-que-de-mal.html"]
 
     article, html = extract_article_data(urls[-1])
 

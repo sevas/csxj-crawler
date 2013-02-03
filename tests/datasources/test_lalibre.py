@@ -156,7 +156,6 @@ class TestLalibreLinkExtraction(object):
             expected_links = expected_sidebox_links + expected_bottom_links + expected_embbeded_media_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
     def test_same_owner_tagging(self):
         """ lalibre parser correctly tags 'same owner' links """
         with open(os.path.join(DATA_ROOT, "links_same_owner_tagging.html")) as f:
@@ -177,6 +176,31 @@ class TestLalibreLinkExtraction(object):
                 make_tagged_url("http://www.essentielle.be/", u"""Essentielle.be, le site des femmes actives""", set(['bottom box', 'external', 'same owner'])),
             ]
             expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_extract_embedded_tweets(self):
+        """ lalibre parser can extract rendered tweets from within the text content """
+
+        with open(os.path.join(DATA_ROOT, "links_extract_embedded_tweets.html")) as f:
+            article, raw_html = lalibre.extract_article_data(f)
+            extracted_links = article.links
+            embedded_content_links = [
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=bf195c8ba4f5&configKey=&suffix=&sig=c7acd5f9065s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+            ]
+            bottom_links = [
+                make_tagged_url("/actu/belgique/article/786880/sierre-la-presse-epinglee.html", u"""Sierre :  la presse épinglée""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/belgique/article/789293/une-liste-verte-pour-les-autocars.html", u"""Une liste verte pour les autocars ?""", set(['bottom box', 'internal'])),
+            ]
+            associated_tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Grosse frayeur en Suisse""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/actu/belgique/article/786880/sierre-la-presse-epinglee.html", u"""Sierre :  la presse épinglée""", set(['internal', 'sidebar box'])),
+            ]
+            embedded_audio_links = [
+            ]
+            in_text_links = [
+                make_tagged_url("https://twitter.com/maximedaye/status/288587213661421568", u"""https://twitter.com/maximedaye/status/288587213661421568""", set(['tweet', 'embedded media', 'external'])),
+            ]
+            expected_links = embedded_content_links + bottom_links + associated_tagged_urls + embedded_audio_links + in_text_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
 
@@ -207,4 +231,3 @@ class TestLalibreContentExtraction(object):
 
             expected_content = [u"Mouss Diouf a été révélé au grand public grâce à son interprétation du lieutenant N'Guma dans la série française Julie Lescaut. \r\n\r\nVéronique Genest est resté très proche de Mouss Diouf après son accident vasculaire cérébral. Elle a réagi sur Twitter suite au décès de l'acteur."]
             eq_(article.content, expected_content, msg="\n{0}\n{1}".format(article.content, expected_content))
-
