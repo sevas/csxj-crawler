@@ -12,10 +12,10 @@ from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged
 from csxj.db.article import ArticleData
 
 from parser_tools import rossel_utils
-from common.utils import extract_plaintext_urls_from_text
-from common.utils import remove_text_formatting_markup_from_fragments
-from common.utils import setup_locales
-from common import media_utils
+from parser_tools.utils import extract_plaintext_urls_from_text
+from parser_tools.utils import remove_text_formatting_markup_from_fragments
+from parser_tools.utils import setup_locales
+from parser_tools import media_utils
 
 from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
@@ -239,7 +239,7 @@ def extract_article_data(source):
 
         #print generate_test_func('same_owner_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
         #save_sample_data_file(html_content, source.name, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
-        
+
         return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                            updated_tagged_urls,
                            category, author,
