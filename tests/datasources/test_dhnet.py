@@ -273,3 +273,23 @@ class TestDHNetLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_extract_embedded_tweets(self):
+        with open(os.path.join(DATA_ROOT, "extract_embedded_tweets.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            bottom_links = [
+            ]
+            audio_content_links = [
+            ]
+            sidebox_links = [
+            ]
+            embedded_content_links = [
+            ]
+            in_text_links = [
+                make_tagged_url("https://twitter.com/datirachida/status/204621853304700928", u"""https://twitter.com/datirachida/status/204621853304700928""", set(['tweet', 'embedded media', 'external'])),
+                make_tagged_url("https://twitter.com/Bernard_Debre/status/204848053025390592", u"""https://twitter.com/Bernard_Debre/status/204848053025390592""", set(['tweet', 'embedded media', 'external'])),
+                make_tagged_url("https://twitter.com/datirachida/status/204904963619561475", u"""https://twitter.com/datirachida/status/204904963619561475""", set(['tweet', 'embedded media', 'external'])),
+            ]
+            expected_links = bottom_links + audio_content_links + sidebox_links + embedded_content_links + in_text_links
+            assert_taggedURLs_equals(expected_links, extracted_links)

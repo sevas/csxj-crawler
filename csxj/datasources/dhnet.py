@@ -10,14 +10,14 @@ import BeautifulSoup as bs
 
 from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
-from parser_tools.utils import fetch_html_content, make_soup_from_html_content
+from parser_tools.utils import fetch_html_content, make_soup_from_html_content, TEXT_MARKUP_TAGS
 from parser_tools.utils import remove_text_formatting_markup_from_fragments
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
 from parser_tools import constants
 from parser_tools import ipm_utils
 from parser_tools import twitter_utils
 
-from helpers.unittest_generator import generate_test_func, save_sample_data_file
+from helpers.unittest_generator import generate_unittest
 
 setup_locales()
 
@@ -30,7 +30,7 @@ DHNET_INTERNAL_SITES = {
     'alorsonbuzz.blogs.dhnet.be': ['internal', 'jblog'],
     'letitsound.blogs.dhnet.be': ['internal', 'jblog'],
 
-    'pdf-online.dhnet.be' : ['internal', 'pdf newspaper']
+    'pdf-online.dhnet.be': ['internal', 'pdf newspaper']
 
 }
 
@@ -145,10 +145,8 @@ def extract_text_content_and_links_from_articletext(main_content, has_intro=True
     all_plaintext_urls = []
     embedded_tweets = []
 
-    in_text_tagged_urls = extract_and_tag_in_text_links(article_text)
-
     def is_text_content(blob):
-        if isinstance(blob, bs.Tag) and blob.name == 'p':
+        if isinstance(blob, bs.Tag) and blob.name in TEXT_MARKUP_TAGS:
             return True
         if isinstance(blob, bs.NavigableString):
             return True
@@ -166,6 +164,9 @@ def extract_text_content_and_links_from_articletext(main_content, has_intro=True
                 all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
         else:
             if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+                in_text_links = extract_and_tag_in_text_links(paragraph)
+                in_text_tagged_urls.extend(in_text_links)
+
                 fragments = sanitize_paragraph(paragraph)
                 all_fragments.append(fragments)
                 plaintext_links = extract_plaintext_urls_from_text(fragments)
@@ -178,7 +179,6 @@ def extract_text_content_and_links_from_articletext(main_content, has_intro=True
     text_content = all_fragments
 
     return text_content, in_text_tagged_urls + all_plaintext_urls + embedded_tweets
-
 
 
 def article_has_intro(article_text):
@@ -266,24 +266,6 @@ def extract_date_from_maincontent(main_content):
     return pub_date, pub_time
 
 
-def extract_links_from_embedded_content(embedded_content):
-    if embedded_content.iframe:
-        url = embedded_content.iframe.get('src')
-        title = u"Embedded content"
-        all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-        return [make_tagged_url(url, title, all_tags | set(['embedded']))]
-    else:
-        divs = embedded_content.findAll('div', recursive=False)
-        kplayer = embedded_content.find('div', {'class': 'containerKplayer'})
-        if kplayer:
-            kplayer_infos = kplayer.find('video')
-            url = kplayer_infos.get('data-src')
-            title = remove_text_formatting_markup_from_fragments(divs[1].contents)
-            all_tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
-            return [make_tagged_url(url, title, all_tags | set(['video', 'embedded', 'kplayer']))]
-        else:
-            return []
-
 
 def extract_links_to_embedded_content(main_content):
     items = main_content.findAll('div', {'class': 'embedContents'})
@@ -325,10 +307,6 @@ def extract_article_data(source):
         updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.DHNET_SAME_OWNER)
 
         fetched_datetime = datetime.today()
-        
-        #print generate_test_func('same_owner_tagging', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_content, source, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
-
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                                   updated_tagged_urls,
@@ -416,13 +394,13 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
         "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html",
         "http://www.dhnet.be/people/show-biz/article/421868/rosie-huntington-whiteley-sens-dessus-dessous.html",
-        "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html"
-        "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html"
+        "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html",
+        "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html",
     ]
 
     from csxj.common.tagging import print_taggedURLs
 
-    for url in urls[:-1]:
+    for url in urls[4:5]:
         article, html = extract_article_data(url)
         print_taggedURLs(article.links)
-        #     print link
+
