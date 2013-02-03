@@ -18,6 +18,18 @@ DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'sudinfo')
 
 class TestSudinfoLinkExtraction(object):
 
+    def test_no_links(self):
+        """ Sudinfo parser returns an empty link list if the article has no link. """
+        with open(os.path.join(DATA_ROOT, "no_links.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+
     def test_sidebar_box_tagging(self):
         """ Sudinfo parser can extract and tag sidebar links from an article. """
         with open(os.path.join(DATA_ROOT, "sidebar_box_tagging.html")) as f:

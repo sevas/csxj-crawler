@@ -11,6 +11,10 @@
     [
       "../../sample_data/sudinfo/embedded_photos.html", 
       "in_text_link_extraction.html"
+    ], 
+    [
+      "../../sample_data/sudinfo/sudinfo_nolinks.html", 
+      "no_links.html"
     ]
   ]
 }
