@@ -322,7 +322,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
             url = section.find('a').get('href')
             title = section.find('a').contents
             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-            tags.add('embedded media')
+            tags.add('embedded')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
         elif 'video' in section.attrs['class']:
@@ -332,7 +332,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                 url = iframe.get("src")
                 if url :
                     tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                    tags.add('embedded media')
+                    tags.add('embedded')
                     tagged_urls.append(tagging.make_tagged_url(url, url, tags))
                 else:
                     raise ValueError("There seems to be an iframe but we could not find a link. Please update parser.")
@@ -342,7 +342,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                 url = embedded_stuff.get("src")
                 if url :
                     tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                    tags.add('embedded media')
+                    tags.add('embedded')
                     tagged_urls.append(tagging.make_tagged_url(url, url, tags))
                 else:
                     raise ValueError("There seems to be an embedded video but we could not find a link. Please update parser.")
@@ -361,7 +361,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                         if link.get("data-datetime"):
                             url = link.get("href")
                             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                            tags.add('embedded media')
+                            tags.add('embedded')
                             tags.add('tweet')
                             tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
@@ -432,7 +432,7 @@ def extract_embedded_media(soup):
             for x in embedded_container:
                 url = x.get("src")
                 tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
-                tags.add('embedded media')
+                tags.add('embedded')
                 tags.add ('in text')
                 tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 

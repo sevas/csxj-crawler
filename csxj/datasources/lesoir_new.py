@@ -325,7 +325,7 @@ def extract_article_data(source):
     updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
     #print generate_test_func('same_owner_tagging', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
-    save_sample_data_file(html_data, source, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+    #save_sample_data_file(html_data, source, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
 
     return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                 updated_tagged_urls,

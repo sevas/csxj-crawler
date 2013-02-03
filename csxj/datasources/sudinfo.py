@@ -19,6 +19,8 @@ from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged
 from csxj.db.article import ArticleData
 
 from parser_tools import rossel_utils
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
+
 
 
 setup_locales()
@@ -244,7 +246,7 @@ def extract_links_from_media_items(media_items):
         if embedded_frame:
             target_url = embedded_frame.select("./@src").extract()[0]
             tags = classify_and_tag(target_url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-            tags.update(['embedded document', 'iframe'])
+            tags.update(['embedded', 'iframe'])
             return make_tagged_url(target_url, title, tags)
         else:
             return None
@@ -366,17 +368,23 @@ def extract_associated_links(hxs):
             if link_type and link_type[0] in LINK_TYPE_TO_TAG:
                 tags.update(LINK_TYPE_TO_TAG[link_type])
 
+            tags.add("sidebar box")
+
             all_tagged_urls.append(make_tagged_url(url, title, tags))
 
-    media_links = hxs.select("//div[@id='picture']/descendant::div[@class='bloc-01 pf_article']//a")
+    media_links = hxs.select("//div[@id='picture']/descendant::div[@class='wrappAllMedia']/div")
 
-    if media_links:
-        for i, item in enumerate(media_links):
-            item_id = item.select("./@href").extract()
-            url = item_id
-            title = u"EMBEDDED MEDIA {0}".format(i)
-            tags = set(['media', 'embedded'])
-            all_tagged_urls.append(make_tagged_url(url, title, tags))
+    
+    for i, item in enumerate(media_links):
+        if item.select('./img'):
+            pass
+        else:
+            raise ValueError("The media box contains something other than an image. Update your parser")
+            # item_id = item.select("./@class").extract()
+            # url = item_id[0]
+            # title = u"EMBEDDED MEDIA {0}".format(i)
+            # tags = set(['media', 'embedded'])
+            # all_tagged_urls.append(make_tagged_url(url, title, tags))
 
     return all_tagged_urls
 
@@ -407,7 +415,10 @@ def extract_article_data(source):
         return None, html_content
     else:
         category = hxs.select("//p[starts-with(@class, 'fil_ariane')]/a//text()").extract()
-        title = hxs.select("//div[@id='article']/article//h1/text()").extract()[0]
+        title = hxs.select("//div[@id='article']/h1/text()").extract()[0]
+        # new version :
+        # #title = hxs.select("//div[@id='article']/article//h1/text()").extract()[0]
+
         pub_date, pub_time = extract_date(hxs)
         author = hxs.select("//p[@class='auteur']/text()").extract()[0]
         fetched_datetime = datetime.today()
@@ -422,6 +433,10 @@ def extract_article_data(source):
 
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
+
+        #print generate_test_func('no_links', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
+        save_sample_data_file(html_content, source.name, 'no_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
+        
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             updated_tagged_urls,
                             category, author,
@@ -490,17 +505,21 @@ def show_frontpage_articles():
 
 
 def test_sample_data():
-    filepath = '../../sample_data/sudpresse_some_error.html'
-    filepath = '../../sample_data/sudpresse_associated_link_error.html'
+    filepath = '../../sample_data/sudinfo/sudinfo_internal_links_in_sidebar_box.html'
+    filepath = '../../sample_data/sudinfo/sudinfo_video.html'
+    filepath = '../../sample_data/sudinfo/embedded_photos.html'
+    filepath = '../../sample_data/sudinfo/sudinfo_nolinks.html'
+
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
-        article_data.print_summary()
+        # article_data.print_summary()
 
         for link in article_data.links:
-            print link.title
+            print link
+            
 
-        print article_data.intro
-        print article_data.content
+        # print article_data.intro
+        # print article_data.content
 
 
 def show_article():
@@ -526,8 +545,13 @@ def show_article():
         
         # liens 'same owner'
         u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/schocking-in-brussles-des-hommes-nus-miment-l-acte-sexuel-au-palais-de-justice-a",
-        u"http://www.sudinfo.be/535396/article/culture/musique/2012-09-27/mylene-farmer-donnera-deux-concerts-en-belgique-l’an-prochain"
+        u"http://www.sudinfo.be/535396/article/culture/musique/2012-09-27/mylene-farmer-donnera-deux-concerts-en-belgique-l’an-prochain",
+
+        # embedded coveritlive + standard widget
+        u"http://www.sudinfo.be/306989/article/sports/foot-belge/standard/2012-01-08/standard-chattez-en-exclusivite-avec-sebastien-pocognoli-ce-lundi-des-13h30",
         
+        # embeddes scribble
+        u"http://www.sudinfo.be/655859/article/sports/foot-belge/anderlecht/2013-02-03/suivez-le-super-sunday-en-live-genk-ecrase-bruges-4-1-le-standard-en-visi"
     ]
 
     article, html = extract_article_data(urls[-1])
@@ -550,10 +574,11 @@ if __name__ == '__main__':
     #show_frontpage_toc()
     #download_one_article()
     #show_frontpage_articles()
-    show_article()
+    # show_article()
 
     # url = "/Volumes/Curst/json_db_0_5/sudinfo/2012-06-05/14.05.07/raw_data/18.html"
     # f = open(url, "r")
 
     # article_data, content_html = extract_article_data(f)
     # article_data.print_summary()
+    test_sample_data()
