@@ -1,0 +1,12 @@
+{
+  "test_data": [
+    [
+      "../../sample_data/sudinfo/sudinfo_internal_links_in_sidebar_box.html", 
+      "sidebar_box_tagging.html"
+    ], 
+    [
+      "../../sample_data/sudinfo/sudinfo_video.html", 
+      "embedded_video_extraction.html"
+    ]
+  ]
+}
