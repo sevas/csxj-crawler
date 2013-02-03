@@ -3,6 +3,10 @@
     [
       "../../sample_data/sudpresse/sudpresse_same_owner.html", 
       "same_owner_tagging.html"
+    ], 
+    [
+      "../../sample_data/sudpresse/sudpresse_associated_link_error.html", 
+      "sidebar_box_tagging.html"
     ]
   ]
 }

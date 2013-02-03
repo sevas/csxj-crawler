@@ -154,12 +154,26 @@ def extract_associated_links(article):
             if  link_type in LINK_TYPE_TO_TAG:
                 tags.update(LINK_TYPE_TO_TAG[link_type])
 
+            tags.add("sidebar box")  
+
             all_tagged_urls.append(make_tagged_url(url, title, tags))
 
         return all_tagged_urls
     else:
         return []
 
+def extract_embedded_media(article):
+    tagged_urls = list()
+    # extract any iframe from maincontent
+    iframes = article.findAll("iframe")
+    for media in iframes:
+        url = media.get('src')
+        tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
+        tags.add("embedded")
+        tagged_url = make_tagged_url(url, url, tags)
+        tagged_urls.append(tagged_url)
+
+    return tagged_urls
 
 def is_page_error_404(soup):
 
@@ -193,13 +207,14 @@ def extract_article_data(source):
         content, content_links = extract_content_and_links(article)
 
         associated_links = extract_associated_links(article)
+        embedded_media = extract_embedded_media(article)
 
-        all_links = intro_links + content_links + associated_links
+        all_links = intro_links + content_links + associated_links + embedded_media
 
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
-        #print generate_test_func('same_owner_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_content, source.name, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
+        #print generate_test_func('sidebar_box_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
+        #save_sample_data_file(html_content, source.name, 'sidebar_box_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
         
         return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                            updated_tagged_urls,
@@ -352,11 +367,17 @@ def test_sample_data():
     filepath = "../../sample_data/sudpresse/sudpresse_noTitle2.html"
     filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
     filepath = "../../sample_data/sudpresse/sudpresse_same_owner.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_associated_link_error.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_live_article.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
 
-        # for link in article_data.links:
-        #     print link
+        for link in article_data.links:
+            print link.URL
+            print link.title
+            print link.tags
+            print "**********************"
 
 
 def download_one_article():
