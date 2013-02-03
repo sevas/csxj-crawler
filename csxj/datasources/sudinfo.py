@@ -430,8 +430,8 @@ def extract_article_data(source):
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
 
-        #print generate_test_func('sidebar_box_tagging', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_content, source.name, 'sidebar_box_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
+        #print generate_test_func('embedded_video_extraction', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
+        #save_sample_data_file(html_content, source.name, 'embedded_video_extraction', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
         
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             updated_tagged_urls,
@@ -502,6 +502,7 @@ def show_frontpage_articles():
 
 def test_sample_data():
     filepath = '../../sample_data/sudinfo/sudinfo_internal_links_in_sidebar_box.html'
+    filepath = '../../sample_data/sudinfo/sudinfo_video.html'
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
         # article_data.print_summary()
