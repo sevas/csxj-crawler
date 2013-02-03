@@ -244,7 +244,7 @@ def extract_links_from_media_items(media_items):
         if embedded_frame:
             target_url = embedded_frame.select("./@src").extract()[0]
             tags = classify_and_tag(target_url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-            tags.update(['embedded document', 'iframe'])
+            tags.update(['embedded', 'iframe'])
             return make_tagged_url(target_url, title, tags)
         else:
             return None
@@ -526,8 +526,13 @@ def show_article():
         
         # liens 'same owner'
         u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/schocking-in-brussles-des-hommes-nus-miment-l-acte-sexuel-au-palais-de-justice-a",
-        u"http://www.sudinfo.be/535396/article/culture/musique/2012-09-27/mylene-farmer-donnera-deux-concerts-en-belgique-l’an-prochain"
+        u"http://www.sudinfo.be/535396/article/culture/musique/2012-09-27/mylene-farmer-donnera-deux-concerts-en-belgique-l’an-prochain",
+
+        # embedded coveritlive + standard widget
+        u"http://www.sudinfo.be/306989/article/sports/foot-belge/standard/2012-01-08/standard-chattez-en-exclusivite-avec-sebastien-pocognoli-ce-lundi-des-13h30",
         
+        # embeddes scribble
+        u"http://www.sudinfo.be/655859/article/sports/foot-belge/anderlecht/2013-02-03/suivez-le-super-sunday-en-live-genk-ecrase-bruges-4-1-le-standard-en-visi"
     ]
 
     article, html = extract_article_data(urls[-1])
