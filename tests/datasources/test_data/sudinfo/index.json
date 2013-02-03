@@ -7,6 +7,10 @@
     [
       "../../sample_data/sudinfo/sudinfo_video.html", 
       "embedded_video_extraction.html"
+    ], 
+    [
+      "../../sample_data/sudinfo/embedded_photos.html", 
+      "in_text_link_extraction.html"
     ]
   ]
 }

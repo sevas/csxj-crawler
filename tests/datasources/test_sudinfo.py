@@ -17,6 +17,7 @@ DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'sudinfo')
 
 
 class TestSudinfoLinkExtraction(object):
+
     def test_sidebar_box_tagging(self):
         """ Sudinfo parser can extract and tag sidebar links from an article. """
         with open(os.path.join(DATA_ROOT, "sidebar_box_tagging.html")) as f:
@@ -41,3 +42,16 @@ class TestSudinfoLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+    def test_in_text_link_extraction(self):
+        """ Sudinfo parser can extract and tag in-text links """
+        with open(os.path.join(DATA_ROOT, "in_text_link_extraction.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.sporza.be/cm/sporza/videozone/MG_programmas/MG_Extra_Time_GNMA/1.1450385?utm_medium=twitter&utm_source=dlvr.it", u"""Cliquez ici pour consulter la vidéo capturée par nos confrères de Sporza.""", set(['external', 'in text'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+

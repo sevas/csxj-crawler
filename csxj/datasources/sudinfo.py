@@ -434,8 +434,8 @@ def extract_article_data(source):
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
 
-        #print generate_test_func('embedded_video_extraction', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_content, source.name, 'embedded_video_extraction', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
+        #print generate_test_func('in_text_link_extraction', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
+        #save_sample_data_file(html_content, source.name, 'in_text_link_extraction', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
         
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             updated_tagged_urls,
