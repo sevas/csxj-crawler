@@ -15,6 +15,10 @@
     [
       "../../sample_data/sudinfo/sudinfo_nolinks.html", 
       "no_links.html"
+    ], 
+    [
+      "../../sample_data/sudinfo/sudinfo_intext_link.html", 
+      "in_text_same_owner.html"
     ]
   ]
 }
