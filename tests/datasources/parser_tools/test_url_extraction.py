@@ -1,8 +1,10 @@
+# coding=utf-8
+
 from nose.tools import eq_
 from csxj.datasources.parser_tools.utils import extract_plaintext_urls_from_text
 
 
-class TestPlainTextURLExtractor():
+class TestPlainTextURLExtractor(object):
     def setUp(self):
         self.simple_url = 'http://www.foo.com'
         # fuck yeah gehol
@@ -15,43 +17,43 @@ class TestPlainTextURLExtractor():
         """
 
     def test_simple_url(self):
-        """
-            Test Plaintext URL extraction with a simple URL
-        """
+        """ extract_plaintext_urls_from_text() can extract a simple URL """
         text_with_url = self.text.format(self.simple_url)
         urls = extract_plaintext_urls_from_text(text_with_url)
         eq_(urls, [self.simple_url])
 
     def test_complex_url(self):
-        """
-            Test Plaintext URL extraction with a complex URL (parameters, port, spaces and semicolons)
-        """
+        """ extract_plaintext_urls_from_text() can extract a complex URL (parameters, port, spaces and semicolons) """
         text_with_url = self.text.format(self.complex_url)
         urls = extract_plaintext_urls_from_text(text_with_url)
         eq_(urls, [self.complex_url])
 
     def test_multiple_urls(self):
-        """
-            Test Plaintext URL extraction from a text with several URLs
-        """
+        """ extract_plaintext_urls_from_text() can extract several URLs from a piece of text"""
         text = 'this {0} has {1} many {2} links {3}'
         text_with_urls = text.format(self.simple_url, self.complex_url, self.complex_url, self.simple_url)
         urls = extract_plaintext_urls_from_text(text_with_urls)
         eq_(urls, [self.simple_url, self.complex_url, self.complex_url, self.simple_url])
 
     def test_text_with_urls(self):
+        """ extract_plaintext_urls_from_text()"""
         urls = extract_plaintext_urls_from_text(self.text_with_urls)
         eq_(urls, ['http://www.example.com', 'http://en.wikipedia.org/wiki/PC_Tools_(Central_Point_Software)', 'http://msdn.microsoft.com/en-us/library/aa752574(VS.85).aspx', 'http://www.awesomeexample.com'])
 
     def test_no_url(self):
-        """
-            Test Plaintext URL extraction on a text with no URL
-        """
+        """ extract_plaintext_urls_from_text() returns an empty list if the text contains no URL"""
         text = self.text.format('not a url')
         urls = extract_plaintext_urls_from_text(text)
         eq_(urls, [])
 
-#    def test_schemeless_url(self):
-#        url = "foo.com"
-#        extracted_urls = extract_plaintext_urls_from_text(url)
-#        eq_([url], extracted_urls)
+    def test_schemeless_url(self):
+        """ extract_plaintext_urls_from_text() can handle urls with no scheme (e.g. 'www.foo.com') """
+        url = "www.foo.com"
+        extracted_urls = extract_plaintext_urls_from_text(url)
+        eq_([url], extracted_urls)
+
+    def test_tinylinks(self):
+        """extract_plaintext_urls_from_text() correctly guesses that things like “bit.ly/foo” and “is.gd/foo/” """
+        url = "bit.ly/foo"
+        extracted_urls = extract_plaintext_urls_from_text(url)
+        eq_([url], extracted_urls)

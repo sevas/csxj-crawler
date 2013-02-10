@@ -51,6 +51,8 @@ class TestLalibreLinkExtraction(object):
                 make_tagged_url("http://www.madamemoustache.be/page/Upcoming/101/16122011-JoyeuxBordelpresentFUCKYOUITSMAGIC.html", u""" FUCK YOU IT S XMAS""", set(['external', 'in text'])),
                 make_tagged_url("http://www.netevents.be/fr/soiree/203907/Chez-Maman-fete-ses-17-ans/", u'''"Chez maman"''', set(['external', 'in text'])),
                 make_tagged_url("", u"""Super Saturday""", set(['no target', 'in text'])),
+                make_tagged_url("www.forestnational.be", "www.forestnational.be", set(['external', 'in text', 'plaintext'])),
+                make_tagged_url("www.stratos-sphere.com", "www.stratos-sphere.com", set(['external', 'in text', 'plaintext']))
             ]
 
             assert_taggedURLs_equals(expected_intext_links, extracted_links)
@@ -185,13 +187,13 @@ class TestLalibreLinkExtraction(object):
             article, raw_html = lalibre.extract_article_data(f)
             extracted_links = article.links
             tagged_urls = [
-                make_tagged_url("http://www.micronutris.com/)", u"""http://www.micronutris.com/)""", set(['plaintext', 'external', 'in text'])),
                 make_tagged_url("/societe/gastronomie/article/785611/belgian-bubbles-un-produit-100-naturel-pour-des-fetes-reussies.html", u"""Belgian Bubbles, un produit 100% naturel pour des fêtes réussies""", set(['internal', 'sidebar box'])),
                 make_tagged_url("/societe/gastronomie/article/787152/edito-crise-de-foie-gras.html", u"""Edito: Crise de foie (gras)""", set(['internal', 'sidebar box'])),
                 make_tagged_url("/economie/entreprise-emploi/article/787084/upignac-a-la-gnaque.html", u"""Upignac a la gnaque""", set(['internal', 'sidebar box'])),
                 make_tagged_url("/societe/gastronomie/article/785611/belgian-bubbles-un-produit-100-naturel-pour-des-fetes-reussies.html", u"""Belgian Bubbles, un produit 100% naturel pour des fêtes réussies""", set(['bottom box', 'internal'])),
                 make_tagged_url("/societe/gastronomie/article/787152/edito-crise-de-foie-gras.html", u"""Edito: Crise de foie (gras)""", set(['bottom box', 'internal'])),
                 make_tagged_url("/economie/entreprise-emploi/article/787084/upignac-a-la-gnaque.html", u"""Upignac a la gnaque""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://www.micronutris.com/", "http://www.micronutris.com/", set(['plaintext', 'external', 'in text']))
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)

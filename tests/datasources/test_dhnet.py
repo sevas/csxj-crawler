@@ -75,6 +75,7 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("/infos/belgique/article/417311/sncb-et-infrabel-activent-leur-plan-hiver.html", u"""SNCB et Infrabel activent leur plan hiver""", set(['bottom box', 'internal'])),
                 make_tagged_url("/infos/belgique/article/417423/au-volant-le-calme-est-le-plus-important.html", u"""Au volant, le calme est le plus important""", set(['bottom box', 'internal'])),
                 make_tagged_url("/infos/belgique/article/417478/vingt-centres-de-ski-ouverts.html", u"""Vingt centres de ski ouverts""", set(['bottom box', 'internal'])),
+                make_tagged_url("www.thalys.com", "www.thalys.com", set(["plaintext", "in text", "external"]))
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
@@ -98,7 +99,9 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_intext_links = [
-                make_tagged_url("", u"www.soisbelge.be ou www.compagnievictor.be. ", set(["no target", "in text"]))
+                make_tagged_url("", u"www.soisbelge.be ou www.compagnievictor.be. ", set(["no target", "in text"])),
+                make_tagged_url("www.compagnievictor.be", "www.compagnievictor.be", set(["plaintext", "in text", "external"])),
+                make_tagged_url("www.soisbelge.be", "www.soisbelge.be", set(["plaintext", "in text", "external"]))
             ]
 
             expected_embedded_videos = [
