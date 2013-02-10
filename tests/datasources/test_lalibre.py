@@ -179,6 +179,23 @@ class TestLalibreLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_plaintext_links(self):
+        """ lalibre parser correctly tags plaintext links """
+        with open(os.path.join(DATA_ROOT, "plaintext_links.html")) as f:
+            article, raw_html = lalibre.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.micronutris.com/)", u"""http://www.micronutris.com/)""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("/societe/gastronomie/article/785611/belgian-bubbles-un-produit-100-naturel-pour-des-fetes-reussies.html", u"""Belgian Bubbles, un produit 100% naturel pour des fêtes réussies""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/societe/gastronomie/article/787152/edito-crise-de-foie-gras.html", u"""Edito: Crise de foie (gras)""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/economie/entreprise-emploi/article/787084/upignac-a-la-gnaque.html", u"""Upignac a la gnaque""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/societe/gastronomie/article/785611/belgian-bubbles-un-produit-100-naturel-pour-des-fetes-reussies.html", u"""Belgian Bubbles, un produit 100% naturel pour des fêtes réussies""", set(['bottom box', 'internal'])),
+                make_tagged_url("/societe/gastronomie/article/787152/edito-crise-de-foie-gras.html", u"""Edito: Crise de foie (gras)""", set(['bottom box', 'internal'])),
+                make_tagged_url("/economie/entreprise-emploi/article/787084/upignac-a-la-gnaque.html", u"""Upignac a la gnaque""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestLalibreContentExtraction(object):
     def test_clean_paragraph_extraction(self):

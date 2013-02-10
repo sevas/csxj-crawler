@@ -151,7 +151,7 @@ def extract_text_content_and_links(main_content):
                 all_fragments.append(cleaned_up_text)
                 plaintext_links = extract_plaintext_urls_from_text(paragraph)
                 urls_and_titles = zip(plaintext_links, plaintext_links)
-                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext', 'in text'])))
         else:
             if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
                 in_text_links = extract_and_tag_in_text_links(paragraph)
@@ -161,7 +161,7 @@ def extract_text_content_and_links(main_content):
                 all_fragments.append(fragments)
                 plaintext_links = extract_plaintext_urls_from_text(fragments)
                 urls_and_titles = zip(plaintext_links, plaintext_links)
-                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext', 'in text'])))
             else:
                 embedded_tweets.extend(
                     twitter_utils.extract_rendered_tweet(paragraph, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES))
@@ -245,8 +245,8 @@ def extract_article_data_from_html(html_content, source_url):
 
     updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.LALIBRE_SAME_OWNER)
 
-    #print generate_test_func('same_owner_tagging', 'lalibre', dict(tagged_urls=updated_tagged_urls))
-    #save_sample_data_file(html_content, source_url, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lalibre')
+    # print generate_test_func('plaintext_links', 'lalibre', dict(tagged_urls=updated_tagged_urls))
+    save_sample_data_file(html_content, source_url, 'plaintext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lalibre')
 
 
 
@@ -298,12 +298,18 @@ def test_sample_data():
             "http://www.lalibre.be/culture/musique-festivals/article/792049/the-weeknd-de-retour-en-belgique.html",
             "http://www.lalibre.be/actu/international/article/791997/israel-une-campagne-qui-n-a-pas-vole-haut.html",
             "http://www.lalibre.be/economie/actualite/article/789261/le-fmi-s-est-trompe-et-fait-son-mea-culpa.html",
-            "http://www.lalibre.be/societe/general/article/779522/la-pornographie-une-affaire-d-hommes-pas-seulement.html"]
+            "http://www.lalibre.be/societe/general/article/779522/la-pornographie-une-affaire-d-hommes-pas-seulement.html",
+            "http://www.lalibre.be/societe/insolite/article/787359/des-chocolats-aux-insectes.html"]
 
     from pprint import pprint
     import os
 
     article, html = extract_article_data(urls[-1])
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "____________"
 
 
 if __name__ == '__main__':
