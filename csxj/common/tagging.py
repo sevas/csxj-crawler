@@ -75,7 +75,8 @@ def update_tagged_urls(all_links, same_owner_sites):
     return updated_tagged_urls
 
 
-def print_taggedURLs(tagged_urls):
+def print_taggedURLs(tagged_urls, size=100):
     print "Count: ", len(tagged_urls)
     for tagged_url in tagged_urls:
-        print(u"{0:80} ({1:100}) \t {2}".format(tagged_url.title[:80], tagged_url.URL[:100], tagged_url.tags))
+        fmt = u"{{0:{0}}} ({{1:{0}}}) \t {{2}}".format(size)
+        print(fmt.format(tagged_url.title[:size], tagged_url.URL[:size], tagged_url.tags))
