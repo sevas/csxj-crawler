@@ -15,8 +15,12 @@ def format_as_two_columns(expected, extracted):
     expected, extracted = sorted(expected), sorted(extracted)
 
     def make_pairs():
-        for left, right in it.izip_longest(expected, extracted, fillvalue=TaggedURL("NONE", "NONE", set())):
-            yield u"{0:100}    {1:100}".format(left.URL[:100], right.URL[:100])
+        yield u".{0:100}-{0:100}.".format("-" * 100)
+        yield u"|{0:^100}|{1:^100}|".format("EXPECTED", "EXTRACTED")
+        yield u"|{0:100}|{0:100}|".format("-" * 100)
+        for left, right in it.izip_longest(expected, extracted, fillvalue=TaggedURL(u"NONE", u"NONE", set())):
+            yield u"|{0:100}|{1:100}|".format(left.URL[:100], right.URL[:100])
+        yield u"'{0:100}-{0:100}'".format("-" * 100)
     return u"\n".join(make_pairs())
 
 
