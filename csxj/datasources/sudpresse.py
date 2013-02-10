@@ -3,7 +3,7 @@
 from datetime import datetime, date, time
 from itertools import chain
 import urllib
-from BeautifulSoup import Tag
+from BeautifulSoup import Tag, NavigableString
 from parser_tools.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text
 from parser_tools.utils import remove_text_formatting_markup_from_fragments
@@ -86,6 +86,7 @@ def extract_text_and_links_from_paragraph(paragraph):
     urls_and_titles = [extract_url_and_title(link) for link in paragraph.findAll('a', recursive=False) if link.contents]
 
     tagged_urls = list()
+
     for url, title in urls_and_titles:
         tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
         tags.update(['in text'])
@@ -93,10 +94,30 @@ def extract_text_and_links_from_paragraph(paragraph):
 
     text = remove_text_formatting_markup_from_fragments(paragraph.contents)
 
-    plaintext_urls = extract_plaintext_urls_from_text(text)
+    # plaintext_urls = extract_plaintext_urls_from_text(text)
+    # for url in plaintext_urls:
+    #     tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
+    #     tags.update(['plaintext', 'in text'])
+    #     tagged_urls.append(make_tagged_url(url, url, tags))
+
+
+    # extract and tag plaintext urls
+    plaintext_urls = []
+    for fragment in paragraph.contents:
+        if type(fragment) is Tag:
+            if not fragment.name == "a":
+                clean_fragment = remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")
+                plaintext_links = extract_plaintext_urls_from_text(clean_fragment)
+                plaintext_urls.extend(plaintext_links)
+        if type(fragment) is NavigableString:
+            clean_fragment = remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")   
+            plaintext_links = extract_plaintext_urls_from_text(clean_fragment)
+            plaintext_urls.extend(plaintext_links)
+
     for url in plaintext_urls:
         tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
-        tags.update(['plaintext', 'in text'])
+        tags.add('in text')
+        tags.add('plaintext')
         tagged_urls.append(make_tagged_url(url, url, tags))
 
     return text, tagged_urls
@@ -213,8 +234,8 @@ def extract_article_data(source):
 
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
-        #print generate_test_func('sidebar_box_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_content, source.name, 'sidebar_box_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
+        #print generate_test_func('plaintext_links_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
+        #save_sample_data_file(html_content, source.name, 'plaintext_links_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
         
         return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                            updated_tagged_urls,
@@ -370,14 +391,16 @@ def test_sample_data():
     filepath = "../../sample_data/sudpresse/sudpresse_associated_link_error.html"
     filepath = "../../sample_data/sudpresse/sudpresse_live_article.html"
     filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_true_plaintext.html"
+    #filepath = "../../sample_data/sudpresse/sudpresse_fake_plaintext.html"
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
 
-        for link in article_data.links:
-            print link.URL
-            print link.title
-            print link.tags
-            print "**********************"
+        # for link in article_data.links:
+        #     print link.URL
+        #     print link.title
+        #     print link.tags
+        #     print "**********************"
 
 
 def download_one_article():

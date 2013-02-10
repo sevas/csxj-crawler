@@ -29,6 +29,19 @@ class TestSudpresseLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_plaintext_links_tagging(self):
+        """ Sudpresse parser correctly tags 'plaintext' links."""
+        with open(os.path.join(DATA_ROOT, "plaintext_links_tagging.html")) as f:
+            article, raw_html = sudpresse.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://expo-guide.com", u"""http://expo-guide.com""", set(['plaintext', 'external', 'in text'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+
     def test_same_owner_tagging(self):
         """ Sudpresse parser correctly tags 'same owner' links """
         with open(os.path.join(DATA_ROOT, "same_owner_tagging.html")) as f:
