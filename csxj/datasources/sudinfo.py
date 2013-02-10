@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import codecs
+from datetime import datetime
+import locale
+from itertools import chain
 import urllib
 import urllib2
 import itertools as it
@@ -18,6 +21,7 @@ from csxj.db.article import ArticleData
 
 from parser_tools import rossel_utils
 from helpers.unittest_generator import generate_test_func, save_sample_data_file
+
 from csxj.common.tagging import print_taggedURLs
 
 setup_locales()
@@ -254,6 +258,7 @@ def extract_links_from_media_items(media_items):
         embedded_frame = item.select(".//iframe")
         if embedded_frame:
             target_url, tags = extract_and_tag_iframe_source(embedded_frame)
+            tags = classify_and_tag(target_url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
 
             return make_tagged_url(target_url, title, tags)
         else:
@@ -338,6 +343,7 @@ def extract_content_and_links(hxs):
             all_tagged_urls.append(make_tagged_url(url, url, tags))
 
     new_media_items = hxs.select("//div [@class='digital-wally_digitalobject']//li")
+
     all_tagged_urls.extend(extract_links_from_media_items(new_media_items))
 
     return all_content_paragraphs, all_tagged_urls
@@ -527,6 +533,14 @@ def test_sample_data():
         # article_data.print_summary()
 
         print_taggedURLs(article_data.links, 100)
+        #     print link
+        print article_data.title
+        for fragment in article_data.content:
+            print fragment
+
+
+        # print article_data.intro
+        # print article_data.content
 
 
 def show_article():
@@ -563,6 +577,9 @@ def show_article():
 
     article, html = extract_article_data(urls[-1])
     for link in article.links:
+        print titles
+        print url
+        print content
         print link
 
 

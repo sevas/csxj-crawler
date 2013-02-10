@@ -64,7 +64,12 @@ ROSSEL_SAME_OWNER = [
     'lavoixemploi.com',
     'nordeclair.fr',
     'lechodelalys.fr',
-    'journaldemontreuil.fr'
+    'journaldemontreuil.fr',
+    'lameuse.be',
+    'lacapitale.be',
+    'lanouvellegazette.be',
+    'laprovince.be',
+    'nordeclair.be'
 ]
 
 LESOIR_SAME_OWNER = []

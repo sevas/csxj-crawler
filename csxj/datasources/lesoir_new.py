@@ -164,7 +164,7 @@ def extract_text_content_and_links(soup) :
                     plaintext_links = utils.extract_plaintext_urls_from_text(clean_fragment)
                     plaintext_urls.extend(plaintext_links)
             if type(fragment) is bs4.NavigableString:
-                clean_fragment = clean_fragment = utils.remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")   
+                clean_fragment = utils.remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")   
                 plaintext_links = utils.extract_plaintext_urls_from_text(clean_fragment)
                 plaintext_urls.extend(plaintext_links)
 

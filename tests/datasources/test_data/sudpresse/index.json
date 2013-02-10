@@ -7,6 +7,14 @@
     [
       "../../sample_data/sudpresse/sudpresse_associated_link_error.html", 
       "sidebar_box_tagging.html"
+    ], 
+    [
+      "../../sample_data/sudpresse/sudpresse_true_plaintext.html", 
+      "plaintext_links_tagging.html"
+    ], 
+    [
+      "../../sample_data/sudpresse/sudpresse_fake_plaintext.html", 
+      "intext_links_tagging.html"
     ]
   ]
 }
