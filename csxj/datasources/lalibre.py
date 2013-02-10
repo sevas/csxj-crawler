@@ -245,8 +245,8 @@ def extract_article_data_from_html(html_content, source_url):
 
     updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.LALIBRE_SAME_OWNER)
 
-    # print generate_test_func('plaintext_links', 'lalibre', dict(tagged_urls=updated_tagged_urls))
-    save_sample_data_file(html_content, source_url, 'plaintext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lalibre')
+    # print generate_test_func('embedded_tweet', 'lalibre', dict(tagged_urls=updated_tagged_urls))
+    # save_sample_data_file(html_content, source_url, 'embedded_tweet', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lalibre')
 
 
 
@@ -299,7 +299,8 @@ def test_sample_data():
             "http://www.lalibre.be/actu/international/article/791997/israel-une-campagne-qui-n-a-pas-vole-haut.html",
             "http://www.lalibre.be/economie/actualite/article/789261/le-fmi-s-est-trompe-et-fait-son-mea-culpa.html",
             "http://www.lalibre.be/societe/general/article/779522/la-pornographie-une-affaire-d-hommes-pas-seulement.html",
-            "http://www.lalibre.be/societe/insolite/article/787359/des-chocolats-aux-insectes.html"]
+            "http://www.lalibre.be/societe/insolite/article/787359/des-chocolats-aux-insectes.html",
+            "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html"]
 
     from pprint import pprint
     import os

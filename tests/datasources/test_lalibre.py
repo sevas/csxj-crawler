@@ -22,11 +22,11 @@ class TestLalibreLinkExtraction(object):
             extracted_links = article.links
 
             expected_sidebox_links = [
-                make_tagged_url("http://politictwist.blogs.lalibre.be/", u"Politic Twist, le blog politique décalé", set(['sidebar box', 'internal site']))
+                make_tagged_url("http://politictwist.blogs.lalibre.be/", u"Politic Twist, le blog politique décalé", set(['internal', 'sidebar box', 'internal site']))
             ]
 
             expected_bottom_links = [
-                make_tagged_url("http://politictwist.blogs.lalibre.be/", u"Politic Twist, le blog politique décalé", set(['bottom box', 'internal site']))
+                make_tagged_url("http://politictwist.blogs.lalibre.be/", u"Politic Twist, le blog politique décalé", set(['internal', 'bottom box', 'internal site']))
             ]
 
             expected_links = expected_bottom_links + expected_sidebox_links
@@ -192,6 +192,33 @@ class TestLalibreLinkExtraction(object):
                 make_tagged_url("/societe/gastronomie/article/785611/belgian-bubbles-un-produit-100-naturel-pour-des-fetes-reussies.html", u"""Belgian Bubbles, un produit 100% naturel pour des fêtes réussies""", set(['bottom box', 'internal'])),
                 make_tagged_url("/societe/gastronomie/article/787152/edito-crise-de-foie-gras.html", u"""Edito: Crise de foie (gras)""", set(['bottom box', 'internal'])),
                 make_tagged_url("/economie/entreprise-emploi/article/787084/upignac-a-la-gnaque.html", u"""Upignac a la gnaque""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_tweet(self):
+        """ lalibre parser correctly extracts and tags embedded tweets (and a whole bunch of other links) """
+        with open(os.path.join(DATA_ROOT, "embedded_tweet.html")) as f:
+            article, raw_html = lalibre.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("https://twitter.com/JohnnySjh/status/282908799470292993", u"""https://twitter.com/JohnnySjh/status/282908799470292993""", set(['tweet', 'embedded media', 'external'])),
+                make_tagged_url("/culture/people/article/785865/depardieu-apparait-en-chaise-roulante.html", u"""Depardieu apparaît... en chaise roulante""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/culture/people/article/784586/vous-soutenez-gerard-depardieu.html", u"""Vous soutenez Gérard Depardieu""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/international/article/785820/hollande-si-on-aime-la-france-on-doit-la-servir.html", u'''Hollande : "Si on aime la France, on doit la servir"''', set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/international/article/785045/gerard-depardieu-il-va-s-embeter-en-belgique-juge-cohn-bendit.html", u"""Gérard Depardieu? "Il va s'embêter" en Belgique juge Cohn-Bendit""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/international/article/784814/depardieu-qu-il-retourne-au-cinema-muet.html", u'''Depardieu, "Qu'il retourne au cinéma muet"''', set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/international/article/784820/riches-ils-ont-quitte-la-france.html", u"""Riches, ils ont quitté la France""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/international/article/784891/edito-minable.html", u"""Édito : Minable... ?""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/culture/people/article/785865/depardieu-apparait-en-chaise-roulante.html", u"""Depardieu apparaît... en chaise roulante""", set(['bottom box', 'internal'])),
+                make_tagged_url("/culture/people/article/784586/vous-soutenez-gerard-depardieu.html", u"""Vous soutenez Gérard Depardieu""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/international/article/785820/hollande-si-on-aime-la-france-on-doit-la-servir.html", u'''Hollande : "Si on aime la France, on doit la servir"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/international/article/785045/gerard-depardieu-il-va-s-embeter-en-belgique-juge-cohn-bendit.html", u"""Gérard Depardieu? "Il va s'embêter" en Belgique juge Cohn-Bendit""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/international/article/784814/depardieu-qu-il-retourne-au-cinema-muet.html", u'''Depardieu, "Qu'il retourne au cinéma muet"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/international/article/784820/riches-ils-ont-quitte-la-france.html", u"""Riches, ils ont quitté la France""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/international/article/784891/edito-minable.html", u"""Édito : Minable... ?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/international/article/787374/taxe-a-75-depardieu-reste-en-belgique.html", u"""Taxe à 75%: Depardieu reste en Belgique""", set(['bottom box', 'internal'])),
+                make_tagged_url("/societe/cyber/article/788995/twitter-veut-le-feu-vert-de-la-justice-pour-denoncer-les-racistes.html", u"""Twitter veut le feu vert de la justice pour dénoncer les racistes""", set(['bottom box', 'internal'])),
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
