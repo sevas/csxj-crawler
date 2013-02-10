@@ -42,6 +42,7 @@ def classify_and_tag(url, own_netloc, associated_sites):
                 tags.extend(associated_sites[netloc])
             if is_on_same_domain(url, get_netloc_domain(own_netloc)):
                 tags.append('internal site')
+                tags.append('internal')
             else:
                 tags.append('external')
     elif not (scheme or netloc or path or params or query) and fragment:
@@ -50,7 +51,6 @@ def classify_and_tag(url, own_netloc, associated_sites):
     elif url:
         # url starting with '/'
         tags = ['internal']
-
     return set(tags)
 
 def tag_same_owner(url, same_owner_sites):
@@ -63,6 +63,8 @@ def tag_same_owner(url, same_owner_sites):
                 tags.append('same owner')
 
     return set(tags)
+
+
 
 def update_tagged_urls(all_links, same_owner_sites):
 
