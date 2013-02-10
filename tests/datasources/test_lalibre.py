@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 """
 Link extraction test suite for lalibre.py
 """
@@ -158,7 +158,6 @@ class TestLalibreLinkExtraction(object):
             expected_links = expected_sidebox_links + expected_bottom_links + expected_embbeded_media_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
     def test_same_owner_tagging(self):
         """ lalibre parser correctly tags 'same owner' links """
         with open(os.path.join(DATA_ROOT, "links_same_owner_tagging.html")) as f:
@@ -252,7 +251,6 @@ class TestLalibreLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
 
-
 class TestLalibreContentExtraction(object):
     def test_clean_paragraph_extraction(self):
         """ lalibre parser extracts the paragraphs as a list of strings without bullshit characters (e.g. \\t, \\r, \\n)"""
@@ -280,4 +278,3 @@ class TestLalibreContentExtraction(object):
 
             expected_content = [u"Mouss Diouf a été révélé au grand public grâce à son interprétation du lieutenant N'Guma dans la série française Julie Lescaut. \r\n\r\nVéronique Genest est resté très proche de Mouss Diouf après son accident vasculaire cérébral. Elle a réagi sur Twitter suite au décès de l'acteur."]
             eq_(article.content, expected_content, msg="\n{0}\n{1}".format(article.content, expected_content))
-

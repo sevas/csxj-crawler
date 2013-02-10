@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 """
 Link extraction test suite for lesoir.py
 """
@@ -12,6 +12,7 @@ from csxj.datasources import lesoir
 from csxj_test_tools import assert_taggedURLs_equals
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'lesoir')
+
 
 class TestLesoirLinkExtraction(object):
     def test_same_owner_tagging(self):
