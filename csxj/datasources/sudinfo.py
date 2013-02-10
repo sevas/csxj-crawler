@@ -2,13 +2,10 @@
 
 import codecs
 from datetime import datetime
-import locale
-from itertools import chain
 import urllib
 import urllib2
 import itertools as it
 from urlparse import urlparse
-from datetime import datetime
 
 from scrapy.selector import HtmlXPathSelector
 
