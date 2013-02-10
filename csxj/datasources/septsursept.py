@@ -519,7 +519,7 @@ def extract_article_data(source):
         author_name = extract_author_name(author_box)
         pub_date, pub_time = extract_date_and_time(author_box)
 
-        source = extract_source(author_box)
+        # original_source = extract_source(author_box)
 
         intro, tagged_urls_from_intro = extract_intro(soup)
 
