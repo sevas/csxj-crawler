@@ -49,8 +49,10 @@ def classify_and_tag(url, own_netloc, associated_sites):
         if url.startswith('#'):
             tags = ['internal', 'anchor']
     elif url:
-        # url starting with '/'
-        tags = ['internal']
+        if url.startswith('/'):
+            tags = ['internal']
+        else:
+            tags = ['external']
     return set(tags)
 
 def tag_same_owner(url, same_owner_sites):
