@@ -1,7 +1,7 @@
 {
   "test_data": [
     [
-      "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html",
+      "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html", 
       "single_bottom_link.html"
     ],
     [
@@ -43,6 +43,10 @@
     [
       "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html",
       "extract_embedded_tweets.html"
+    ],
+    [
+      "http://www.dhnet.be/infos/belgique/article/417360/neige-preparez-vous-au-chaos-ce-matin.html", 
+      "plaintext_links.html"
     ]
   ]
 }

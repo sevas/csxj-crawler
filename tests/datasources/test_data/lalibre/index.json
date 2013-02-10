@@ -43,6 +43,14 @@
     [
       "http://www.lalibre.be/actu/belgique/article/788978/incendie-d-un-car-belge-en-suisse-plus-de-peur-que-de-mal.html", 
       "links_extract_embedded_tweets.html"
+    ],
+   [
+      "http://www.lalibre.be/societe/insolite/article/787359/des-chocolats-aux-insectes.html", 
+      "plaintext_links.html"
+    ], 
+    [
+      "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html", 
+      "embedded_tweet.html"
     ]
   ]
 }
