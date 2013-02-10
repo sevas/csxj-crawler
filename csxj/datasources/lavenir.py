@@ -144,7 +144,6 @@ def select_title_and_url(selector, tag_name):
     return make_tagged_url(url, title, tags)
 
 def extract_sidebar_links(sidebar_links):
-    print sidebar_links
     tagged_urls = [select_title_and_url(sidebar_link, 'sidebar box') for sidebar_link in sidebar_links]
     return tagged_urls
 
@@ -222,12 +221,12 @@ def extract_article_data(source):
 
     # bottom links
     bottom_box = hxs.select('//div[@class="span-3 lire-aussi"]//a')
-    extract_bottom_links(bottom_box)
+    all_links.extend(extract_bottom_links(bottom_box))
 
     updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
-    #print generate_test_func('same_owner_tagging', 'lavenir', dict(tagged_urls=updated_tagged_urls))
-    #save_sample_data_file(html_content, source, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
+    #print generate_test_func('bottom_box_and_sidebar_and_intext_links', 'lavenir', dict(tagged_urls=updated_tagged_urls))
+    save_sample_data_file(html_content, source, 'bottom_box_and_sidebar_and_intext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
 
 
     # wrapping up
