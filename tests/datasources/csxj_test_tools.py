@@ -4,6 +4,7 @@ import itertools as it
 
 from csxj.common.tagging import TaggedURL
 
+
 @nottest
 def to_frozensets(taggedURLs):
     return set([(url, title, frozenset(tags)) for url, title, tags in taggedURLs])
@@ -17,6 +18,7 @@ def format_as_two_columns(expected, extracted):
         for left, right in it.izip_longest(expected, extracted, fillvalue=TaggedURL("NONE", "NONE", set())):
             yield u"{0:100}    {1:100}".format(left.URL[:100], right.URL[:100])
     return u"\n".join(make_pairs())
+
 
 @nottest
 def assert_taggedURLs_equals(expected_links, extracted_links):
@@ -37,3 +39,10 @@ def assert_taggedURLs_equals(expected_links, extracted_links):
 
     else:
         ok_(True)
+
+
+@nottest
+def assert_content_equals(expected_content, extracted_content):
+    expected_count, extracted_count = len(expected_content), len(extracted_content)
+    eq_(expected_count, extracted_count, msg=u"Expected {0} paragraphs. Extracted {1}".format(expected_count, extracted_count))
+    #eq_(expected_content, extracted_content)

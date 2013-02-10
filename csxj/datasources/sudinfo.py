@@ -221,7 +221,7 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
 
     text_fragments = paragraph_hxs.select(".//text()").extract()
     if text_fragments:
-        text = u" ".join(remove_text_formatting_markup_from_fragments(text_fragments))
+        text = u"".join(remove_text_formatting_markup_from_fragments(text_fragments))
         plaintext_urls = extract_plaintext_urls_from_text(text)
         for url in plaintext_urls:
             tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
@@ -521,12 +521,8 @@ def show_frontpage_articles():
 def test_sample_data():
     import os
     root = os.path.join(os.path.dirname(__file__), '../../sample_data')
-    filepath = os.path.join(root, 'sudinfo/sudinfo_internal_links_in_sidebar_box.html')
-    filepath = os.path.join(root, 'sudinfo/sudinfo_video.html')
-    filepath = os.path.join(root, 'sudinfo/embedded_photos.html')
-    filepath = os.path.join(root, 'sudinfo/sudinfo_nolinks.html')
-    filepath = os.path.join(root, 'sudinfo/sudinfo_video_and_coveritlive.html')
-    #filepath = '../../sample_data/sudinfo/sudinfo_intext_link.html'
+    filepath = os.path.join(root, 'sudinfo/fake_plaintext.html')
+
 
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)

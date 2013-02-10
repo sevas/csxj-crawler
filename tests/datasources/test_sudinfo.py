@@ -11,7 +11,7 @@ from csxj.datasources.parser_tools.utils import convert_utf8_url_to_ascii
 from csxj.common.tagging import make_tagged_url
 from csxj.datasources import sudinfo
 
-from csxj_test_tools import assert_taggedURLs_equals
+from csxj_test_tools import assert_taggedURLs_equals, assert_content_equals
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'sudinfo')
 
@@ -27,8 +27,6 @@ class TestSudinfoLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
-
-
 
     def test_sidebar_box_tagging(self):
         """ Sudinfo parser can extract and tag sidebar links from an article. """
@@ -55,8 +53,6 @@ class TestSudinfoLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
-
     def test_embedded_video_extraction(self):
         """ Sudinfo parser can extract and tag embedded video from the bottom of an article. """
         with open(os.path.join(DATA_ROOT, "embedded_video_extraction.html")) as f:
@@ -69,7 +65,6 @@ class TestSudinfoLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
     def test_in_text_link_extraction(self):
         """ Sudinfo parser can extract and tag in-text links """
         with open(os.path.join(DATA_ROOT, "in_text_link_extraction.html")) as f:
@@ -80,7 +75,6 @@ class TestSudinfoLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
-
 
     def test_links_iframe_in_text(self):
         """ Sudinfo parser can extract iframes within text block"""
@@ -96,3 +90,15 @@ class TestSudinfoLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+class TestSudinfoContentExtracttion(object):
+    def test_intext_link(self):
+        """ Sudinfo parser correctly extract text content, even when there is a link inside"""
+        with open(os.path.join(DATA_ROOT, "content_intext_link.html")) as f:
+            article, _ = sudinfo.extract_article_data(f)
+
+            expected_intro = u"""Le flash mob proposé par Stéphane Thiry, officier pompier au SRI de Saint-Hubert a obtenu un succès tel qu'ils étaient plus de 300 à danser et se regarder lors de la journée portes-ouvertes des pompiers de ce dimanche 7 octobre."""
+            expected_content = [u"""Grosse foule et succès mérité pour les pompiers borquins qui ont réalisé multiples exrecices face au public.Une jounée sous un ciel clément et ensoleillé. Et pour cause, Mr Météo avait rangé ses grenouilles et les pompiers ont imploré Sainte-Claire en lui portant des oeufs.""",
+                                u"""Plus de détails et un album photo sur  http://secourslux.blogs.sudinfo.be"""]
+            assert_content_equals(expected_content, article.content)
