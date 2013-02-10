@@ -2,6 +2,7 @@ from nose.tools import eq_
 from BeautifulSoup import BeautifulSoup
 
 from csxj.datasources.parser_tools.utils import remove_text_formatting_markup_from_fragments
+from csxj.datasources.parser_tools.utils import remove_text_formatting_and_links_from_fragments
 
 
 def make_fragments(html_data):
@@ -61,3 +62,8 @@ class TestHTMLCleanup():
         clean_fragments = remove_text_formatting_markup_from_fragments(html_fragments)
         expected_fragments = u"\nHello there, friend\n"
         eq_(clean_fragments, expected_fragments)
+
+    def test_remove_markup_and_links(self):
+        html_fragments = make_fragments(u"""there is no link here: <a href="/foo">foo</a>""")
+        clean_fragments = remove_text_formatting_and_links_from_fragments(html_fragments)
+        eq_(clean_fragments, u"there is no link here: ")
