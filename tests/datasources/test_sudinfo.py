@@ -102,6 +102,16 @@ class TestSudinfoLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_links_embedded_thumbnails(self):
+        """ sudinfo parser ignores the images from the embedded gallery in the 'medias' box"""
+        with open(os.path.join(DATA_ROOT, "links_embedded_thumbnails.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestSudinfoContentExtracttion(object):
     def test_intext_link(self):
