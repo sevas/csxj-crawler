@@ -91,6 +91,17 @@ class TestSudinfoLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_links_intext_not_plaintext(self):
+        """ Sudinfo extracts intext urls only once (and not as plaintext URLs)"""
+        with open(os.path.join(DATA_ROOT, "links_intext_not_plaintext.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://secourslux.blogs.sudinfo.be", u"""http://secourslux.blogs.sudinfo.be""", set(['in text', 'internal', 'internal site', 'jblog'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestSudinfoContentExtracttion(object):
     def test_intext_link(self):

@@ -14,6 +14,7 @@ from scrapy.selector import HtmlXPathSelector
 
 from parser_tools.utils import fetch_content_from_url, fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text, remove_text_formatting_markup_from_fragments
+from parser_tools.utils import remove_text_formatting_and_links_from_fragments
 from parser_tools.utils import convert_utf8_url_to_ascii
 from parser_tools.utils import setup_locales
 from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
@@ -219,10 +220,13 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
         tags.update(['in text', 'embedded image'])
         tagged_urls.append(make_tagged_url(url, img_target, tags))
 
-    text_fragments = paragraph_hxs.select(".//text()").extract()
+    # plaintext urls
+    text_fragments = paragraph_hxs.select("./text()").extract()
     if text_fragments:
         text = u"".join(remove_text_formatting_markup_from_fragments(text_fragments))
-        plaintext_urls = extract_plaintext_urls_from_text(text)
+
+        #print remove_text_formatting_and_links_from_fragments(text_fragments)
+        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
         for url in plaintext_urls:
             tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
             tags.update(['plaintext', 'in text'])
@@ -231,6 +235,7 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
     else:
         text = u""
 
+    # iframes
     iframes = paragraph_hxs.select(".//iframe")
     for iframe in iframes:
         target_url, tags = extract_and_tag_iframe_source(iframe)
@@ -440,15 +445,11 @@ def extract_article_data(source):
         intro, intro_links = extract_intro_and_links(hxs)
 
         content, content_links = extract_content_and_links(hxs)
-
         associated_links = extract_associated_links(hxs)
-
         all_links = intro_links + content_links + associated_links
-
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
-
-        #print generate_test_func('links_iframe_in_text', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
+        #print generate_test_func('links_intext_not_plaintext', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
         #save_sample_data_file(html_content, source.name, 'in_text_same_owner', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
 
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -529,15 +530,6 @@ def test_sample_data():
         # article_data.print_summary()
 
         print_taggedURLs(article_data.links, 100)
-        #     print link
-        print article_data.title
-        for fragment in article_data.content:
-            print fragment
-
-
-        # print article_data.intro
-        # print article_data.content
-
 
 def show_article():
     urls = [
