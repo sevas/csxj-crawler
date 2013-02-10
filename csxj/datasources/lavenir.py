@@ -131,25 +131,26 @@ def extract_links_from_article_body(article_body_hxs):
 
     return links
 
+def select_title_and_url(selector, tag_name):
+    url = selector.select("./@href").extract()[0]
+    title = selector.select(".//text()").extract()
+    if title:
+        title =  remove_text_formatting_markup_from_fragments(title[0])
+        tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+        tags = tags.union([tag_name])
+    else:
+        tags = set([tag_name, 'ghost link'])
+        title = '__GHOST_LINK__'
+    return make_tagged_url(url, title, tags)
 
 def extract_sidebar_links(sidebar_links):
-
-    def select_title_and_url(selector):
-        url = selector.select("./@href").extract()[0]
-        title = selector.select(".//text()").extract()
-        if title:
-            title =  remove_text_formatting_markup_from_fragments(title[0])
-            tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-            tags = tags.union(['sidebar box'])
-        else:
-            tags = set(['sidebar box', 'ghost link'])
-            title = '__GHOST_LINK__'
-        return make_tagged_url(url, title, tags)
-
-    tagged_urls = [select_title_and_url(sidebar_link) for sidebar_link in sidebar_links]
-
+    print sidebar_links
+    tagged_urls = [select_title_and_url(sidebar_link, 'sidebar box') for sidebar_link in sidebar_links]
     return tagged_urls
 
+def extract_bottom_links(bottom_links):    
+    tagged_urls = [select_title_and_url(bottom_link, 'bottom box') for bottom_link in bottom_links]
+    return tagged_urls
 
 
 def extract_article_data(source):
@@ -218,6 +219,10 @@ def extract_article_data(source):
     # associated sidebar links
     sidebar_links = article_detail_hxs.select("./div/div[@class='article-side']/div[@class='article-related']//li/a")
     all_links.extend(extract_sidebar_links(sidebar_links))
+
+    # bottom links
+    bottom_box = hxs.select('//div[@class="span-3 lire-aussi"]//a')
+    extract_bottom_links(bottom_box)
 
     updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
@@ -305,6 +310,7 @@ def show_sample_articles():
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199541",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002"
 
             ]
@@ -316,8 +322,7 @@ def show_sample_articles():
     #         print tagged_link.URL, tagged_link.title, tagged_link.tags
     
     article, html = extract_article_data(urls[-1])
-    for link in article.links:
-        print link
+
 
 
 def show_frontpage():

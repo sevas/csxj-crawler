@@ -518,7 +518,10 @@ def test_sample_data():
 
         # for link in article_data.links:
         #     print link
-            
+        print article_data.title
+        for fragment in article_data.content:
+            print fragment
+
 
         # print article_data.intro
         # print article_data.content
@@ -558,6 +561,9 @@ def show_article():
 
     article, html = extract_article_data(urls[-1])
     for link in article.links:
+        print titles
+        print url
+        print content
         print link
 
 
