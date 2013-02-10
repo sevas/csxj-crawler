@@ -81,3 +81,18 @@ class TestSudinfoLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+
+    def test_links_iframe_in_text(self):
+        """ Sudinfo parser can extract iframes within text block"""
+        with open(os.path.join(DATA_ROOT, "links_iframe_in_text.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=82d305926f/height=850/width=600", u"""__EMBEDDED_IFRAME__""", set(['iframe', 'external', 'embedded'])),
+                make_tagged_url("http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=9bb12b4294es", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=9bb12b4294es""", set(['embedded video', 'bottom video', 'external', 'embedded'])),
+                make_tagged_url("http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=ab7055b944bs", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=ab7055b944bs""", set(['embedded video', 'bottom video', 'external', 'embedded'])),
+                make_tagged_url("http://portfolio.sudpresse.be/main.php?g2_itemId=1033320", u"""Nos photos de la conférence de presse""", set(['internal', 'sidebar box', 'gallery', 'external'])),
+                make_tagged_url("/425052/article/sports/foot-belge/standard/2012-05-29/ron-jans-au-standard-les-supporters-partages-entre-c-est-n-importe-quoi-et-", u'''Ron Jans au Standard: les supporters partagés entre "C'est n'importe quoi" et "Laissons-lui sa chance"''', set(['internal', 'sidebar box'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)

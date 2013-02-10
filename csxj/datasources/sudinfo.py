@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import sys
-from datetime import datetime
-import locale
-from itertools import chain
+import codecs
 import urllib
 import urllib2
+import itertools as it
 from urlparse import urlparse
-import codecs
+from datetime import datetime
 
 from scrapy.selector import HtmlXPathSelector
 
 from parser_tools.utils import fetch_content_from_url, fetch_html_content
-from parser_tools.utils import extract_plaintext_urls_from_text
+from parser_tools.utils import extract_plaintext_urls_from_text, remove_text_formatting_markup_from_fragments
 from parser_tools.utils import convert_utf8_url_to_ascii
 from parser_tools.utils import setup_locales
 from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
@@ -20,8 +18,7 @@ from csxj.db.article import ArticleData
 
 from parser_tools import rossel_utils
 from helpers.unittest_generator import generate_test_func, save_sample_data_file
-
-
+from csxj.common.tagging import print_taggedURLs
 
 setup_locales()
 
@@ -187,6 +184,13 @@ def extract_img_link_info(link_hxs):
     return title, url
 
 
+def extract_and_tag_iframe_source(embedded_frame):
+    target_url = embedded_frame.select("./@src").extract()[0]
+    tags = classify_and_tag(target_url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+    tags.update(['embedded', 'iframe'])
+    return target_url, tags
+
+
 def extract_text_and_links_from_paragraph(paragraph_hxs):
     def separate_img_and_text_links(links):
         img_links = [l for l in links if l.select("./img")]
@@ -213,7 +217,7 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
 
     text_fragments = paragraph_hxs.select(".//text()").extract()
     if text_fragments:
-        text = ' '.join(text_fragments)
+        text = u" ".join(remove_text_formatting_markup_from_fragments(text_fragments))
         plaintext_urls = extract_plaintext_urls_from_text(text)
         for url in plaintext_urls:
             tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
@@ -222,6 +226,11 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
             tagged_urls.append(make_tagged_url(url, url, tags))
     else:
         text = u""
+
+    iframes = paragraph_hxs.select(".//iframe")
+    for iframe in iframes:
+        target_url, tags = extract_and_tag_iframe_source(iframe)
+        tagged_urls.append(make_tagged_url(target_url, "__EMBEDDED_IFRAME__", tags))
 
     return text, tagged_urls
 
@@ -244,9 +253,8 @@ def extract_links_from_media_items(media_items):
     def extract_and_tag_url_from_iframe(item):
         embedded_frame = item.select(".//iframe")
         if embedded_frame:
-            target_url = embedded_frame.select("./@src").extract()[0]
-            tags = classify_and_tag(target_url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-            tags.update(['embedded', 'iframe'])
+            target_url, tags = extract_and_tag_iframe_source(embedded_frame)
+
             return make_tagged_url(target_url, title, tags)
         else:
             return None
@@ -317,6 +325,7 @@ def extract_content_and_links(hxs):
         all_content_paragraphs.append(text)
         all_tagged_urls.extend(tagged_urls)
 
+
     #extract embedded videos
     divs = hxs.select("//div [@id='article']/p[starts-with(@class, 'publiele')]/following-sibling::div/div [@class='bottomVideos']")
 
@@ -329,7 +338,6 @@ def extract_content_and_links(hxs):
             all_tagged_urls.append(make_tagged_url(url, url, tags))
 
     new_media_items = hxs.select("//div [@class='digital-wally_digitalobject']//li")
-
     all_tagged_urls.extend(extract_links_from_media_items(new_media_items))
 
     return all_content_paragraphs, all_tagged_urls
@@ -374,7 +382,7 @@ def extract_associated_links(hxs):
 
     media_links = hxs.select("//div[@id='picture']/descendant::div[@class='wrappAllMedia']/div")
 
-    
+
     for i, item in enumerate(media_links):
         if item.select('./img'):
             pass
@@ -434,9 +442,9 @@ def extract_article_data(source):
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
 
-        #print generate_test_func('in_text_same_owner', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
+        #print generate_test_func('links_iframe_in_text', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
         #save_sample_data_file(html_content, source.name, 'in_text_same_owner', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
-        
+
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             updated_tagged_urls,
                             category, author,
@@ -482,7 +490,7 @@ def get_frontpage_toc():
     buzz_headlines = hxs.select("//div[@class='buzz exergue clearfix']//h2/a")
     buzz_headlines.extend(hxs.select("//div[@class='buzz exergue clearfix']//li/a"))
 
-    all_link_selectors = chain(column1_headlines, column3_headlines, buzz_headlines)
+    all_link_selectors = it.chain(column1_headlines, column3_headlines, buzz_headlines)
     headlines = [extract_title_url_from_hxs_a(link_selector) for link_selector in all_link_selectors]
 
     regional_headlines = get_regional_toc()
@@ -505,23 +513,20 @@ def show_frontpage_articles():
 
 
 def test_sample_data():
-    filepath = '../../sample_data/sudinfo/sudinfo_internal_links_in_sidebar_box.html'
-    filepath = '../../sample_data/sudinfo/sudinfo_video.html'
-    filepath = '../../sample_data/sudinfo/embedded_photos.html'
-    filepath = '../../sample_data/sudinfo/sudinfo_nolinks.html'
-    filepath = '../../sample_data/sudinfo/sudinfo_video_and_coveritlive.html'
-    filepath = '../../sample_data/sudinfo/sudinfo_intext_link.html'
+    import os
+    root = os.path.join(os.path.dirname(__file__), '../../sample_data')
+    filepath = os.path.join(root, 'sudinfo/sudinfo_internal_links_in_sidebar_box.html')
+    filepath = os.path.join(root, 'sudinfo/sudinfo_video.html')
+    filepath = os.path.join(root, 'sudinfo/embedded_photos.html')
+    filepath = os.path.join(root, 'sudinfo/sudinfo_nolinks.html')
+    filepath = os.path.join(root, 'sudinfo/sudinfo_video_and_coveritlive.html')
+    #filepath = '../../sample_data/sudinfo/sudinfo_intext_link.html'
 
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
         # article_data.print_summary()
 
-        # for link in article_data.links:
-        #     print link
-            
-
-        # print article_data.intro
-        # print article_data.content
+        print_taggedURLs(article_data.links, 100)
 
 
 def show_article():
@@ -544,14 +549,14 @@ def show_article():
         u"http://www.sudinfo.be/534573/article/sports/foot-belge/standard/2012-09-25/jelle-van-damme-standard-menace-benjamin-deceuninck-en-direct-fais-gaffe-av",
         u"http://www.sudinfo.be/534931/article/actualite/sante/2012-09-26/la-prescription-des-medicaments-bon-marche-continue-de-progresser",
         u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/des-nus-partout-dans-bruxelles-qui-miment-l-acte-sexuel-l’incroyable-performance",
-        
+
         # liens 'same owner'
         u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/schocking-in-brussles-des-hommes-nus-miment-l-acte-sexuel-au-palais-de-justice-a",
         u"http://www.sudinfo.be/535396/article/culture/musique/2012-09-27/mylene-farmer-donnera-deux-concerts-en-belgique-l’an-prochain",
 
         # embedded coveritlive + standard widget
         u"http://www.sudinfo.be/306989/article/sports/foot-belge/standard/2012-01-08/standard-chattez-en-exclusivite-avec-sebastien-pocognoli-ce-lundi-des-13h30",
-        
+
         # embeddes scribble
         u"http://www.sudinfo.be/655859/article/sports/foot-belge/anderlecht/2013-02-03/suivez-le-super-sunday-en-live-genk-ecrase-bruges-4-1-le-standard-en-visi"
     ]
