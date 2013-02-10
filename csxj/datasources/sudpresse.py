@@ -234,8 +234,8 @@ def extract_article_data(source):
 
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
-        #print generate_test_func('plaintext_links_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_content, source.name, 'plaintext_links_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
+        #print generate_test_func('intext_links_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
+        #save_sample_data_file(html_content, source.name, 'intext_links_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
         
         return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                            updated_tagged_urls,
@@ -392,7 +392,7 @@ def test_sample_data():
     filepath = "../../sample_data/sudpresse/sudpresse_live_article.html"
     filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
     filepath = "../../sample_data/sudpresse/sudpresse_true_plaintext.html"
-    #filepath = "../../sample_data/sudpresse/sudpresse_fake_plaintext.html"
+    filepath = "../../sample_data/sudpresse/sudpresse_fake_plaintext.html"
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
 

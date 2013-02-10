@@ -11,6 +11,10 @@
     [
       "../../sample_data/sudpresse/sudpresse_true_plaintext.html", 
       "plaintext_links_tagging.html"
+    ], 
+    [
+      "../../sample_data/sudpresse/sudpresse_fake_plaintext.html", 
+      "intext_links_tagging.html"
     ]
   ]
 }

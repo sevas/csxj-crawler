@@ -40,7 +40,17 @@ class TestSudpresseLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
+    def test_intext_links_tagging(self):
+        """ Sudpresse parser correctly tags 'in text' links."""
+        with open(os.path.join(DATA_ROOT, "intext_links_tagging.html")) as f:
+            article, raw_html = sudpresse.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.lameuse.be/vervietois2011", u"""www.lameuse.be/vervietois2011""", set(['same owner', 'external', 'in text'])),
+                make_tagged_url("http://verviers.lameuse.be", u"""http://verviers.lameuse.be""", set(['same owner', 'external', 'in text'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_same_owner_tagging(self):
         """ Sudpresse parser correctly tags 'same owner' links """
