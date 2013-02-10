@@ -42,19 +42,19 @@ class TestURLClassificationTestCases(object):
         """ csxj.common.tagging.classify_and_tag() classifies external url as 'external' """
         url = 'http://awesomeblog.foo.com/bestest-article-of-the-day.aspx?hl=nl'
         tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        eq_(tags, set(['internal site', 'internal blog']))
+        eq_(tags, set(['internal site', 'internal blog', 'internal']))
 
     def test_internal_biased_blog(self):
         """ csxj.common.tagging.classify_and_tag() returns adequate tags when a url matches a blog from 'associated_sites' """
         url = 'http://elections.foo.com/bestest-article-of-the-day.aspx?hl=nl'
         tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        eq_(tags, set(['internal site', 'internal blog', 'politics']))
+        eq_(tags, set(['internal site', 'internal blog', 'politics', 'internal']))
 
     def test_other_internal_site(self):
         """ csxj.common.tagging.classify_and_tag() returns adequate tags when a url matches a site from 'associated_sites' """
         url = 'http://community.foo.com/index.php?section=humor&show_rows=30'
         tags = classify_and_tag(url, self.own_netloc, self.associated_sites)
-        eq_(tags, set(['internal site', 'community forum']))
+        eq_(tags, set(['internal site', 'community forum', 'internal']))
 
     def test_no_URL(self):
         """ csxj.common.tagging.classify_and_tag() returns an empty set whem the url is an empty string """

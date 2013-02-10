@@ -17,10 +17,10 @@ def classify_and_tag(url, own_netloc, associated_sites):
     """
 
     >>> classify_and_tag("http://www.foo.org", "foo.org", {})
-    set(['internal site'])
+    set(['internal', 'internal site'])
 
     >>> classify_and_tag("http://www.foo.org/bar", "foo.org", {})
-    set(['internal site'])
+    set(['internal', 'internal site'])
 
     >>> classify_and_tag("http://www.baz.org/bar", "foo.org", {})
     set(['external'])
