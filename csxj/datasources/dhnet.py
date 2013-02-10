@@ -419,25 +419,25 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html",
         "http://www.dhnet.be/people/show-biz/article/421868/rosie-huntington-whiteley-sens-dessus-dessous.html",
         "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html"
-        "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html",
-        "http://www.dhnet.be/sports/football/article/393699/hazard-s-impose-avec-lille.html",
-        "http://www.dhnet.be/sports/football/article/393678/reynders-boycotte-l-euro-de-football-en-ukraine.html",
-        "http://www.dhnet.be/people/sports/article/393650/tom-boonen-sans-les-mains.html",
+        # "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html",
+        # "http://www.dhnet.be/sports/football/article/393699/hazard-s-impose-avec-lille.html",
+        # "http://www.dhnet.be/sports/football/article/393678/reynders-boycotte-l-euro-de-football-en-ukraine.html",
+        # "http://www.dhnet.be/people/sports/article/393650/tom-boonen-sans-les-mains.html",
 
-        #plaintext links:
-        "http://www.dhnet.be/infos/belgique/article/417360/neige-preparez-vous-au-chaos-ce-matin.html"
+        # #plaintext links:
+        # "http://www.dhnet.be/infos/belgique/article/417360/neige-preparez-vous-au-chaos-ce-matin.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
 
     article, html = extract_article_data(urls[-1])
-    # print article.title
-    # print article.url
-    # print "______________"
-    # print "LINKS:"
-    # for link in article.links:
-    #     print link.title
-    #     print link.URL
-    #     print link.tags
-    #     print "_____________"
+    print article.title
+    print article.url
+    print "______________"
+    print "LINKS:"
+    for link in article.links:
+        print link.title
+        print link.URL
+        print link.tags
+        print "_____________"
 

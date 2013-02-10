@@ -226,7 +226,7 @@ def extract_article_data(source):
     updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
     #print generate_test_func('bottom_box_and_sidebar_and_intext_links', 'lavenir', dict(tagged_urls=updated_tagged_urls))
-    save_sample_data_file(html_content, source, 'bottom_box_and_sidebar_and_intext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
+    #save_sample_data_file(html_content, source, 'bottom_box_and_sidebar_and_intext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
 
 
     # wrapping up
