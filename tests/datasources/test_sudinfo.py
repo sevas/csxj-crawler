@@ -43,6 +43,20 @@ class TestSudinfoLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_in_text_same_owner(self):
+        """ Sudinfo parser can extract and tag in text and sidebar links to same owner sites."""
+        with open(os.path.join(DATA_ROOT, "in_text_same_owner.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.lesoir.be/sports/football/2012-05-31/en-combien-de-temps-hazard-gagne-t-il-votre-salaire-918967.php", u"""Le Soir.be""", set(['same owner', 'external', 'in text'])),
+                make_tagged_url("http://www.lesoir.be/sports/football/2012-05-31/en-combien-de-temps-hazard-gagne-t-il-votre-salaire-918967.php", u"""En combien de temps, Eden Hazard gagne votre salaire?""", set(['sidebar box', 'external', 'same owner'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+
     def test_embedded_video_extraction(self):
         """ Sudinfo parser can extract and tag embedded video from the bottom of an article. """
         with open(os.path.join(DATA_ROOT, "embedded_video_extraction.html")) as f:
