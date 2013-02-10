@@ -63,6 +63,7 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
             tags = tags.union(['internal site', 'internal'])
         all_tags = tags.union(additional_tags)
         tagged_urls.append(make_tagged_url(url, title, all_tags))
+
     return tagged_urls
 
 
@@ -163,14 +164,14 @@ def extract_text_content_and_links_from_articletext(main_content, has_intro=True
                 all_fragments.append(cleaned_up_text)
                 plaintext_links = extract_plaintext_urls_from_text(paragraph)
                 urls_and_titles = zip(plaintext_links, plaintext_links)
-                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext', 'in text'])))
         else:
             if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
                 fragments = sanitize_paragraph(paragraph)
                 all_fragments.append(fragments)
                 plaintext_links = extract_plaintext_urls_from_text(fragments)
                 urls_and_titles = zip(plaintext_links, plaintext_links)
-                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext'])))
+                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext', 'in text'])))
             else:
                 embedded_tweets.extend(
                     twitter_utils.extract_rendered_tweet(paragraph, DHNET_NETLOC, DHNET_INTERNAL_SITES))
@@ -322,12 +323,13 @@ def extract_article_data(source):
         embedded_content_links = extract_links_to_embedded_content(main_content)
         all_links = in_text_links + sidebox_links + embedded_content_links + bottom_links + audio_content_links
 
+
         updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.DHNET_SAME_OWNER)
 
         fetched_datetime = datetime.today()
         
-        #print generate_test_func('same_owner_tagging', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_content, source, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # print generate_test_func('plaintext_links', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_content, source, 'plaintext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
 
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -417,12 +419,25 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html",
         "http://www.dhnet.be/people/show-biz/article/421868/rosie-huntington-whiteley-sens-dessus-dessous.html",
         "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html"
-        "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html"
+        "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html",
+        "http://www.dhnet.be/sports/football/article/393699/hazard-s-impose-avec-lille.html",
+        "http://www.dhnet.be/sports/football/article/393678/reynders-boycotte-l-euro-de-football-en-ukraine.html",
+        "http://www.dhnet.be/people/sports/article/393650/tom-boonen-sans-les-mains.html",
+
+        #plaintext links:
+        "http://www.dhnet.be/infos/belgique/article/417360/neige-preparez-vous-au-chaos-ce-matin.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
 
-    for url in urls[:-1]:
-        article, html = extract_article_data(url)
-        print_taggedURLs(article.links)
-        #     print link
+    article, html = extract_article_data(urls[-1])
+    # print article.title
+    # print article.url
+    # print "______________"
+    # print "LINKS:"
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "_____________"
+

@@ -59,6 +59,26 @@ class TestDHNetLinkExtraction(object):
             expected_links = expected_sidebar_links + expected_bottom_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_plaintext_links(self):
+        """ DHNet parser should can extract and tag plaintext links, as well as embedded iframe and a bunch of sidebar box and bottom box links. """
+        with open(os.path.join(DATA_ROOT, "plaintext_links.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.infotec.be", u"""http://www.infotec.be""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("#embed_pos1", u"""Revivez la situation de cette matinée eneigée""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/infos/societe/article/417423/au-volant-le-calme-est-le-plus-important.html", u"""Au volant, le calme est le plus important""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/infos/belgique/article/417349/plan-neige-active-pour-la-stib-et-le-tec-brabant-wallon.html", u"""Plan neige activé pour la STIB et le TEC Brabant wallon""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/infos/belgique/article/417311/sncb-et-infrabel-activent-leur-plan-hiver.html", u"""SNCB et Infrabel activent leur plan hiver""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://embed.scribblelive.com/Embed/v5.aspx?Id=73514&ThemeId=8499", u"""http://embed.scribblelive.com/Embed/v5.aspx?Id=73514&ThemeId=8499""", set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("/infos/belgique/article/417349/plan-neige-active-pour-la-stib-et-le-tec-brabant-wallon.html", u"""Plan neige activé pour la STIB et le TEC Brabant wallon""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/belgique/article/417311/sncb-et-infrabel-activent-leur-plan-hiver.html", u"""SNCB et Infrabel activent leur plan hiver""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/belgique/article/417423/au-volant-le-calme-est-le-plus-important.html", u"""Au volant, le calme est le plus important""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/belgique/article/417478/vingt-centres-de-ski-ouverts.html", u"""Vingt centres de ski ouverts""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
     def test_no_links(self):
         """ DHNet parser returns an empty link list if the article has no link. """
         with open(os.path.join(DATA_ROOT, "no_links.html")) as f:
