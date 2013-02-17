@@ -6,7 +6,7 @@ out*/
 static_data*/
 figures/
 test_figures/
-json_db*/
+jsondb*/
 .idea/
 logs/
 csxj.egg-info/
