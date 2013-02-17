@@ -9,6 +9,7 @@ from scrapy.selector import HtmlXPathSelector
 import bs4
 
 from parser_tools import utils
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments
 from parser_tools import twitter_utils
 from csxj.common import tagging
 from csxj.db.article import ArticleData
@@ -191,23 +192,19 @@ def extract_intro(soup):
 def extract_text_content_and_links(soup) :
     article_text = []
     inline_links = []
+    plaintext_urls = []
 
     content_box = soup.find(attrs = {"id" : "detail_content"})
     text = content_box.find_all(attrs = {"class":"clear"})
     for fragment in text :
         paragraphs = fragment.find_all("p", recursive=False)
-        clean_text = utils.remove_text_formatting_markup_from_fragments(paragraphs, strip_chars = "\n")
+        clean_text = remove_text_formatting_markup_from_fragments(paragraphs, strip_chars = "\n")
+        plaintext_links = utils.extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(paragraphs))
+        plaintext_urls.extend(plaintext_links)
         article_text.append(clean_text)
         for p in paragraphs:
             link = p.find_all("a")
             inline_links.extend(link)
-
-
-    plaintext_urls = []
-
-    for x in article_text:
-        plaintext_links = utils.extract_plaintext_urls_from_text(x)
-        plaintext_urls.extend(plaintext_links)
 
 
     titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
@@ -676,12 +673,15 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1513518/2012/10/09/Arret-de-travail-aux-depots-TEC-de-Jemeppe-et-Robermont.dhtml"
     article_data, html = extract_article_data(url_test)
     if article_data:
-        for link in article_data.links:
-            print link
         print article_data.title
-        print article_data.category
-        print article_data.intro
-        print len(article_data.links)
+        print article_data.content
+        print "%r LINKS:" % len(article_data.links)
+        for link in article_data.links:
+            print link.title
+            print link.URL
+            print link.tags
+            print "_________"
+
 
     # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
     # article_data, html = extract_article_data(f)
