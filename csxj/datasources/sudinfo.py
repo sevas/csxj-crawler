@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import sys
+import codecs
 from datetime import datetime
-import locale
-from itertools import chain
 import urllib
 import urllib2
+import itertools as it
 from urlparse import urlparse
-import codecs
 
 from scrapy.selector import HtmlXPathSelector
 
 from parser_tools.utils import fetch_content_from_url, fetch_html_content
-from parser_tools.utils import extract_plaintext_urls_from_text
+from parser_tools.utils import extract_plaintext_urls_from_text, remove_text_formatting_markup_from_fragments
+from parser_tools.utils import remove_text_formatting_and_links_from_fragments
 from parser_tools.utils import convert_utf8_url_to_ascii
 from parser_tools.utils import setup_locales
 from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
@@ -21,7 +20,7 @@ from csxj.db.article import ArticleData
 from parser_tools import rossel_utils
 from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
-
+from csxj.common.tagging import print_taggedURLs
 
 setup_locales()
 
@@ -30,111 +29,111 @@ SUDINFO_INTERNAL_SITES = {
     'portfolio.sudinfo.be': ['internal', 'gallery'],
     'portfolio.sudpresse.be': ['internal', 'gallery'],
 
-    'comines-warneton.blogs.sudinfo.be':['internal', 'jblog'],
-    'mouscron.blogs.sudinfo.be':['internal', 'jblog'],
-    'dottignies.blogs.sudinfo.be':['internal', 'jblog'],
-    'woluwesaintlambert.blogs.sudinfo.be':['internal', 'jblog'],
-    'haren.blogs.sudinfo.be':['internal', 'jblog'],
-    'tournai.blogs.sudinfo.be':['internal', 'jblog'],
-    'pecq.blogs.sudinfo.be':['internal', 'jblog'],
-    'beloeil.blogs.sudinfo.be':['internal', 'jblog'],
-    'peruwelz.blogs.sudinfo.be':['internal', 'jblog'],
-    'ath.blogs.sudinfo.be':['internal', 'jblog'],
-    'leuze-en-hainaut.blogs.sudinfo.be':['internal', 'jblog'],
-    'estinnes.blogs.sudinfo.be':['internal', 'jblog'],
-    'binche.blogs.sudinfo.be':['internal', 'jblog'],
-    'chapelle-lez-herlaimont.blogs.sudinfo.be':['internal', 'jblog'],
-    'lalouviere.blogs.sudinfo.be':['internal', 'jblog'],
-    'leroeulx.blogs.sudinfo.be':['internal', 'jblog'],
-    'waterloo.blogs.sudinfo.be':['internal', 'jblog'],
-    'tubize.blogs.sudinfo.be':['internal', 'jblog'],
-    'havre-obourg-saint-denis.blogs.sudinfo.be':['internal', 'jblog'],
-    'saint-symphorien.blogs.sudinfo.be':['internal', 'jblog'],
-    'mesvin.blogs.sudinfo.be':['internal', 'jblog'],
-    'frameries.blogs.sudinfo.be':['internal', 'jblog'],
-    'haut-pays.blogs.sudinfo.be':['internal', 'jblog'],
-    'dour.blogs.sudinfo.be':['internal', 'jblog'],
-    'quievrain.blogs.sudinfo.be':['internal', 'jblog'],
-    'colfontaine.blogs.sudinfo.be':['internal', 'jblog'],
-    'boussu-hornu.blogs.sudinfo.be':['internal', 'jblog'],
-    'saint-ghislain.blogs.sudinfo.be':['internal', 'jblog'],
-    'aiseau-presles.blogs.sudinfo.be':['internal', 'jblog'],
-    'charleroi.blogs.sudinfo.be':['internal', 'jblog'],
-    'chatelet.blogs.sudinfo.be':['internal', 'jblog'],
-    'erquelinnes.blogs.sudinfo.be':['internal', 'jblog'],
-    'fleurus.blogs.sudinfo.be':['internal', 'jblog'],
-    'fontaine-leveque.blogs.sudinfo.be':['internal', 'jblog'],
-    'gerpinnes.blogs.sudinfo.be':['internal', 'jblog'],
-    'hamsurheure-nalinnes.blogs.sudinfo.be':['internal', 'jblog'],
-    'lobbes.blogs.sudinfo.be':['internal', 'jblog'],
-    'thuin.blogs.sudinfo.be':['internal', 'jblog'],
-    'hannut.blogs.sudinfo.be':['internal', 'jblog'],
-    'heron.blogs.sudinfo.be':['internal', 'jblog'],
-    'marchin.blogs.sudinfo.be':['internal', 'jblog'],
-    'mohalongpre.blogs.sudinfo.be':['internal', 'jblog'],
-    'nandrin.blogs.sudinfo.be':['internal', 'jblog'],
-    'oreye.blogs.sudinfo.be':['internal', 'jblog'],
-    'tinlot.blogs.sudinfo.be':['internal', 'jblog'],
-    'vinalmont.blogs.sudinfo.be':['internal', 'jblog'],
-    'waremme.blogs.sudinfo.be':['internal', 'jblog'],
-    'bassenge.blogs.sudinfo.be':['internal', 'jblog'],
-    'dalhem.blogs.sudinfo.be':['internal', 'jblog'],
-    'fourons.blogs.sudinfo.be':['internal', 'jblog'],
-    'herstal.blogs.sudinfo.be':['internal', 'jblog'],
-    'oupeye.blogs.sudinfo.be':['internal', 'jblog'],
-    'vise.blogs.sudinfo.be':['internal', 'jblog'],
-    'ans.blogs.sudinfo.be':['internal', 'jblog'],
-    'beyne-heusay.blogs.sudinfo.be':['internal', 'jblog'],
-    'bressoux-droixhe.blogs.sudinfo.be':['internal', 'jblog'],
-    'esneux.blogs.sudinfo.be':['internal', 'jblog'],
-    'fleron.blogs.sudinfo.be':['internal', 'jblog'],
-    'fragnee.blogs.sudinfo.be':['internal', 'jblog'],
-    'juprelle.blogs.sudinfo.be':['internal', 'jblog'],
-    'laveu.blogs.sudinfo.be':['internal', 'jblog'],
-    'neupre.blogs.sudinfo.be':['internal', 'jblog'],
-    'rocourt.blogs.sudinfo.be':['internal', 'jblog'],
-    'seraing.blogs.sudinfo.be':['internal', 'jblog'],
-    'trooz.blogs.sudinfo.be':['internal', 'jblog'],
-    'aubel.blogs.sudinfo.be':['internal', 'jblog'],
-    'malmedy.blogs.sudinfo.be':['internal', 'jblog'],
-    'plombieres.blogs.sudinfo.be':['internal', 'jblog'],
-    'trois-ponts.blogs.sudinfo.be':['internal', 'jblog'],
-    'vervietois.blogs.sudinfo.be':['internal', 'jblog'],
-    'daverdisse.blogs.sudinfo.be':['internal', 'jblog'],
-    'nassogne.blogs.sudinfo.be':['internal', 'jblog'],
-    'neufchateau.blogs.sudinfo.be':['internal', 'jblog'],
-    'tellin.blogs.sudinfo.be':['internal', 'jblog'],
-    'vielsalm.blogs.sudinfo.be':['internal', 'jblog'],
-    'wellin.blogs.sudinfo.be':['internal', 'jblog'],
-    'gaume.blogs.sudinfo.be':['internal', 'jblog'],
-    'virton.blogs.sudinfo.be':['internal', 'jblog'],
-    'andenne.blogs.sudinfo.be':['internal', 'jblog'],
-    'ciney.blogs.sudinfo.be':['internal', 'jblog'],
-    'gedinne.blogs.sudinfo.be':['internal', 'jblog'],
-    'malonne.blogs.sudinfo.be':['internal', 'jblog'],
-    'profondeville.blogs.sudinfo.be':['internal', 'jblog'],
-    'rochefort.blogs.sudinfo.be':['internal', 'jblog'],
-    'yvoir.blogs.sudinfo.be':['internal', 'jblog'],
-    'couvin.blogs.sudinfo.be':['internal', 'jblog'],
-    'florennes.blogs.sudinfo.be':['internal', 'jblog'],
-    'fosses-la-ville.blogs.sudinfo.be':['internal', 'jblog'],
-    'jemeppe-sur-sambre.blogs.sudinfo.be':['internal', 'jblog'],
-    'sambreville.blogs.sudinfo.be':['internal', 'jblog'],
-    'sivryrance.blogs.sudinfo.be':['internal', 'jblog'],
-    'walcourt.blogs.sudinfo.be':['internal', 'jblog'],
-    'ostendesurmer.blogs.sudinfo.be':['internal', 'jblog'],
+    'comines-warneton.blogs.sudinfo.be': ['internal', 'jblog'],
+    'mouscron.blogs.sudinfo.be': ['internal', 'jblog'],
+    'dottignies.blogs.sudinfo.be': ['internal', 'jblog'],
+    'woluwesaintlambert.blogs.sudinfo.be': ['internal', 'jblog'],
+    'haren.blogs.sudinfo.be': ['internal', 'jblog'],
+    'tournai.blogs.sudinfo.be': ['internal', 'jblog'],
+    'pecq.blogs.sudinfo.be': ['internal', 'jblog'],
+    'beloeil.blogs.sudinfo.be': ['internal', 'jblog'],
+    'peruwelz.blogs.sudinfo.be': ['internal', 'jblog'],
+    'ath.blogs.sudinfo.be': ['internal', 'jblog'],
+    'leuze-en-hainaut.blogs.sudinfo.be': ['internal', 'jblog'],
+    'estinnes.blogs.sudinfo.be': ['internal', 'jblog'],
+    'binche.blogs.sudinfo.be': ['internal', 'jblog'],
+    'chapelle-lez-herlaimont.blogs.sudinfo.be': ['internal', 'jblog'],
+    'lalouviere.blogs.sudinfo.be': ['internal', 'jblog'],
+    'leroeulx.blogs.sudinfo.be': ['internal', 'jblog'],
+    'waterloo.blogs.sudinfo.be': ['internal', 'jblog'],
+    'tubize.blogs.sudinfo.be': ['internal', 'jblog'],
+    'havre-obourg-saint-denis.blogs.sudinfo.be': ['internal', 'jblog'],
+    'saint-symphorien.blogs.sudinfo.be': ['internal', 'jblog'],
+    'mesvin.blogs.sudinfo.be': ['internal', 'jblog'],
+    'frameries.blogs.sudinfo.be': ['internal', 'jblog'],
+    'haut-pays.blogs.sudinfo.be': ['internal', 'jblog'],
+    'dour.blogs.sudinfo.be': ['internal', 'jblog'],
+    'quievrain.blogs.sudinfo.be': ['internal', 'jblog'],
+    'colfontaine.blogs.sudinfo.be': ['internal', 'jblog'],
+    'boussu-hornu.blogs.sudinfo.be': ['internal', 'jblog'],
+    'saint-ghislain.blogs.sudinfo.be': ['internal', 'jblog'],
+    'aiseau-presles.blogs.sudinfo.be': ['internal', 'jblog'],
+    'charleroi.blogs.sudinfo.be': ['internal', 'jblog'],
+    'chatelet.blogs.sudinfo.be': ['internal', 'jblog'],
+    'erquelinnes.blogs.sudinfo.be': ['internal', 'jblog'],
+    'fleurus.blogs.sudinfo.be': ['internal', 'jblog'],
+    'fontaine-leveque.blogs.sudinfo.be': ['internal', 'jblog'],
+    'gerpinnes.blogs.sudinfo.be': ['internal', 'jblog'],
+    'hamsurheure-nalinnes.blogs.sudinfo.be': ['internal', 'jblog'],
+    'lobbes.blogs.sudinfo.be': ['internal', 'jblog'],
+    'thuin.blogs.sudinfo.be': ['internal', 'jblog'],
+    'hannut.blogs.sudinfo.be': ['internal', 'jblog'],
+    'heron.blogs.sudinfo.be': ['internal', 'jblog'],
+    'marchin.blogs.sudinfo.be': ['internal', 'jblog'],
+    'mohalongpre.blogs.sudinfo.be': ['internal', 'jblog'],
+    'nandrin.blogs.sudinfo.be': ['internal', 'jblog'],
+    'oreye.blogs.sudinfo.be': ['internal', 'jblog'],
+    'tinlot.blogs.sudinfo.be': ['internal', 'jblog'],
+    'vinalmont.blogs.sudinfo.be': ['internal', 'jblog'],
+    'waremme.blogs.sudinfo.be': ['internal', 'jblog'],
+    'bassenge.blogs.sudinfo.be': ['internal', 'jblog'],
+    'dalhem.blogs.sudinfo.be': ['internal', 'jblog'],
+    'fourons.blogs.sudinfo.be': ['internal', 'jblog'],
+    'herstal.blogs.sudinfo.be': ['internal', 'jblog'],
+    'oupeye.blogs.sudinfo.be': ['internal', 'jblog'],
+    'vise.blogs.sudinfo.be': ['internal', 'jblog'],
+    'ans.blogs.sudinfo.be': ['internal', 'jblog'],
+    'beyne-heusay.blogs.sudinfo.be': ['internal', 'jblog'],
+    'bressoux-droixhe.blogs.sudinfo.be': ['internal', 'jblog'],
+    'esneux.blogs.sudinfo.be': ['internal', 'jblog'],
+    'fleron.blogs.sudinfo.be': ['internal', 'jblog'],
+    'fragnee.blogs.sudinfo.be': ['internal', 'jblog'],
+    'juprelle.blogs.sudinfo.be': ['internal', 'jblog'],
+    'laveu.blogs.sudinfo.be': ['internal', 'jblog'],
+    'neupre.blogs.sudinfo.be': ['internal', 'jblog'],
+    'rocourt.blogs.sudinfo.be': ['internal', 'jblog'],
+    'seraing.blogs.sudinfo.be': ['internal', 'jblog'],
+    'trooz.blogs.sudinfo.be': ['internal', 'jblog'],
+    'aubel.blogs.sudinfo.be': ['internal', 'jblog'],
+    'malmedy.blogs.sudinfo.be': ['internal', 'jblog'],
+    'plombieres.blogs.sudinfo.be': ['internal', 'jblog'],
+    'trois-ponts.blogs.sudinfo.be': ['internal', 'jblog'],
+    'vervietois.blogs.sudinfo.be': ['internal', 'jblog'],
+    'daverdisse.blogs.sudinfo.be': ['internal', 'jblog'],
+    'nassogne.blogs.sudinfo.be': ['internal', 'jblog'],
+    'neufchateau.blogs.sudinfo.be': ['internal', 'jblog'],
+    'tellin.blogs.sudinfo.be': ['internal', 'jblog'],
+    'vielsalm.blogs.sudinfo.be': ['internal', 'jblog'],
+    'wellin.blogs.sudinfo.be': ['internal', 'jblog'],
+    'gaume.blogs.sudinfo.be': ['internal', 'jblog'],
+    'virton.blogs.sudinfo.be': ['internal', 'jblog'],
+    'andenne.blogs.sudinfo.be': ['internal', 'jblog'],
+    'ciney.blogs.sudinfo.be': ['internal', 'jblog'],
+    'gedinne.blogs.sudinfo.be': ['internal', 'jblog'],
+    'malonne.blogs.sudinfo.be': ['internal', 'jblog'],
+    'profondeville.blogs.sudinfo.be': ['internal', 'jblog'],
+    'rochefort.blogs.sudinfo.be': ['internal', 'jblog'],
+    'yvoir.blogs.sudinfo.be': ['internal', 'jblog'],
+    'couvin.blogs.sudinfo.be': ['internal', 'jblog'],
+    'florennes.blogs.sudinfo.be': ['internal', 'jblog'],
+    'fosses-la-ville.blogs.sudinfo.be': ['internal', 'jblog'],
+    'jemeppe-sur-sambre.blogs.sudinfo.be': ['internal', 'jblog'],
+    'sambreville.blogs.sudinfo.be': ['internal', 'jblog'],
+    'sivryrance.blogs.sudinfo.be': ['internal', 'jblog'],
+    'walcourt.blogs.sudinfo.be': ['internal', 'jblog'],
+    'ostendesurmer.blogs.sudinfo.be': ['internal', 'jblog'],
 
-    'secret-story.blogs.sudinfo.be' : ['internal', 'jblog'],
-    'joggings.blogs.sudinfo.be' : ['internal', 'jblog'],
-    'signebeaute.blogs.sudinfo.be' : ['internal', 'jblog'],
-    'moteurs.blogs.sudinfo.be' : ['internal', 'jblog'],
-    'secourslux.blogs.sudinfo.be' : ['internal', 'jblog'],
-    'lameuse04.blogs.sudinfo.be' : ['internal', 'jblog'],
-    'corpos.blogs.sudinfo.be' : ['internal', 'jblog'],
-    'cyclismerevue.blogs.sudinfo.be' : ['internal', 'jblog'],
-    'faitsdivers.blogs.sudinfo.be' : ['internal', 'jblog'],
-    'rallye-passion.blogs.sudinfo.be' : ['internal', 'jblog'],
-    'jeudeballe.blogs.sudinfo.be' : ['internal', 'jblog'],
+    'secret-story.blogs.sudinfo.be': ['internal', 'jblog'],
+    'joggings.blogs.sudinfo.be': ['internal', 'jblog'],
+    'signebeaute.blogs.sudinfo.be': ['internal', 'jblog'],
+    'moteurs.blogs.sudinfo.be': ['internal', 'jblog'],
+    'secourslux.blogs.sudinfo.be': ['internal', 'jblog'],
+    'lameuse04.blogs.sudinfo.be': ['internal', 'jblog'],
+    'corpos.blogs.sudinfo.be': ['internal', 'jblog'],
+    'cyclismerevue.blogs.sudinfo.be': ['internal', 'jblog'],
+    'faitsdivers.blogs.sudinfo.be': ['internal', 'jblog'],
+    'rallye-passion.blogs.sudinfo.be': ['internal', 'jblog'],
+    'jeudeballe.blogs.sudinfo.be': ['internal', 'jblog'],
 
     'pdf.lameuse.be': ['internal', 'pdf newspaper'],
     'pdf.lacapitale.be': ['internal', 'pdf newspaper'],
@@ -187,6 +186,13 @@ def extract_img_link_info(link_hxs):
     return title, url
 
 
+def extract_and_tag_iframe_source(embedded_frame):
+    target_url = embedded_frame.select("./@src").extract()[0]
+    tags = classify_and_tag(target_url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+    tags.update(['embedded', 'iframe'])
+    return target_url, tags
+
+
 def extract_text_and_links_from_paragraph(paragraph_hxs):
     def separate_img_and_text_links(links):
         img_links = [l for l in links if l.select("./img")]
@@ -211,10 +217,12 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
         tags.update(['in text', 'embedded image'])
         tagged_urls.append(make_tagged_url(url, img_target, tags))
 
-    text_fragments = paragraph_hxs.select(".//text()").extract()
+    # plaintext urls
+    text_fragments = paragraph_hxs.select("./text()").extract()
     if text_fragments:
-        text = ' '.join(text_fragments)
-        plaintext_urls = extract_plaintext_urls_from_text(text)
+        text = u"".join(remove_text_formatting_markup_from_fragments(text_fragments))
+
+        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
         for url in plaintext_urls:
             tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
             tags.update(['plaintext', 'in text'])
@@ -222,6 +230,12 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
             tagged_urls.append(make_tagged_url(url, url, tags))
     else:
         text = u""
+
+    # iframes
+    iframes = paragraph_hxs.select(".//iframe")
+    for iframe in iframes:
+        target_url, tags = extract_and_tag_iframe_source(iframe)
+        tagged_urls.append(make_tagged_url(target_url, "__EMBEDDED_IFRAME__", tags))
 
     return text, tagged_urls
 
@@ -244,9 +258,9 @@ def extract_links_from_media_items(media_items):
     def extract_and_tag_url_from_iframe(item):
         embedded_frame = item.select(".//iframe")
         if embedded_frame:
-            target_url = embedded_frame.select("./@src").extract()[0]
+            target_url, tags = extract_and_tag_iframe_source(embedded_frame)
             tags = classify_and_tag(target_url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-            tags.update(['embedded', 'iframe'])
+
             return make_tagged_url(target_url, title, tags)
         else:
             return None
@@ -374,7 +388,6 @@ def extract_associated_links(hxs):
 
     media_links = hxs.select("//div[@id='picture']/descendant::div[@class='wrappAllMedia']/div")
 
-    
     for i, item in enumerate(media_links):
         if item.select('./img'):
             pass
@@ -416,7 +429,7 @@ def extract_article_data(source):
     else:
         category = hxs.select("//p[starts-with(@class, 'fil_ariane')]/a//text()").extract()
         title = hxs.select("//div[@id='article']/h1/text()").extract()[0]
-        # new version :
+        # new version:
         # #title = hxs.select("//div[@id='article']/article//h1/text()").extract()[0]
 
         pub_date, pub_time = extract_date(hxs)
@@ -426,17 +439,13 @@ def extract_article_data(source):
         intro, intro_links = extract_intro_and_links(hxs)
 
         content, content_links = extract_content_and_links(hxs)
-
         associated_links = extract_associated_links(hxs)
-
         all_links = intro_links + content_links + associated_links
-
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
-
-        #print generate_test_func('in_text_same_owner', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
+        #print generate_test_func('links_embedded_thumbnails', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
         #save_sample_data_file(html_content, source.name, 'in_text_same_owner', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
-        
+
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             updated_tagged_urls,
                             category, author,
@@ -482,7 +491,7 @@ def get_frontpage_toc():
     buzz_headlines = hxs.select("//div[@class='buzz exergue clearfix']//h2/a")
     buzz_headlines.extend(hxs.select("//div[@class='buzz exergue clearfix']//li/a"))
 
-    all_link_selectors = chain(column1_headlines, column3_headlines, buzz_headlines)
+    all_link_selectors = it.chain(column1_headlines, column3_headlines, buzz_headlines)
     headlines = [extract_title_url_from_hxs_a(link_selector) for link_selector in all_link_selectors]
 
     regional_headlines = get_regional_toc()
@@ -490,41 +499,6 @@ def get_frontpage_toc():
 
     news, blogposts = separate_blogposts_and_news(headlines)
     return make_full_url(BASE_URL, news), blogposts
-
-
-def show_frontpage_articles():
-    toc, blogs = get_frontpage_toc()
-
-    print len(toc)
-    for i, (title, url) in enumerate(toc[:]):
-        print ""
-        print u"----- [{0:02d}] -- {1}".format(i, url)
-        article_data, html_content = extract_article_data(url)
-        article_data.print_summary()
-        #print article_data.to_json()
-
-
-def test_sample_data():
-    filepath = '../../sample_data/sudinfo/sudinfo_internal_links_in_sidebar_box.html'
-    filepath = '../../sample_data/sudinfo/sudinfo_video.html'
-    filepath = '../../sample_data/sudinfo/embedded_photos.html'
-    filepath = '../../sample_data/sudinfo/sudinfo_nolinks.html'
-    filepath = '../../sample_data/sudinfo/sudinfo_video_and_coveritlive.html'
-    filepath = '../../sample_data/sudinfo/sudinfo_intext_link.html'
-
-    with open(filepath) as f:
-        article_data, raw = extract_article_data(f)
-        # article_data.print_summary()
-
-        # for link in article_data.links:
-        #     print link
-        print article_data.title
-        for fragment in article_data.content:
-            print fragment
-
-
-        # print article_data.intro
-        # print article_data.content
 
 
 def show_article():
@@ -547,46 +521,22 @@ def show_article():
         u"http://www.sudinfo.be/534573/article/sports/foot-belge/standard/2012-09-25/jelle-van-damme-standard-menace-benjamin-deceuninck-en-direct-fais-gaffe-av",
         u"http://www.sudinfo.be/534931/article/actualite/sante/2012-09-26/la-prescription-des-medicaments-bon-marche-continue-de-progresser",
         u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/des-nus-partout-dans-bruxelles-qui-miment-l-acte-sexuel-l’incroyable-performance",
-        
+
         # liens 'same owner'
         u"http://www.sudinfo.be/551998/article/fun/buzz/2012-10-04/schocking-in-brussles-des-hommes-nus-miment-l-acte-sexuel-au-palais-de-justice-a",
         u"http://www.sudinfo.be/535396/article/culture/musique/2012-09-27/mylene-farmer-donnera-deux-concerts-en-belgique-l’an-prochain",
 
         # embedded coveritlive + standard widget
         u"http://www.sudinfo.be/306989/article/sports/foot-belge/standard/2012-01-08/standard-chattez-en-exclusivite-avec-sebastien-pocognoli-ce-lundi-des-13h30",
-        
+
         # embeddes scribble
         u"http://www.sudinfo.be/655859/article/sports/foot-belge/anderlecht/2013-02-03/suivez-le-super-sunday-en-live-genk-ecrase-bruges-4-1-le-standard-en-visi"
     ]
 
     article, html = extract_article_data(urls[-1])
     for link in article.links:
-        print titles
-        print url
-        print content
         print link
 
 
-def show_frontpage_toc():
-    headlines, blogposts = get_frontpage_toc()
-
-    for title, url in headlines:
-        print u"{0} \t\t\t\t\t [{1}]".format(title, url)
-
-    for title, url in blogposts:
-        print u"{0} \t\t\t\t\t [{1}]".format(title, url)
-
-    print len(headlines), len(blogposts)
-
 if __name__ == '__main__':
-    #show_frontpage_toc()
-    #download_one_article()
-    #show_frontpage_articles()
-    # show_article()
-
-    # url = "/Volumes/Curst/json_db_0_5/sudinfo/2012-06-05/14.05.07/raw_data/18.html"
-    # f = open(url, "r")
-
-    # article_data, content_html = extract_article_data(f)
-    # article_data.print_summary()
-    test_sample_data()
+    pass

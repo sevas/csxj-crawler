@@ -9,12 +9,12 @@ import BeautifulSoup
 from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, make_soup_from_html_content, extract_plaintext_urls_from_text
-from parser_tools.utils import remove_text_formatting_markup_from_fragments
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, TEXT_MARKUP_TAGS
 from parser_tools import constants
 from parser_tools import ipm_utils
 from parser_tools import twitter_utils
 
-from helpers.unittest_generator import generate_test_func, save_sample_data_file
+from helpers.unittest_generator import generate_unittest
 
 LALIBRE_ASSOCIATED_SITES = {
     'ask.blogs.lalibre.be': ['internal', 'jblog'],
@@ -25,7 +25,7 @@ LALIBRE_ASSOCIATED_SITES = {
     'momento.blogs.lalibre.be': ['internal', 'jblog'],
     'lameteo.blogs.lalibre.be': ['internal', 'jblog'],
 
-    'pdf-online.lalibre.be' : ['internal', 'pdf newspaper']
+    'pdf-online.lalibre.be': ['internal', 'pdf newspaper']
 
 }
 
@@ -136,7 +136,7 @@ def extract_text_content_and_links(main_content):
     embedded_tweets = []
 
     def is_text_content(blob):
-        if isinstance(blob, BeautifulSoup.Tag) and blob.name == 'p':
+        if isinstance(blob, BeautifulSoup.Tag) and blob.name in TEXT_MARKUP_TAGS:
             return True
         if isinstance(blob, BeautifulSoup.NavigableString):
             return True
@@ -210,11 +210,13 @@ def extract_article_data_from_file(source_url, source_file):
     html_content = f.read()
     return extract_article_data_from_html(html_content, source_url)
 
+
 def print_for_test(taggedURLs):
     print "---"
     for taggedURL in taggedURLs:
         print u"""make_tagged_url("{0}", u\"\"\"{1}\"\"\", {2}),""".format(taggedURL.URL, taggedURL.title,
                                                                            taggedURL.tags)
+
 
 def extract_article_data_from_html(html_content, source_url):
     soup = make_soup_from_html_content(html_content)
@@ -232,16 +234,14 @@ def extract_article_data_from_html(html_content, source_url):
     fetched_datetime = datetime.today()
 
     intro = extract_intro(main_content)
-    text_content, in_text_urls = extract_text_content_and_links(main_content)
+    text_content, in_text_links = extract_text_content_and_links(main_content)
 
-    embedded_audio_links = ipm_utils.extract_embedded_audio_links(main_content, LALIBRE_NETLOC,
-                                                                  LALIBRE_ASSOCIATED_SITES)
-    associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC,
-                                                                        LALIBRE_ASSOCIATED_SITES)
+    embedded_audio_links = ipm_utils.extract_embedded_audio_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
+    associated_tagged_urls = ipm_utils.extract_and_tag_associated_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     bottom_links = ipm_utils.extract_bottom_links(main_content, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES)
     embedded_content_links = extract_embedded_content_links(main_content)
 
-    all_links = in_text_urls + associated_tagged_urls + bottom_links + embedded_content_links + embedded_audio_links
+    all_links = in_text_links + associated_tagged_urls + bottom_links + embedded_content_links + embedded_audio_links
 
     updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.LALIBRE_SAME_OWNER)
 

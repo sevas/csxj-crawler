@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 """
 Link extraction test suite for dhnet.py
 """
@@ -16,7 +16,7 @@ DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'dhnet')
 
 class TestDHNetLinkExtraction(object):
     def test_simple_link_extraction(self):
-        """ DHNet parser can extract bottom links from an article. """
+        """ dhnet parser can extract bottom links from an article. """
         with open(os.path.join(DATA_ROOT, "single_bottom_link.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
 
@@ -27,14 +27,14 @@ class TestDHNetLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_removed_article(self):
-        """ DHNet parser should return a None value when processing a URL to a removed article. """
+        """ dhnet parser returns 'None' when processing a URL to a removed article. """
         with open(os.path.join(DATA_ROOT, "removed_article.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
 
             eq_(article, None)
 
     def test_same_sidebox_and_bottom_links(self):
-        """ DHNet parser can extract all the links in the sidebox and the bottom box, with adequate tags. """
+        """ dhnet parser can extract all the links in the sidebox and the bottom box, with adequate tags. """
         with open(os.path.join(DATA_ROOT, "same_sidebox_and_bottom_links.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links
@@ -60,7 +60,7 @@ class TestDHNetLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_plaintext_links(self):
-        """ DHNet parser should can extract and tag plaintext links, as well as embedded iframe and a bunch of sidebar box and bottom box links. """
+        """ dhnet parser can extract and tag plaintext links, as well as embedded iframe and a bunch of sidebar box and bottom box links. """
         with open(os.path.join(DATA_ROOT, "plaintext_links.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links
@@ -75,19 +75,20 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("/infos/belgique/article/417311/sncb-et-infrabel-activent-leur-plan-hiver.html", u"""SNCB et Infrabel activent leur plan hiver""", set(['bottom box', 'internal'])),
                 make_tagged_url("/infos/belgique/article/417423/au-volant-le-calme-est-le-plus-important.html", u"""Au volant, le calme est le plus important""", set(['bottom box', 'internal'])),
                 make_tagged_url("/infos/belgique/article/417478/vingt-centres-de-ski-ouverts.html", u"""Vingt centres de ski ouverts""", set(['bottom box', 'internal'])),
+                make_tagged_url("www.thalys.com", "www.thalys.com", set(["plaintext", "in text", "external"]))
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_no_links(self):
-        """ DHNet parser returns an empty link list if the article has no link. """
+        """ dhnet parser returns an empty link list if the article has no link. """
         with open(os.path.join(DATA_ROOT, "no_links.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links
             eq_(len(extracted_links), 0)
 
     def test_embedded_video_and_in_text_link(self):
-        """ DHNet parser can extract embedded videos and in text links. """
+        """ dhnet parser can extract embedded videos and in text links. """
         with open(os.path.join(DATA_ROOT, "embedded_video_and_in_text_link.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links
@@ -98,7 +99,9 @@ class TestDHNetLinkExtraction(object):
             ]
 
             expected_intext_links = [
-                make_tagged_url("", u"www.soisbelge.be ou www.compagnievictor.be. ", set(["no target", "in text"]))
+                make_tagged_url("", u"www.soisbelge.be ou www.compagnievictor.be. ", set(["no target", "in text"])),
+                make_tagged_url("www.compagnievictor.be", "www.compagnievictor.be", set(["plaintext", "in text", "external"])),
+                make_tagged_url("www.soisbelge.be", "www.soisbelge.be", set(["plaintext", "in text", "external"]))
             ]
 
             expected_embedded_videos = [
@@ -114,7 +117,7 @@ class TestDHNetLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_embedded_poll_script(self):
-        """ DHNet can extract the link to an embedded js widget (e.g. from a polling service). """
+        """ dhnet can extract the link to an embedded js widget (e.g. from a polling service). """
         with open(os.path.join(DATA_ROOT, "embedded_poll_script.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links
@@ -137,7 +140,7 @@ class TestDHNetLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_storify_gallery_videos(self):
-        """ DHNet parser can extract a storify link, tag DHNet galleries, detect embedded videos. """
+        """ dhnet parser can extract a storify link, tag dhnet galleries, detect embedded videos. """
         with open(os.path.join(DATA_ROOT, "storify_gallery_videos.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links
@@ -178,7 +181,7 @@ class TestDHNetLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_media_overload(self):
-        """ DHNet parser can extract links from a page with a rich collection of embedded media (twitter widget, embedded videos, regular links, poll script). """
+        """ dhnet parser can extract links from a page with a rich collection of embedded media (twitter widget, embedded videos, regular links, poll script). """
         with open(os.path.join(DATA_ROOT, "media_overload.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links
@@ -226,7 +229,7 @@ class TestDHNetLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_embedded_audio_video(self):
-        """ DHNet can extract links to embedded audio and video content """
+        """ dhnet can extract links to embedded audio and video content """
 
         with open(os.path.join(DATA_ROOT, "embedded_audio_video.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
@@ -279,7 +282,7 @@ class TestDHNetLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_same_owner_tagging(self):
-        """ DHNet parser correctly tags 'same owner' links """
+        """ dhnet parser correctly tags 'same owner' links """
         with open(os.path.join(DATA_ROOT, "same_owner_tagging.html")) as f:
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links
@@ -292,4 +295,25 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("http://babescm.blogs.dhnet.be/", u"""Retrouvez les plus belles sur notre blog Babes""", set(['bottom box', 'internal site'])),
             ]
             expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_extract_embedded_tweets(self):
+        """ dhnet parser can extract rendered embedded tweets"""
+        with open(os.path.join(DATA_ROOT, "extract_embedded_tweets.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            bottom_links = [
+            ]
+            audio_content_links = [
+            ]
+            sidebox_links = [
+            ]
+            embedded_content_links = [
+            ]
+            in_text_links = [
+                make_tagged_url("https://twitter.com/datirachida/status/204621853304700928", u"""https://twitter.com/datirachida/status/204621853304700928""", set(['tweet', 'embedded media', 'external'])),
+                make_tagged_url("https://twitter.com/Bernard_Debre/status/204848053025390592", u"""https://twitter.com/Bernard_Debre/status/204848053025390592""", set(['tweet', 'embedded media', 'external'])),
+                make_tagged_url("https://twitter.com/datirachida/status/204904963619561475", u"""https://twitter.com/datirachida/status/204904963619561475""", set(['tweet', 'embedded media', 'external'])),
+            ]
+            expected_links = bottom_links + audio_content_links + sidebox_links + embedded_content_links + in_text_links
             assert_taggedURLs_equals(expected_links, extracted_links)

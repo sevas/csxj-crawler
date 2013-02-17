@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 """
 Link extraction test suite for sudpresse.py
 """
@@ -11,6 +11,7 @@ from csxj.common.tagging import make_tagged_url
 from csxj_test_tools import assert_taggedURLs_equals
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'sudpresse')
+
 
 class TestSudpresseLinkExtraction(object):
     def test_sidebar_box_tagging(self):

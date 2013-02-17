@@ -1,25 +1,21 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 """
-Link extraction test suite for sudinfo.py
+Test suites for sudinfo.py
 """
 
 import os
-from nose.tools import eq_
 
-
-from csxj.datasources.parser_tools.utils import convert_utf8_url_to_ascii
 from csxj.common.tagging import make_tagged_url
 from csxj.datasources import sudinfo
 
-from csxj_test_tools import assert_taggedURLs_equals
+from csxj_test_tools import assert_taggedURLs_equals, assert_content_equals
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', 'sudinfo')
 
 
 class TestSudinfoLinkExtraction(object):
-
     def test_no_links(self):
-        """ Sudinfo parser returns an empty link list if the article has no link. """
+        """ sudinfo parser returns an empty link list if the article has no link. """
         with open(os.path.join(DATA_ROOT, "no_links.html")) as f:
             article, raw_html = sudinfo.extract_article_data(f)
             extracted_links = article.links
@@ -28,10 +24,8 @@ class TestSudinfoLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
-
     def test_sidebar_box_tagging(self):
-        """ Sudinfo parser can extract and tag sidebar links from an article. """
+        """ sudinfo parser can extract and tag sidebar links from an article. """
         with open(os.path.join(DATA_ROOT, "sidebar_box_tagging.html")) as f:
             article, raw_html = sudinfo.extract_article_data(f)
             extracted_links = article.links
@@ -44,7 +38,7 @@ class TestSudinfoLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_in_text_same_owner(self):
-        """ Sudinfo parser can extract and tag in text and sidebar links to same owner sites."""
+        """ sudinfo parser can extract and tag in text and sidebar links to same owner sites."""
         with open(os.path.join(DATA_ROOT, "in_text_same_owner.html")) as f:
             article, raw_html = sudinfo.extract_article_data(f)
             extracted_links = article.links
@@ -55,10 +49,8 @@ class TestSudinfoLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
-
     def test_embedded_video_extraction(self):
-        """ Sudinfo parser can extract and tag embedded video from the bottom of an article. """
+        """ sudinfo parser can extract and tag embedded video from the bottom of an article. """
         with open(os.path.join(DATA_ROOT, "embedded_video_extraction.html")) as f:
             article, raw_html = sudinfo.extract_article_data(f)
             extracted_links = article.links
@@ -69,9 +61,8 @@ class TestSudinfoLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
     def test_in_text_link_extraction(self):
-        """ Sudinfo parser can extract and tag in-text links """
+        """ sudinfo parser can extract and tag in-text links """
         with open(os.path.join(DATA_ROOT, "in_text_link_extraction.html")) as f:
             article, raw_html = sudinfo.extract_article_data(f)
             extracted_links = article.links
@@ -81,3 +72,50 @@ class TestSudinfoLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_links_iframe_in_text(self):
+        """ sudinfo parser extracts iframes within text block, does not consider iframes as text content"""
+        with open(os.path.join(DATA_ROOT, "links_iframe_in_text.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=82d305926f/height=850/width=600", u"""__EMBEDDED_IFRAME__""", set(['iframe', 'external', 'embedded'])),
+                make_tagged_url("http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=9bb12b4294es", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=9bb12b4294es""", set(['embedded video', 'bottom video', 'external', 'embedded'])),
+                make_tagged_url("http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=ab7055b944bs", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=ab7055b944bs""", set(['embedded video', 'bottom video', 'external', 'embedded'])),
+                make_tagged_url("http://portfolio.sudpresse.be/main.php?g2_itemId=1033320", u"""Nos photos de la conférence de presse""", set(['internal', 'sidebar box', 'gallery', 'external'])),
+                make_tagged_url("/425052/article/sports/foot-belge/standard/2012-05-29/ron-jans-au-standard-les-supporters-partages-entre-c-est-n-importe-quoi-et-", u'''Ron Jans au Standard: les supporters partagés entre "C'est n'importe quoi" et "Laissons-lui sa chance"''', set(['internal', 'sidebar box'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_intext_not_plaintext(self):
+        """ sudinfo parser extracts in-text urls only once (and not as plaintext URLs)"""
+        with open(os.path.join(DATA_ROOT, "links_intext_not_plaintext.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://secourslux.blogs.sudinfo.be", u"""http://secourslux.blogs.sudinfo.be""", set(['in text', 'internal', 'internal site', 'jblog'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_embedded_thumbnails(self):
+        """ sudinfo parser ignores the images from the embedded gallery in the 'medias' box"""
+        with open(os.path.join(DATA_ROOT, "links_embedded_thumbnails.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+class TestSudinfoContentExtracttion(object):
+    def test_intext_link(self):
+        """ sudinfo parser correctly extract text content, even when there is a link inside"""
+        with open(os.path.join(DATA_ROOT, "content_intext_link.html")) as f:
+            article, _ = sudinfo.extract_article_data(f)
+
+            #expected_intro = u"""Le flash mob proposé par Stéphane Thiry, officier pompier au SRI de Saint-Hubert a obtenu un succès tel qu'ils étaient plus de 300 à danser et se regarder lors de la journée portes-ouvertes des pompiers de ce dimanche 7 octobre."""
+            expected_content = [u"""Grosse foule et succès mérité pour les pompiers borquins qui ont réalisé multiples exrecices face au public.Une jounée sous un ciel clément et ensoleillé. Et pour cause, Mr Météo avait rangé ses grenouilles et les pompiers ont imploré Sainte-Claire en lui portant des oeufs.""",
+                                u"""Plus de détails et un album photo sur  http://secourslux.blogs.sudinfo.be"""]
+            assert_content_equals(expected_content, article.content)

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 """
 Link extraction test suite for lavenir.py
 """
@@ -12,6 +12,7 @@ from csxj.datasources import lavenir
 from csxj_test_tools import assert_taggedURLs_equals
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', lavenir.SOURCE_NAME)
+
 
 class TestLavenirLinkExtraction(object):
 
@@ -29,4 +30,3 @@ class TestLavenirLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
-

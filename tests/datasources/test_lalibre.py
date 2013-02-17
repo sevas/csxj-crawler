@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 """
 Link extraction test suite for lalibre.py
 """
@@ -17,7 +17,7 @@ DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', lalibre.SOURCE_
 class TestLalibreLinkExtraction(object):
     def test_same_sidebox_and_bottom_links(self):
         """ lalibre parser can extract bottom links from an article. """
-        with open(os.path.join(DATA_ROOT, "single_bottom_sidebox_link.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_single_bottom_sidebox_link.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
 
@@ -34,13 +34,13 @@ class TestLalibreLinkExtraction(object):
 
     def test_removed_article(self):
         """ lalibre parser returns None when processing a removed article """
-        with open(os.path.join(DATA_ROOT, "removed_article.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_removed_article.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             eq_(article, None)
 
     def test_intext_links(self):
         """ lalibre parser can extract in-text urls"""
-        with open(os.path.join(DATA_ROOT, "intext_links.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_intext.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
 
@@ -51,13 +51,15 @@ class TestLalibreLinkExtraction(object):
                 make_tagged_url("http://www.madamemoustache.be/page/Upcoming/101/16122011-JoyeuxBordelpresentFUCKYOUITSMAGIC.html", u""" FUCK YOU IT S XMAS""", set(['external', 'in text'])),
                 make_tagged_url("http://www.netevents.be/fr/soiree/203907/Chez-Maman-fete-ses-17-ans/", u'''"Chez maman"''', set(['external', 'in text'])),
                 make_tagged_url("", u"""Super Saturday""", set(['no target', 'in text'])),
+                make_tagged_url("www.forestnational.be", "www.forestnational.be", set(['external', 'in text', 'plaintext'])),
+                make_tagged_url("www.stratos-sphere.com", "www.stratos-sphere.com", set(['external', 'in text', 'plaintext']))
             ]
 
             assert_taggedURLs_equals(expected_intext_links, extracted_links)
 
     def test_storify_sidebox_bottom_links(self):
         """ lalibre parser can extract embedded storify links """
-        with open(os.path.join(DATA_ROOT, "storify_sidebox_bottom_links.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_storify_sidebox_bottom_links.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
 
@@ -90,7 +92,7 @@ class TestLalibreLinkExtraction(object):
 
     def test_storify_embedded_video_links(self):
         """ lalibre parser can process an article with an embedded storify and embedded videos """
-        with open(os.path.join(DATA_ROOT, "storify_video_links.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_storify_video_links.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
 
@@ -122,7 +124,7 @@ class TestLalibreLinkExtraction(object):
 
     def test_embedded_videos_links(self):
         """ lalibre parser can process an article with embedded videos """
-        with open(os.path.join(DATA_ROOT, "embedded_videos.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_embedded_videos.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             extracted_links = article.links
 
@@ -156,10 +158,9 @@ class TestLalibreLinkExtraction(object):
             expected_links = expected_sidebox_links + expected_bottom_links + expected_embbeded_media_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
     def test_same_owner_tagging(self):
         """ lalibre parser correctly tags 'same owner' links """
-        with open(os.path.join(DATA_ROOT, "same_owner_tagging.html")) as f:
+        with open(os.path.join(DATA_ROOT, "links_same_owner_tagging.html")) as f:
             article, raw_html = lalibre.extract_article_data(f)
             extracted_links = article.links
             tagged_urls = [
@@ -185,13 +186,13 @@ class TestLalibreLinkExtraction(object):
             article, raw_html = lalibre.extract_article_data(f)
             extracted_links = article.links
             tagged_urls = [
-                make_tagged_url("http://www.micronutris.com/)", u"""http://www.micronutris.com/)""", set(['plaintext', 'external', 'in text'])),
                 make_tagged_url("/societe/gastronomie/article/785611/belgian-bubbles-un-produit-100-naturel-pour-des-fetes-reussies.html", u"""Belgian Bubbles, un produit 100% naturel pour des fêtes réussies""", set(['internal', 'sidebar box'])),
                 make_tagged_url("/societe/gastronomie/article/787152/edito-crise-de-foie-gras.html", u"""Edito: Crise de foie (gras)""", set(['internal', 'sidebar box'])),
                 make_tagged_url("/economie/entreprise-emploi/article/787084/upignac-a-la-gnaque.html", u"""Upignac a la gnaque""", set(['internal', 'sidebar box'])),
                 make_tagged_url("/societe/gastronomie/article/785611/belgian-bubbles-un-produit-100-naturel-pour-des-fetes-reussies.html", u"""Belgian Bubbles, un produit 100% naturel pour des fêtes réussies""", set(['bottom box', 'internal'])),
                 make_tagged_url("/societe/gastronomie/article/787152/edito-crise-de-foie-gras.html", u"""Edito: Crise de foie (gras)""", set(['bottom box', 'internal'])),
                 make_tagged_url("/economie/entreprise-emploi/article/787084/upignac-a-la-gnaque.html", u"""Upignac a la gnaque""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://www.micronutris.com/", "http://www.micronutris.com/", set(['plaintext', 'external', 'in text']))
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
@@ -220,14 +221,40 @@ class TestLalibreLinkExtraction(object):
                 make_tagged_url("/actu/international/article/787374/taxe-a-75-depardieu-reste-en-belgique.html", u"""Taxe à 75%: Depardieu reste en Belgique""", set(['bottom box', 'internal'])),
                 make_tagged_url("/societe/cyber/article/788995/twitter-veut-le-feu-vert-de-la-justice-pour-denoncer-les-racistes.html", u"""Twitter veut le feu vert de la justice pour dénoncer les racistes""", set(['bottom box', 'internal'])),
             ]
+
             expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_extract_embedded_tweets(self):
+        """ lalibre parser can extract rendered tweets from within the text content """
+
+        with open(os.path.join(DATA_ROOT, "links_extract_embedded_tweets.html")) as f:
+            article, raw_html = lalibre.extract_article_data(f)
+            extracted_links = article.links
+            embedded_content_links = [
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=bf195c8ba4f5&configKey=&suffix=&sig=c7acd5f9065s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+            ]
+            bottom_links = [
+                make_tagged_url("/actu/belgique/article/786880/sierre-la-presse-epinglee.html", u"""Sierre :  la presse épinglée""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/belgique/article/789293/une-liste-verte-pour-les-autocars.html", u"""Une liste verte pour les autocars ?""", set(['bottom box', 'internal'])),
+            ]
+            associated_tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Grosse frayeur en Suisse""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/actu/belgique/article/786880/sierre-la-presse-epinglee.html", u"""Sierre :  la presse épinglée""", set(['internal', 'sidebar box'])),
+            ]
+            embedded_audio_links = [
+            ]
+            in_text_links = [
+                make_tagged_url("https://twitter.com/maximedaye/status/288587213661421568", u"""https://twitter.com/maximedaye/status/288587213661421568""", set(['tweet', 'embedded media', 'external'])),
+            ]
+            expected_links = embedded_content_links + bottom_links + associated_tagged_urls + embedded_audio_links + in_text_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
 
 class TestLalibreContentExtraction(object):
     def test_clean_paragraph_extraction(self):
         """ lalibre parser extracts the paragraphs as a list of strings without bullshit characters (e.g. \\t, \\r, \\n)"""
-        with open(os.path.join(DATA_ROOT, "paragraphs_overload.html")) as f:
+        with open(os.path.join(DATA_ROOT, "content_paragraphs_overload.html")) as f:
             article, _ = lalibre.extract_article_data(f)
             content = article.content
 
@@ -238,7 +265,7 @@ class TestLalibreContentExtraction(object):
 
     def test_clean_intro_extraction(self):
         """ lalibre parser extracts the 'articleHat' div as the intro field"""
-        with open(os.path.join(DATA_ROOT, "intro_articleHat.html")) as f:
+        with open(os.path.join(DATA_ROOT, "content_intro_articleHat.html")) as f:
             article, _ = lalibre.extract_article_data(f)
 
             expected_intro = u"Une enquête a été ouverte pour déterminer les causes de l'incendie."
@@ -246,9 +273,8 @@ class TestLalibreContentExtraction(object):
 
     def test_no_paragraphs(self):
         """ lalibre parser extracts text content even if there are no paragraphs"""
-        with open(os.path.join(DATA_ROOT, "no_paragraphs.html")) as f:
+        with open(os.path.join(DATA_ROOT, "content_no_paragraphs.html")) as f:
             article, _ = lalibre.extract_article_data(f)
 
             expected_content = [u"Mouss Diouf a été révélé au grand public grâce à son interprétation du lieutenant N'Guma dans la série française Julie Lescaut. \r\n\r\nVéronique Genest est resté très proche de Mouss Diouf après son accident vasculaire cérébral. Elle a réagi sur Twitter suite au décès de l'acteur."]
             eq_(article.content, expected_content, msg="\n{0}\n{1}".format(article.content, expected_content))
-

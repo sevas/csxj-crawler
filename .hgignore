@@ -11,3 +11,4 @@ json_db*/
 logs/
 csxj.egg-info/
 dist/
+coverage/
