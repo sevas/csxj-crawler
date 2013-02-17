@@ -84,7 +84,7 @@ def remove_text_formatting_markup(formatted_text_fragment, strip_chars, remove_l
     if isinstance(formatted_text_fragment, Tag) or isinstance(formatted_text_fragment, bs4.Tag):
         # If it's the former, we remove the tag and clean up all its children
         if formatted_text_fragment.name in TEXT_MARKUP_TAGS:
-            if formatted_text_fragment.name == 'a' and remove_links:
+            if formatted_text_fragment.name == 'a' and remove_links and formatted_text_fragment.get('href'):
                 return u""
             else:
                 return u''.join([remove_text_formatting_markup(f, strip_chars, remove_links) for f in formatted_text_fragment.contents])
