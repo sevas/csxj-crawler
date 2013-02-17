@@ -9,6 +9,7 @@ import itertools
 from scrapy.selector import HtmlXPathSelector
 from parser_tools import utils
 from parser_tools import twitter_utils
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, remove_text_formatting_and_links_from_fragments
 from csxj.common import tagging
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
@@ -145,46 +146,38 @@ def extract_title_and_url_from_bslink(link):
 
 
 def extract_text_content_and_links(soup) :
-    article_text = []
+    tagged_urls = list()
     inline_links = []
-    plaintext_urls = []
 
-    text = soup.find(attrs = {"class" : "article-body"})
-    paragraphs = text.find_all("p")
-    for p in paragraphs :
-        clean_text = utils.remove_text_formatting_markup_from_fragments(p, strip_chars = "\n")
-        article_text.append(clean_text)
+    article_body = soup.find(attrs = {"class" : "article-body"})
+    text_fragments = article_body.find_all("p")
+
+    if text_fragments:
+        text = u"".join(remove_text_formatting_markup_from_fragments(text_fragments))
+
+        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
+        for url in plaintext_urls:
+            tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+            tags.update(['plaintext', 'in text'])
+
+            tagged_urls.append(make_tagged_url(url, url, tags))
+    else:
+        text = u""
+
+    for p in text_fragments :
         link = p.find_all("a")
         inline_links.extend(link)
 
-        for fragment in p:
-            if type(fragment) is bs4.element.Tag:
-                if not fragment.name == "a":
-                    clean_fragment = utils.remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")
-                    plaintext_links = utils.extract_plaintext_urls_from_text(clean_fragment)
-                    plaintext_urls.extend(plaintext_links)
-            if type(fragment) is bs4.NavigableString:
-                clean_fragment = utils.remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")   
-                plaintext_links = utils.extract_plaintext_urls_from_text(clean_fragment)
-                plaintext_urls.extend(plaintext_links)
-
-
     titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
 
-    tagged_urls = list()
     for title, url, base_tags in titles_and_urls:
         tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
         tags.update(base_tags)
         tags.add('in text')
         tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
-    for url in plaintext_urls:
-        tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-        tags.add('in text')
-        tags.add('plaintext')
-        tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
-    return article_text, tagged_urls
+    return text, tagged_urls
 
 def extract_article_tags(soup):
     tagged_urls = list()
@@ -324,8 +317,8 @@ def extract_article_data(source):
 
     updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
-    #print generate_test_func('same_owner_tagging', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
-    #save_sample_data_file(html_data, source, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+    #print generate_test_func('in_text_and_sidebar', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
+    #save_sample_data_file(html_data, source, 'in_text_and_sidebar', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
 
     return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                 updated_tagged_urls,
@@ -344,24 +337,36 @@ def test_sample_data():
 
 if __name__ == '__main__':
 
-    url = "http://www.lesoir.be/142224/article/culture/medias-tele/2012-12-21/audrey-pulvar-quitte-inrocks"
-    url = "http://www.lesoir.be/142193/article/debats/cartes-blanches/2012-12-21/g%C3%A9rard-depardieu-l%E2%80%99arbre-qui-cache-for%C3%AAt"
-    url = "http://www.lesoir.be/142176/article/actualite/belgique/2012-12-21/van-rompuy-%C2%AB-etre-premier-en-belgique-c%E2%80%99est-frustrant-%C2%BB"
-    url = "http://www.lesoir.be/142265/article/actualite/belgique/2012-12-21/quatre-militantes-anti-poutine-interpell%C3%A9es-%C3%A0-bruxelles"
-    url = "http://www.lesoir.be/140983/article/actualite/regions/bruxelles/2012-12-19/sacs-bleus-et-jaunes-sort-en-est-jet%C3%A9"
-    url = "http://www.lesoir.be/141646/article/actualite/regions/bruxelles/2012-12-20/stib-l-abonnement-scolaire-co%C3%BBtera-120-euros"
-    url = "http://www.lesoir.be/141861/article/debats/chats/2012-12-20/11h02-relations-du-parti-islam-avec-l-iran-posent-question"
-    url = "http://www.lesoir.be/141613/article/actualite/regions/bruxelles/2012-12-20/catteau-danse-contre-harc%C3%A8lement"
-    url = "http://www.lesoir.be/141854/article/debats/chats/2012-12-20/pol%C3%A9mique-sur-michelle-martin-%C2%ABne-confondons-pas-justice-et-vengeance%C2%BB"
-    url = "http://www.lesoir.be/91779/article/actualite/belgique/2012-10-02/coupure-d%E2%80%99%C3%A9lectricit%C3%A9-%C3%A0-bruxelles-est-due-%C3%A0-un-incident-chez-elia"
-    url = "http://www.lesoir.be/142376/article/styles/cuisines/2012-12-21/cuisinez-comme-un-chef-pour-f%C3%AAtes"
-    url = "http://www.lesoir.be/144465/article/actualite/belgique/2012-12-26/di-rupo-discours-du-roi-un-message-%C2%AB-humaniste-%C2%BB"
-    url = "http://www.lesoir.be/144352/article/culture/cinema/2012-12-26/spike-lee-boycotte-prochain-film-quentin-tarantino"
-    url = "http://www.lesoir.be/159937/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-%C2%ABbruxelles-doit-travailler-avec-wallonie-et-flandre%C2%BB"
-    url = "http://www.lesoir.be/159937/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-%C2%ABbruxelles-doit-travailler-avec-wallonie-et-flandre%C2%BB"
-    url = "http://www.lesoir.be/138219/article/styles/air-du-temps/2012-12-14/votre-week-end-en-15-clics"
+    urls = ["http://www.lesoir.be/142224/article/culture/medias-tele/2012-12-21/audrey-pulvar-quitte-inrocks",
+    "http://www.lesoir.be/142193/article/debats/cartes-blanches/2012-12-21/g%C3%A9rard-depardieu-l%E2%80%99arbre-qui-cache-for%C3%AAt",
+    "http://www.lesoir.be/142176/article/actualite/belgique/2012-12-21/van-rompuy-%C2%AB-etre-premier-en-belgique-c%E2%80%99est-frustrant-%C2%BB",
+    "http://www.lesoir.be/142265/article/actualite/belgique/2012-12-21/quatre-militantes-anti-poutine-interpell%C3%A9es-%C3%A0-bruxelles",
+    "http://www.lesoir.be/140983/article/actualite/regions/bruxelles/2012-12-19/sacs-bleus-et-jaunes-sort-en-est-jet%C3%A9",
+    "http://www.lesoir.be/141646/article/actualite/regions/bruxelles/2012-12-20/stib-l-abonnement-scolaire-co%C3%BBtera-120-euros",
+    "http://www.lesoir.be/141861/article/debats/chats/2012-12-20/11h02-relations-du-parti-islam-avec-l-iran-posent-question",
+    "http://www.lesoir.be/141613/article/actualite/regions/bruxelles/2012-12-20/catteau-danse-contre-harc%C3%A8lement",
+    "http://www.lesoir.be/141854/article/debats/chats/2012-12-20/pol%C3%A9mique-sur-michelle-martin-%C2%ABne-confondons-pas-justice-et-vengeance%C2%BB",
+    "http://www.lesoir.be/91779/article/actualite/belgique/2012-10-02/coupure-d%E2%80%99%C3%A9lectricit%C3%A9-%C3%A0-bruxelles-est-due-%C3%A0-un-incident-chez-elia",
+    "http://www.lesoir.be/142376/article/styles/cuisines/2012-12-21/cuisinez-comme-un-chef-pour-f%C3%AAtes",
+    "http://www.lesoir.be/144465/article/actualite/belgique/2012-12-26/di-rupo-discours-du-roi-un-message-%C2%AB-humaniste-%C2%BB",
+    "http://www.lesoir.be/144352/article/culture/cinema/2012-12-26/spike-lee-boycotte-prochain-film-quentin-tarantino",
+    "http://www.lesoir.be/159937/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-%C2%ABbruxelles-doit-travailler-avec-wallonie-et-flandre%C2%BB",
+    "http://www.lesoir.be/159937/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-%C2%ABbruxelles-doit-travailler-avec-wallonie-et-flandre%C2%BB",
+    # "http://www.lesoir.be/138219/article/styles/air-du-temps/2012-12-14/votre-week-end-en-15-clics",
+    # "http://www.lesoir.be/191550/article/actualite/monde/2013-02-17/affaire-pistorius-une-dispute-entre-amants-qui-aurait-mal-tourn%C3%A9",
+    # "http://www.lesoir.be/191397/article/culture/cinema/2013-02-16/l%E2%80%99ours-d%E2%80%99or-d%C3%A9cern%C3%A9-au-drame-roumain-%C2%ABchild%E2%80%99s-pose%C2%BB"
+    ]
     
-    article, html = extract_article_data(url)
+    article, html = extract_article_data(urls[-1])
+
+    # print article.title
+    # print article.content
+
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "__________"
 
 
     # from csxj.common.tagging import print_taggedURLs

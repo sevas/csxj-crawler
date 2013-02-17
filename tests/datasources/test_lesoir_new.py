@@ -14,7 +14,7 @@ from csxj_test_tools import assert_taggedURLs_equals
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', lesoir_new.SOURCE_NAME)
 
 
-class TestLalibreLinkExtraction(object):
+class TestLaSoirNewLinkExtraction(object):
     def test_same_owner_tagging(self):
         """ lesoir_new parser correctly tags 'same owner' links """
         with open(os.path.join(DATA_ROOT, "same_owner_tagging.html")) as f:
@@ -39,3 +39,21 @@ class TestLalibreLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+
+    def test_in_text_and_sidebar(self):
+        """ lesoir_new parser correctly tags in-text and sidebar """
+        with open(os.path.join(DATA_ROOT, "in_text_and_sidebar.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url(u"http://www.lesoir.be/159908/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-est-nouveau-patron-du-mr-bruxellois", u"""élu président de la Régionale bruxelloise du MR""", set(['internal', 'in text'])),
+                make_tagged_url(u"http://www.lesoir.be/156156/article/actualite/belgique/crise-politique/2013-01-11/belgique-%C3%A0-trois-r%C3%A9gions-kris-peeters-s%E2%80%99y-r%C3%A9sout", u"""dans l’entretien qu’il nous a accordé""", set(['internal', 'in text'])),
+                make_tagged_url(u"/159908/article/actualite/regions/bruxelles/2013-01-12/didier-reynders-est-nouveau-patron-du-mr-bruxellois", u"""Didier Reynders est le nouveau patron du MR bruxellois""", set(['internal', 'sidebar box'])),
+                make_tagged_url(u"/156156/article/actualite/belgique/crise-politique/2013-01-11/belgique-à-trois-régions-kris-peeters-s’y-résout", u"""La Belgique à trois Régions ? Kris Peeters s’y résout""", set(['internal', 'sidebar box'])),
+                make_tagged_url(u"http://https://twitter.com/dreynders", u"""Le compte Twitter de Didier Reynders""", set(['sidebar box', 'external'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
