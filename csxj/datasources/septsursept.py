@@ -41,7 +41,8 @@ SEPTSURSEPT_SAME_OWNER = [
     'demorgen.be',
     'tijd.be',
     'nina.be',
-    'goedgevoel.be'
+    'goedgevoel.be',
+    'www.11dor.be'
 ]
 
 
@@ -437,14 +438,16 @@ def extract_embedded_media(soup):
                 tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
     # some embedded media are not in the artucle body, but embedded in the art_aside container
-    art_aside = soup.find(attrs = {"class" : "art_aside"})
+    art_aside = soup.find_all(attrs = {"class" : "art_aside"})
     if art_aside:
-        tagged_urls.extend(find_embedded_media_in_multimedia_box(art_aside))
+        for section in art_aside:
+            tagged_urls.extend(find_embedded_media_in_multimedia_box(section))
 
     # same, but in the art_bottom container
-    art_bottom = soup.find(attrs = {"class" : "art_bottom"})
+    art_bottom = soup.find_all(attrs = {"class" : "art_bottom"})
     if art_bottom:
-        tagged_urls.extend(find_embedded_media_in_multimedia_box(art_bottom))
+        for section in art_bottom:
+            tagged_urls.extend(find_embedded_media_in_multimedia_box(section))
 
     return tagged_urls
 
@@ -537,8 +540,8 @@ def extract_article_data(source):
 
         updated_tagged_urls = tagging.update_tagged_urls(tagged_urls, SEPTSURSEPT_SAME_OWNER)
 
-        # print generate_test_func('embedded_video_and_in_text_links', 'septsursept', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_data, source, 'embedded_video_and_in_text_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/septsursept')
+        # print generate_test_func('same_owner', 'septsursept', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_data, source, 'same_owner', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/septsursept')
 
 
         return (ArticleData(source, title, pub_date, pub_time, dt.datetime.now(),
@@ -669,19 +672,19 @@ if __name__ == '__main__':
     url = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/moved_permanently.html")
     url = "http://www.7sur7.be/7s7/fr/1513/tennis/article/detail/1455721/2012/06/18/Les-10-plus-gros-petages-de-plomb-de-l-histoire-du-tennis.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1426303/2012/04/20/Wesphael-annonce-la-creation-de-son-parti.dhtml"
-    url_test = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1415778/2012/03/29/La-lingerie-belge-de-Carine-Gilson-primee.dhtml"
+    url = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1415778/2012/03/29/La-lingerie-belge-de-Carine-Gilson-primee.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1436819/2012/05/11/Comment-etre-un-bon-Flamand-la-brochure-qui-fait-jaser.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1536/Economie/article/detail/1446084/2012/05/30/Ces-grandes-entreprises-belges-qui-ne-paient-pas-d-impots.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1495469/2012/09/04/Gad-Elmaleh-et-Charlotte-de-Monaco-officialisent-leur-relation.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1504847/2012/09/21/Le-Standard-voit-rouge-Trond-Sollied-sauve-sa-tete.dhtml"
-    url = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1507177/2012/09/26/Van-Damme-Pour-moi-ca-reste-une-question-ridicule.dhtml"
+    url_test = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1507177/2012/09/26/Van-Damme-Pour-moi-ca-reste-une-question-ridicule.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1767/Ligue-des-Champions/article/detail/1510948/2012/10/03/Anderlecht-mange-a-la-sauce-andalouse.dhtml"
     url = "http://www.7sur7.be/7s7/fr/9099/Hors-jeu/article/detail/1536875/2012/11/20/Varane-considere-Bilbao-pour-une-equipe-catalane.dhtml"
-    url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1513518/2012/10/09/Arret-de-travail-aux-depots-TEC-de-Jemeppe-et-Robermont.dhtml"
     article_data, html = extract_article_data(url_test)
-    # if article_data:
+    if article_data:
+    #     print [article_data.intro]
     #     print article_data.title
-    #     print article_data.content
+        print article_data.content
     #     print "%r LINKS:" % len(article_data.links)
     #     for link in article_data.links:
     #         print link.title
