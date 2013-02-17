@@ -9,10 +9,10 @@ import traceback
 
 from csxj.common.decorators import deprecated
 from csxj.datasources.parser_tools.utils import fetch_html_content
+from csxj.datasources.parser_tools.utils import convert_utf8_url_to_ascii
+
 from db import Provider, ProviderStats, make_error_log_entry2
 from db.constants import *
-
-from csxj.datasources import septsursept
 
 
 def write_dict_to_file(d, outdir, outfile):
@@ -35,6 +35,8 @@ class ArticleQueueFiller(object):
         self.source_name = source_name
         self.db_root = db_root
         self.new_stories = list()
+        self.new_blogposts = list()
+        self.new_paywalled_articles = list()
         self.root = os.path.join(db_root, source_name)
 
     def make_log_message(self, message):
@@ -70,9 +72,10 @@ class ArticleQueueFiller(object):
             os.makedirs(outdir)
 
         try:
-            frontpage_toc, blogposts_toc = self.source.get_frontpage_toc()
-            self.log_info("Found {0} stories and {1} blogposts on frontpage".format(len(frontpage_toc),
-                                                                                    len(blogposts_toc)))
+            frontpage_toc, blogposts_toc, paywalled_articles = self.source.get_frontpage_toc()
+            self.log_info(u"Found {0} stories, {1} blogposts and {2} paywalled articles on the frontpage".format(len(frontpage_toc),
+                                                                                                                 len(blogposts_toc),
+                                                                                                                 len(paywalled_articles)))
             if len(frontpage_toc):
                 last_stories_filename = os.path.join(self.db_root,
                                                      self.source_name,
@@ -80,20 +83,24 @@ class ArticleQueueFiller(object):
                 last_blogposts_filename = os.path.join(self.db_root,
                                                        self.source_name,
                                                        LAST_BLOGPOSTS_FILENAME)
+                last_paywalled_articles_filename = os.path.join(self.db_root,
+                                                                self.source_name,
+                                                                LAST_PAYWALLED_ARTICLES_FILENAME)
 
                 self.new_stories = utils.filter_only_new_stories(frontpage_toc, last_stories_filename)
                 self.new_blogposts = utils.filter_only_new_stories(blogposts_toc, last_blogposts_filename)
+                self.new_paywalled_articles = utils.filter_only_new_stories(paywalled_articles, last_paywalled_articles_filename)
 
-                self.log_info("Found {0} new stories and {1} new blogposts since last time".format(len(self.new_stories),
-                                                                                                   len(self.new_blogposts)))
-
+                self.log_info(u"Found {0} new stories, {1} new blogposts and {2} new paywalled articles since last time".format(len(self.new_stories),
+                                                                                                                                len(self.new_blogposts),
+                                                                                                                                len(self.new_paywalled_articles)))
                 self.update_global_queue()
             else:
-                self.log_error("Found no headlines on the frontpage. Updating error log")
+                self.log_error(u"Found no headlines on the frontpage. Updating error log")
                 self.update_queue_error_log("*** No link were extracted from the frontpage")
 
         except Exception:
-            self.log_error("Something went wrong while fetching new frontpage headlines. Updating error log")
+            self.log_error(u"Something went wrong while fetching new frontpage headlines. Updating error log")
             stacktrace = traceback.format_exc()
             self.update_queue_error_log(stacktrace)
 
@@ -135,9 +142,10 @@ class ArticleQueueFiller(object):
 
         self.log.info(self.make_log_message("Saving toc to {0}".format(batch_filename)))
         with open(batch_filename, "w") as f:
-            self.log.info(self.make_log_message("Enqueuing {0} new stories and {1} blogposts".format(len(self.new_stories),
-                                                                                                     len(self.new_blogposts))))
-            json.dump({"articles": self.new_stories, "blogposts": self.new_blogposts}, f)
+            self.log.info(self.make_log_message("Enqueuing {0} new stories, {1} blogposts and {2} paywalled articles".format(len(self.new_stories),
+                                                                                                                             len(self.new_blogposts),
+                                                                                                                             len(self.new_paywalled_articles))))
+            json.dump({"articles": self.new_stories, "blogposts": self.new_blogposts, "paywalled_articles": self.new_paywalled_articles}, f)
 
 
 class ArticleQueueDownloader(object):
@@ -183,27 +191,30 @@ class ArticleQueueDownloader(object):
 
         if queued_items:
             for (day_string, batches) in queued_items:
-                self.log_info("Downloading {0} batches for {1}".format(len(batches), day_string))
+                self.log_info(u"Downloading {0} batches for {1}".format(len(batches), day_string))
                 day_directory = os.path.join(self.db_root, self.source_name, day_string)
                 for (i, batch) in enumerate(batches):
                     batch_hour_string, items = batch
 
-                    items['articles'], items['blogposts'] = septsursept.separate_articles_and_photoalbums(items['articles'])
-
                     self.log.info(self.make_log_message("Downloading {0} articles for batch#{1} ({2})".format(len(items['articles']), i, batch_hour_string)))
                     articles, deleted_articles, errors, raw_data = self.download_batch(items['articles'])
 
-                    self.log_info("Found data for {0} articles ({1} errors)".format(len(articles),
-                                                                                    len(errors)))
+                    self.log_info(u"Found data for {0} articles ({1} errors)".format(len(articles),
+                                                                                     len(errors)))
                     batch_output_directory = os.path.join(day_directory, batch_hour_string)
                     self.save_articles_to_db(articles, deleted_articles, errors, items['blogposts'], batch_output_directory)
+                    if 'paywalled_articles' not in items:
+                        items['paywalled_articles'] = []
+                    self.log_info(u"Writing {0} paywalled article links to {1}".format(len(items['paywalled_articles']), os.path.join(batch_output_directory, PAYWALLED_ARTICLES_FILENAME)))
+                    write_dict_to_file(dict(paywalled_articles=items['paywalled_articles']), batch_output_directory, PAYWALLED_ARTICLES_FILENAME)
+
                     self.save_raw_data_to_db(raw_data, batch_output_directory)
                     self.save_errors_raw_data_to_db(errors, batch_output_directory)
 
-                self.log_info("Removing queue directory for day: {0}".format(day_string))
+                self.log_info(u"Removing queue directory for day: {0}".format(day_string))
                 provider_db.cleanup_queue(day_string)
         else:
-            self.log_info("Empty queue. Nothing to do.")
+            self.log_info(u"Empty queue. Nothing to do.")
 
     def download_batch(self, items):
         articles, deleted_articles, errors, raw_data = list(), list(), list(), list()
@@ -227,25 +238,25 @@ class ArticleQueueDownloader(object):
         all_data = {'articles': [art.to_json() for art in articles],
                     'errors': []}
 
-        self.log_info("Writing {0} articles to {1}".format(len(articles), os.path.join(outdir, ARTICLES_FILENAME)))
+        self.log_info(u"Writing {0} articles to {1}".format(len(articles), os.path.join(outdir, ARTICLES_FILENAME)))
         write_dict_to_file(all_data, outdir, ARTICLES_FILENAME)
 
         blogposts_data = {'blogposts': blogposts}
-        self.log_info("Writing {0} blogpost links to {1}".format(len(blogposts), os.path.join(outdir, BLOGPOSTS_FILENAME)))
+        self.log_info(u"Writing {0} blogpost links to {1}".format(len(blogposts), os.path.join(outdir, BLOGPOSTS_FILENAME)))
         write_dict_to_file(blogposts_data, outdir, BLOGPOSTS_FILENAME)
 
         deleted_articles_data = {'deleted_articles': deleted_articles}
-        self.log_info("Writing {0} links to deleted articles to {1}".format(len(deleted_articles), os.path.join(outdir, DELETED_ARTICLES_FILENAME)))
+        self.log_info(u"Writing {0} links to deleted articles to {1}".format(len(deleted_articles), os.path.join(outdir, DELETED_ARTICLES_FILENAME)))
         write_dict_to_file(deleted_articles_data, outdir, DELETED_ARTICLES_FILENAME)
 
-        self.log_info("Writing {0} errors to {1}".format(len(errors), os.path.join(outdir, ERRORS2_FILENAME)))
+        self.log_info(u"Writing {0} errors to {1}".format(len(errors), os.path.join(outdir, ERRORS2_FILENAME)))
         write_dict_to_file({'errors': errors}, outdir, ERRORS2_FILENAME)
 
     def save_raw_data_to_db(self, raw_data, batch_outdir):
         """
         """
         raw_data_dir = os.path.join(batch_outdir, RAW_DATA_DIR)
-        self.log_info("Writing raw html data to {0}".format(raw_data_dir))
+        self.log_info(u"Writing raw html data to {0}".format(raw_data_dir))
         self.save_raw_data_to_path(raw_data, raw_data_dir)
 
     def save_errors_raw_data_to_db(self, errors, batch_outdir):
@@ -258,11 +269,11 @@ class ArticleQueueDownloader(object):
                 html_content = fetch_html_content(url)
                 raw_data.append((url, html_content))
             except:
-                self.log_error("Could not fetch raw html data for error'd url: {0} (Reason: {1})".format(url, traceback.format_exc()))
+                self.log_error(u"Could not fetch raw html data for error'd url: {0} (Reason: {1})".format([url], traceback.format_exc()))
                 continue
 
         raw_data_dir = os.path.join(batch_outdir, ERRORS_RAW_DATA_DIR)
-        self.log_info("Writing raw html data to {0}".format(raw_data_dir))
+        self.log_info(u"Writing raw html data to {0}".format(raw_data_dir))
         self.save_raw_data_to_path(raw_data, raw_data_dir)
 
     def save_raw_data_to_path(self, raw_data, root_path):
@@ -271,7 +282,7 @@ class ArticleQueueDownloader(object):
             os.mkdir(raw_data_dir)
         references = []
         for (i, (url, html_content)) in enumerate(raw_data):
-            outfilename = "{0}.html".format(i)
+            outfilename = u"{0}.html".format(i)
             with open(os.path.join(raw_data_dir, outfilename), 'w') as f:
                 f.write(html_content)
             references.append((url, outfilename))
@@ -283,12 +294,12 @@ class ArticleQueueDownloader(object):
     def update_provider_stats(self, outdir, articles, errors):
         stats_filename = os.path.join(outdir, 'stats.json')
         if not os.path.exists(stats_filename):
-            self.log_info("Creating stats file: {0}".format(stats_filename))
+            self.log_info(u"Creating stats file: {0}".format(stats_filename))
             init_stats = ProviderStats.make_init_instance()
             init_stats.save_to_file(stats_filename)
 
         try:
-            self.log_info("Restoring stats from file {0} ".format(stats_filename))
+            self.log_info(u"Restoring stats from file {0} ".format(stats_filename))
             current_stats = ProviderStats.load_from_file(stats_filename)
             current_stats.n_articles += len(articles)
             current_stats.n_errors += len(errors)

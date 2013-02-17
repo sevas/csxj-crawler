@@ -1,9 +1,11 @@
-LAST_STORIES_FILENAME='last_frontpage_list.json'
-LAST_BLOGPOSTS_FILENAME='last_blogposts_list.json'
+LAST_STORIES_FILENAME = 'last_frontpage_list.json'
+LAST_BLOGPOSTS_FILENAME = 'last_blogposts_list.json'
+LAST_PAYWALLED_ARTICLES_FILENAME = 'last_paywalled_articles.json'
 LOG_PATH = "logs"
 
 ARTICLES_FILENAME = 'articles.json'
 BLOGPOSTS_FILENAME = 'blogposts.json'
+PAYWALLED_ARTICLES_FILENAME = 'paywalled_articles.json'
 ERRORS_FILENAME = 'errors.json'
 ERRORS2_FILENAME = 'errors2.json'
 DELETED_ARTICLES_FILENAME = 'deleted_articles.json'
