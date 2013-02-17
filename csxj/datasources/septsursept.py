@@ -14,6 +14,9 @@ from parser_tools import twitter_utils
 from csxj.common import tagging
 from csxj.db.article import ArticleData
 
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
+
+
 
 SOURCE_TITLE = u"7 sur 7"
 SOURCE_NAME = u"septsursept"
@@ -534,6 +537,10 @@ def extract_article_data(source):
 
         updated_tagged_urls = tagging.update_tagged_urls(tagged_urls, SEPTSURSEPT_SAME_OWNER)
 
+        #print generate_test_func('embedded_tweets', 'septsursept', dict(tagged_urls=updated_tagged_urls))
+        #save_sample_data_file(html_data, source, 'embedded_tweets', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/septsursept')
+
+
         return (ArticleData(source, title, pub_date, pub_time, dt.datetime.now(),
                         updated_tagged_urls,
                         category, author_name,
@@ -672,15 +679,15 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/9099/Hors-jeu/article/detail/1536875/2012/11/20/Varane-considere-Bilbao-pour-une-equipe-catalane.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1513518/2012/10/09/Arret-de-travail-aux-depots-TEC-de-Jemeppe-et-Robermont.dhtml"
     article_data, html = extract_article_data(url_test)
-    if article_data:
-        print article_data.title
-        print article_data.content
-        print "%r LINKS:" % len(article_data.links)
-        for link in article_data.links:
-            print link.title
-            print link.URL
-            print link.tags
-            print "_________"
+    # if article_data:
+    #     print article_data.title
+    #     print article_data.content
+    #     print "%r LINKS:" % len(article_data.links)
+    #     for link in article_data.links:
+    #         print link.title
+    #         print link.URL
+    #         print link.tags
+    #         print "_________"
 
 
     # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
