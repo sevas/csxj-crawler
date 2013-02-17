@@ -25,13 +25,13 @@ SOURCE_NAME = u"lesoir"
 
 LESOIR_INTERNAL_BLOGS = {
 
-    'archives.lesoir.be':['archives', 'internal'],
+    'archives.lesoir.be': ['archives', 'internal'],
    
-    'belandroid.lesoir.be':['internal', 'jblog'],
-    'geeko.lesoir.be':['internal', 'jblog'],
-    'blog.lesoir.be':['internal', 'jblog'],
+    'belandroid.lesoir.be': ['internal', 'jblog'],
+    'geeko.lesoir.be': ['internal', 'jblog'],
+    'blog.lesoir.be': ['internal', 'jblog'],
 
-    'pdf.lesoir.be' : ['internal', 'pdf newspaper']
+    'pdf.lesoir.be': ['internal', 'pdf newspaper']
 }
 
 LESOIR_NETLOC = 'www.lesoir.be'
@@ -48,14 +48,12 @@ def is_on_same_domain(url):
     return False
 
 
-
 def sanitize_paragraph(paragraph):
     """
     Removes image links, removes paragraphs, formatting
     """
     return  remove_text_formatting_markup_from_fragments(paragraph)
     #return ''.join([remove_text_formatting_markup(fragment) for fragment in paragraph.contents])
-
 
 
 def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
@@ -68,8 +66,9 @@ def classify_and_make_tagged_url(urls_and_titles, additional_tags=set()):
         tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
         if is_on_same_domain(url):
             tags.update(['internal site'])
-        tagged_urls.append(make_tagged_url(url, title, tags|additional_tags))
+        tagged_urls.append(make_tagged_url(url, title, tags | additional_tags))
     return tagged_urls
+
 
 def extract_title_and_url_from_bslink(link):
     base_tags = []
@@ -88,6 +87,7 @@ def extract_title_and_url_from_bslink(link):
 
     return title, url, base_tags
 
+
 def extract_text_content(story):
     """
     Finds the story's body, cleans up the text to remove all html formatting.
@@ -100,7 +100,6 @@ def extract_text_content(story):
 
     # extract regular, in text links
     inline_links = list()
-    plaintext_urls = list()
 
     for paragraph in paragraphs:
         links = paragraph.findAll('a', recursive=True)
@@ -111,7 +110,6 @@ def extract_text_content(story):
         tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
         tags.add('in text')
         tagged_urls.append(tagging.make_tagged_url(url, title, tags))
-
 
     # extract story text
     clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
@@ -127,9 +125,7 @@ def extract_text_content(story):
         tags.add('plaintext')
         tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
-
     return clean_paragraphs, tagged_urls
-
 
 
 def extract_to_read_links_from_sidebar(sidebar):
@@ -143,7 +139,6 @@ def extract_to_read_links_from_sidebar(sidebar):
         return []
 
 
-
 def extract_external_links_from_sidebar(sidebar):
     external_links_container = sidebar.find('div', {'id':'external'})
 
@@ -153,8 +148,6 @@ def extract_external_links_from_sidebar(sidebar):
         return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['sidebar box', 'web']))
     else:
         return []
-
-
 
 
 def extract_recent_links_from_soup(soup):
@@ -177,7 +170,6 @@ def extract_recent_links_from_soup(soup):
         return []
 
 
-
 def extract_links(soup):
     """
     Get the link lists for one news item, from the parsed html content.
@@ -190,7 +182,6 @@ def extract_links(soup):
     all_tagged_urls.extend(extract_recent_links_from_soup(soup))
 
     return all_tagged_urls
-
 
 
 def extract_title(story):
@@ -212,7 +203,6 @@ def extract_author_name(story):
         return constants.NO_AUTHOR_NAME
 
 
-
 def extract_date(story):
     header = story.find('div', {'id':'story_head'})
     publication_date = header.find('p', {'class':'info st_date'})
@@ -228,7 +218,6 @@ def extract_date(story):
         return None, None
 
 
-
 def extract_intro(story):
     header = story.find('div', {'id':'story_head'})
     intro = header.find('h4', {'class':'chapeau'})
@@ -238,10 +227,12 @@ def extract_intro(story):
 
     return ''.join(text_fragments)
 
+
 def extract_category(story):
     breadcrumbs = story.find('div', {'id':'fil_ariane'})
     category_stages = [a.contents[0] for a in breadcrumbs.findAll('a') ]
     return category_stages
+
 
 def extract_links_from_embedded_content(story):
     tagged_urls = []
@@ -280,8 +271,6 @@ def extract_links_from_embedded_content(story):
     for x in tagged_urls:
         print x
     return tagged_urls
-
-
 
 
 def extract_article_data(source):
@@ -324,7 +313,6 @@ def extract_article_data(source):
                               intro, content), html_content
 
 
-
 def extract_main_content_links(source):
     if hasattr(source, 'read'):
         html_content = source.read()
@@ -350,7 +338,6 @@ def extract_main_content_links(source):
     return [extract_url_and_title(l) for l in all_links]
 
 
-
 def get_two_columns_stories(element):
     """
     Returns the two <li> with two 'two columns' stories.
@@ -361,14 +348,12 @@ def get_two_columns_stories(element):
     return two_columns_stories_list.findAll('li', recursive=False)
 
 
-
 def element_has_two_columns_stories(element):
     """
     Checks whether or not a frontpage entry is a stand alone news item, or a container
     for two 'two columns' items.
     """
     return len(element.findAll('ul', {'class':'two_cols'}, recursive=False)) == 1
-
 
 
 def get_frontpage_toc():
@@ -390,7 +375,7 @@ def get_frontpage_toc():
 
     for container in stories_containers:
         all_stories = set(container.findAll('li', recursive=False))
-        main_stories = set(container.findAll('li', {'class':'stories_main clearfix'}, recursive=False))
+        main_stories = set(container.findAll('li', {'class': 'stories_main clearfix'}, recursive=False))
 
         other_stories = all_stories - main_stories
 
@@ -428,8 +413,6 @@ def get_frontpage_toc():
     return [(title, 'http://www.lesoir.be{0}'.format(url)) for (title, url) in articles_toc], blogpost_toc
 
 
-
-
 def get_rss_toc():
     rss_url = 'http://www.lesoir.be/la_une/rss.xml'
     xml_content = fetch_rss_content(rss_url)
@@ -456,15 +439,11 @@ def parse_sample_data():
             extract_article_data(f)
 
 
-
 def is_external_blog(url):
     return not url.startswith('/')
 
 
-
 def get_frontpage_articles_data():
-    import traceback
-
     articles_toc, blogposts_toc = get_frontpage_toc()
 
     articles = []
@@ -475,7 +454,6 @@ def get_frontpage_articles_data():
         articles.append(article_data)
 
     return articles, blogposts_toc, errors
-
 
 
 def dowload_one_article():
@@ -497,6 +475,7 @@ def dowload_one_article():
     # print "total links: ", len(maincontent_links)
     # print "processed links: ", len(processed_links)
     # print "missing: ", len(missing_links)
+
 
 def test_sample_data():
     filepath = '../../sample_data/lesoir/same_owner_links.html'
