@@ -536,6 +536,7 @@ def show_article():
     ]
 
     article, html = extract_article_data(urls[-1])
+    print article.content
     for link in article.links:
         print link
 

@@ -10,7 +10,7 @@ import codecs
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
-from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, remove_text_formatting_and_links_from_fragments
 from parser_tools.utils import setup_locales
 from parser_tools import constants
 from csxj.common import tagging
@@ -100,40 +100,39 @@ def extract_text_content(story):
 
     # extract regular, in text links
     inline_links = list()
+    plaintext_urls = list()
+    text = list()
 
-    for paragraph in paragraphs:
-        links = paragraph.findAll('a', recursive=True)
-        inline_links.extend(links)
+    if paragraphs :
+        for paragraph in paragraphs:
+            text.append(u"".join(remove_text_formatting_markup_from_fragments(paragraph)))
+            links = paragraph.findAll('a', recursive=True)
+            inline_links.extend(links)
+            plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(paragraph))
+            for url in plaintext_urls:
+                tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+                tags.update(['plaintext', 'in text'])
+                tagged_urls.append(make_tagged_url(url, url, tags))
 
-    titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
-    for title, url, base_tags in titles_and_urls:
-        tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
-        tags.add('in text')
-        tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+        titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
+        for title, url, base_tags in titles_and_urls:
+            tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+            tags.add('in text')
+            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+    
+    else :
+        text = u""
 
-    # extract story text
-    clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
+    return text, tagged_urls
 
-    # extract plaintext links
-    plaintext_urls = []
-    for text in clean_paragraphs:
-        plaintext_urls.extend(extract_plaintext_urls_from_text(text))
-
-    for url in plaintext_urls:
-        tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
-        tags.add('in text')
-        tags.add('plaintext')
-        tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-
-    return clean_paragraphs, tagged_urls
 
 
 def extract_to_read_links_from_sidebar(sidebar):
-    to_read_links_container = sidebar.find('div', {'id': 'lire_aussi'})
+    to_read_links_container = sidebar.find('div', {'id':'lire_aussi'})
     #sometimes, it does not exist at all
     if to_read_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
-                           for link in to_read_links_container.findAll('a')]
+                            for link in to_read_links_container.findAll('a')]
         return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['sidebar box', 'to read']))
     else:
         return []
@@ -477,10 +476,12 @@ def dowload_one_article():
 def test_sample_data():
     filepath = '../../sample_data/lesoir/same_owner_links.html'
     filepath = '../../tests/datasources/test_data/lesoir/same_owner_tagging.html'
+    filepath = '../../tests/datasources/test_data/lesoir/lesoir_intext.html'
+    filepath = "../../sample_data/lesoir/lesoir_intext.html"
 
     with open(filepath) as f:
-        article, raw = extract_article_data(f)
-        print article.category
+        article_data, raw = extract_article_data(f)
+        # print article.category
         # article_data.print_summary()
 
         # for link in article_data.links:

@@ -11,7 +11,7 @@ import BeautifulSoup as bs
 from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, make_soup_from_html_content, TEXT_MARKUP_TAGS
-from parser_tools.utils import remove_text_formatting_markup_from_fragments
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
 from parser_tools import constants
 from parser_tools import ipm_utils
@@ -142,10 +142,10 @@ def extract_text_content_and_links_from_articletext(main_content, has_intro=True
     article_text = main_content
 
     in_text_tagged_urls = []
-    all_fragments = []
+    all_cleaned_paragraphs = []
+    all_rough_paragraphs = []
     all_plaintext_urls = []
     embedded_tweets = []
-
 
     def is_text_content(blob):
         if isinstance(blob, bs.Tag) and blob.name in TEXT_MARKUP_TAGS:
@@ -154,34 +154,36 @@ def extract_text_content_and_links_from_articletext(main_content, has_intro=True
             return True
         return False
 
-    paragraphs = [c for c in article_text.contents if is_text_content(c)]
+    text_fragments = [c for c in article_text.contents if is_text_content(c)]
 
-    for paragraph in paragraphs:
-        if isinstance(paragraph, bs.NavigableString):
-            cleaned_up_text = remove_text_formatting_markup_from_fragments([paragraph], strip_chars='\r\n\t ')
-            if cleaned_up_text:
-                all_fragments.append(cleaned_up_text)
-                plaintext_links = extract_plaintext_urls_from_text(paragraph)
-                urls_and_titles = zip(plaintext_links, plaintext_links)
-                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext', 'in text'])))
-        else:
-            if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
-                in_text_links = extract_and_tag_in_text_links(paragraph)
-                in_text_tagged_urls.extend(in_text_links)
+    if text_fragments:
+        # we first need to avoid treating embedded tweets as text
+        for paragraph in text_fragments:
+            if isinstance(paragraph, bs.NavigableString):
+                all_cleaned_paragraphs.append(remove_text_formatting_markup_from_fragments(paragraph))
+                all_rough_paragraphs.append(paragraph)
 
-                fragments = sanitize_paragraph(paragraph)
-                all_fragments.append(fragments)
-                plaintext_links = extract_plaintext_urls_from_text(fragments)
-                urls_and_titles = zip(plaintext_links, plaintext_links)
-                all_plaintext_urls.extend(classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['plaintext', 'in text'])))
             else:
-                embedded_tweets.extend(
-                    twitter_utils.extract_rendered_tweet(paragraph, DHNET_NETLOC, DHNET_INTERNAL_SITES))
+                if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+                    in_text_links = extract_and_tag_in_text_links(paragraph)
+                    in_text_tagged_urls.extend(in_text_links)
+                    all_cleaned_paragraphs.append(remove_text_formatting_markup_from_fragments(paragraph))
+                    all_rough_paragraphs.append(paragraph)
+                else:
+                    embedded_tweets.extend(
+                        twitter_utils.extract_rendered_tweet(paragraph, DHNET_NETLOC, DHNET_INTERNAL_SITES))
 
-    text_content = all_fragments
+        # extracting plaintext links
+        for paragraph in all_rough_paragraphs:
+            plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(paragraph))
+            for url in plaintext_urls:
+                tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+                tags.update(['plaintext', 'in text'])
+                all_plaintext_urls.append(make_tagged_url(url, url, tags))
+    else:
+        all_cleaned_paragraphs = []
 
-    return text_content, in_text_tagged_urls + all_plaintext_urls + embedded_tweets
-
+    return all_cleaned_paragraphs, in_text_tagged_urls + all_plaintext_urls + embedded_tweets
 
 
 def article_has_intro(article_text):
@@ -401,14 +403,14 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
         "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html",
         "http://www.dhnet.be/people/show-biz/article/421868/rosie-huntington-whiteley-sens-dessus-dessous.html",
-        "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html"
+        "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html",
         # "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html",
         # "http://www.dhnet.be/sports/football/article/393699/hazard-s-impose-avec-lille.html",
         # "http://www.dhnet.be/sports/football/article/393678/reynders-boycotte-l-euro-de-football-en-ukraine.html",
         # "http://www.dhnet.be/people/sports/article/393650/tom-boonen-sans-les-mains.html",
 
-        # #plaintext links:
-        # "http://www.dhnet.be/infos/belgique/article/417360/neige-preparez-vous-au-chaos-ce-matin.html"
+        #plaintext links:
+        "http://www.dhnet.be/infos/belgique/article/417360/neige-preparez-vous-au-chaos-ce-matin.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
@@ -416,11 +418,9 @@ if __name__ == "__main__":
     article, html = extract_article_data(urls[-1])
     print article.title
     print article.url
-    print "______________"
-    print "LINKS:"
-    for link in article.links:
-        print link.title
-        print link.URL
-        print link.tags
-        print "_____________"
+
+    from pprint import pprint
+    print_taggedURLs(article.links)
+
+
 

@@ -9,9 +9,12 @@ from scrapy.selector import HtmlXPathSelector
 import bs4
 
 from parser_tools import utils
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments
 from parser_tools import twitter_utils
 from csxj.common import tagging
 from csxj.db.article import ArticleData
+
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
 
 SOURCE_TITLE = u"7 sur 7"
@@ -37,7 +40,8 @@ SEPTSURSEPT_SAME_OWNER = [
     'demorgen.be',
     'tijd.be',
     'nina.be',
-    'goedgevoel.be'
+    'goedgevoel.be',
+    'www.11dor.be'
 ]
 
 
@@ -111,11 +115,11 @@ def extract_title(soup):
 
 def extract_author_name(author_box):
     # parfois le nom de l'auteur est dans un lien
-    author_link = author_box.find_all('a', recursive = False)
-    if author_link :
+    author_link = author_box.find_all('a', recursive=False)
+    if author_link:
         author_name = author_link[0].contents[0]
 
-    else :
+    else:
     # quand le nom n'est pas dans un lien, je prends le premier élément de la author_box
         author_name = author_box.contents[0]
         # nettoyer les retours à la ligne inutiles
@@ -191,24 +195,22 @@ def extract_intro(soup):
 def extract_text_content_and_links(soup) :
     article_text = []
     inline_links = []
+    plaintext_urls = []
 
     content_box = soup.find(attrs = {"id" : "detail_content"})
     text = content_box.find_all(attrs = {"class":"clear"})
+
     for fragment in text :
         paragraphs = fragment.find_all("p", recursive=False)
-        clean_text = utils.remove_text_formatting_markup_from_fragments(paragraphs, strip_chars = "\n")
-        article_text.append(clean_text)
         for p in paragraphs:
+            clean_text = remove_text_formatting_markup_from_fragments(p, strip_chars = "\n")
+            if clean_text:
+                article_text.append(clean_text)
+
+            found_plaintext_links = utils.extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(p))
+            plaintext_urls.extend(found_plaintext_links)
             link = p.find_all("a")
             inline_links.extend(link)
-
-
-    plaintext_urls = []
-
-    for x in article_text:
-        plaintext_links = utils.extract_plaintext_urls_from_text(x)
-        plaintext_urls.extend(plaintext_links)
-
 
     titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
 
@@ -320,7 +322,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
 
         elif 'asset' in section.attrs['class']:
             url = section.find('a').get('href')
-            title = section.find('a').contents
+            title = section.find('a').contents[0]
             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
             tags.add('embedded')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
@@ -437,14 +439,16 @@ def extract_embedded_media(soup):
                 tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
     # some embedded media are not in the artucle body, but embedded in the art_aside container
-    art_aside = soup.find(attrs = {"class" : "art_aside"})
+    art_aside = soup.find_all(attrs = {"class" : "art_aside"})
     if art_aside:
-        tagged_urls.extend(find_embedded_media_in_multimedia_box(art_aside))
+        for section in art_aside:
+            tagged_urls.extend(find_embedded_media_in_multimedia_box(section))
 
     # same, but in the art_bottom container
-    art_bottom = soup.find(attrs = {"class" : "art_bottom"})
+    art_bottom = soup.find_all(attrs = {"class" : "art_bottom"})
     if art_bottom:
-        tagged_urls.extend(find_embedded_media_in_multimedia_box(art_bottom))
+        for section in art_bottom:
+            tagged_urls.extend(find_embedded_media_in_multimedia_box(section))
 
     return tagged_urls
 
@@ -511,8 +515,7 @@ def extract_article_data(source):
     if soup.find("head").find("title").contents[0] == "301 Moved Permanently":
           return (None, html_data)
 
-    else :
-
+    else:
         title = extract_title(soup)
 
         author_box = soup.find(attrs = {"class" : "author"})
@@ -536,6 +539,9 @@ def extract_article_data(source):
         tagged_urls = tagged_urls_intext + tagged_urls_read_more_box + tagged_urls_sidebar_box + tagged_urls_embedded_media + tagged_urls_from_intro
 
         updated_tagged_urls = tagging.update_tagged_urls(tagged_urls, SEPTSURSEPT_SAME_OWNER)
+
+        # print generate_test_func('same_owner', 'septsursept', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_data, source, 'same_owner', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/septsursept')
 
         return (ArticleData(source, title, pub_date, pub_time, dt.datetime.now(),
                         updated_tagged_urls,
@@ -570,67 +576,6 @@ if __name__ == '__main__':
     url15 = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1501041/2012/09/14/Une-traversee-des-Etats-Unis-avec-du-bacon-comme-seule-monnaie.dhtml"
     urls = [url1, url2, url3, url6, url7, url9, url10, url11, url12, url14, url15]
 
-    # for url in urls:
-    #     print url
-    #     article_data, html = extract_article_data(url)
-    #     for link in article_data.links:
-    #         print link
-    #     print article_data.title
-    #     print article_data.intro
-    #     print len(article_data.links)
-
-
-    # from pprint import pprint
-    # import json
-    # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/it_breaks.json")
-    # urls = json.load(f)
-    # for x in urls[u'articles']:
-    #     url = x[1]
-    #     article_data, html = extract_article_data(url)
-    #     print url
-    #     print article_data.to_json()
-
-#    for x in urls:
-#        for y in x[1]:
-#            url = y[1]
-#            article_data, html = extract_article_data(url)
-#            print article_data.title
-#            print article_data.url
-#            pprint(article_data.links)
-#            print len(article_data.links)
-#            print "\n"
-#            print "******************************"
-#            print "\n"
-
-    # total_time = 0.0
-    # for url in urls[:]:
-    #     before = dt.datetime.now()
-    #     article_data, html = extract_article_data(url)
-    #     elapsed = dt.datetime.now() - before
-    #     total_time += elapsed.seconds
-    #     print article_data.title
-    #     print article_data.url
-    #     pprint(article_data.links)
-    #     print len(article_data.links)
-    #     print article_data.pub_date
-    #     print article_data.to_json()
-
-    # avg = total_time / len(urls)
-    # print "total time for {0} articles: {1}".format(len(urls), total_time)
-    # print "avg time per article: {0}".format(avg)
-    # projected_article_count = 50000
-    # projected_time = avg * projected_article_count
-    # print "Projection for {0} articles:".format(projected_article_count), time.strftime("%H:%M:%S", time.gmtime(projected_time))
-
-
-    # articles, photos = get_frontpage_toc()
-    # for item in articles:
-    #     title, url = item
-    #     print url
-    #     article_data, html = extract_article_data(url)
-    #     if article_data:
-    #         print article_data.title
-    #         print len(article_data.links)
 
     url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1500307/2012/09/13/Si-tu-me-mets-une-contravention-je-tire.dhtml"
     # url = "http://www.7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1554304/2012/12/27/Vincent-Kompany-dans-le-onze-ideal-du-journal-l-Equipe.dhtml"
@@ -653,7 +598,7 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1407359/2012/03/12/Les-malheurs-d-un-journaliste-amusent-le-web.dhtml"
     url = "http://7sur7.be/7s7/fr/1527/People/article/detail/1408039/2012/03/13/Premier-apercu-de-la-frimousse-de-Giulia-Sarkozy.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1487322/2012/08/17/La-tumeur-cancereuse-d-Israel-va-bientot-disparaitre.dhtml"
-    url_test = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1452608/2012/06/12/Mathieu-Kassovitz-traite-Nadine-Morano-de-conne.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1452608/2012/06/12/Mathieu-Kassovitz-traite-Nadine-Morano-de-conne.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1455287/2012/06/17/Lindsay-Lohan-plaisante-sur-son-malaise.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1773/Festivals/article/detail/1486845/2012/08/16/Le-Pukkelpop-revit.dhtml"
     url = "http://www.7sur7.be/7s7/fr/9100/Infos/article/detail/1489178/2012/08/21/Myriam-Leroy-et-Pure-Fm-c-est-fini.dhtml"
@@ -662,7 +607,6 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/2625/Planete/article/detail/1407279/2012/03/12/Un-lundi-au-soleil-pour-l-ouest-et-le-centre.dhtml"
     url = "http://7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1413456/2012/03/24/Un-jeune-supporter-de-Port-Said-tue-dans-des-heurts-avec-la-police.dhtml"
     url = "http://7sur7.be/7s7/fr/1502/Belgique/article/detail/1411405/2012/03/20/Peine-de-travail-pour-un-double-accident-mortel.dhtml"
-    url = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/moved_permanently.html")
     url = "http://www.7sur7.be/7s7/fr/1513/tennis/article/detail/1455721/2012/06/18/Les-10-plus-gros-petages-de-plomb-de-l-histoire-du-tennis.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1426303/2012/04/20/Wesphael-annonce-la-creation-de-son-parti.dhtml"
     url = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1415778/2012/03/29/La-lingerie-belge-de-Carine-Gilson-primee.dhtml"
@@ -670,29 +614,19 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/1536/Economie/article/detail/1446084/2012/05/30/Ces-grandes-entreprises-belges-qui-ne-paient-pas-d-impots.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1495469/2012/09/04/Gad-Elmaleh-et-Charlotte-de-Monaco-officialisent-leur-relation.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1504847/2012/09/21/Le-Standard-voit-rouge-Trond-Sollied-sauve-sa-tete.dhtml"
-    url = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1507177/2012/09/26/Van-Damme-Pour-moi-ca-reste-une-question-ridicule.dhtml"
+    url_test = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1507177/2012/09/26/Van-Damme-Pour-moi-ca-reste-une-question-ridicule.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1767/Ligue-des-Champions/article/detail/1510948/2012/10/03/Anderlecht-mange-a-la-sauce-andalouse.dhtml"
     url = "http://www.7sur7.be/7s7/fr/9099/Hors-jeu/article/detail/1536875/2012/11/20/Varane-considere-Bilbao-pour-une-equipe-catalane.dhtml"
-    url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1513518/2012/10/09/Arret-de-travail-aux-depots-TEC-de-Jemeppe-et-Robermont.dhtml"
-    article_data, html = extract_article_data(url_test)
+    url = "http://www.7sur7.be/7s7/fr/1525/Tendances/article/detail/1415778/2012/03/29/La-lingerie-belge-de-Carine-Gilson-primee.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1507177/2012/09/26/Van-Damme-Pour-moi-ca-reste-une-question-ridicule.dhtml"
+
+    from pprint import pprint
+    article_data, html = extract_article_data(url)
     if article_data:
-        for link in article_data.links:
-            print link
-        print article_data.title
-        print article_data.category
-        print article_data.intro
-        print len(article_data.links)
+        pprint (article_data.content)
 
-    # f = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/sample_with_plaintext_in_intro.html")
-    # article_data, html = extract_article_data(f)
-    # for link in article_data.links:
-    #     print link
-
-
-
-
-
-
-
-
-
+        # for link in article_data.links:
+        #     print link.title
+        #     print link.URL
+        #     print link.tags
+        #     print "_________"
