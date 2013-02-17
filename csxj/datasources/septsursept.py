@@ -537,8 +537,8 @@ def extract_article_data(source):
 
         updated_tagged_urls = tagging.update_tagged_urls(tagged_urls, SEPTSURSEPT_SAME_OWNER)
 
-        # print generate_test_func('embedded_document', 'septsursept', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_data, source, 'embedded_document', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/septsursept')
+        # print generate_test_func('embedded_video_and_in_text_links', 'septsursept', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_data, source, 'embedded_video_and_in_text_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/septsursept')
 
 
         return (ArticleData(source, title, pub_date, pub_time, dt.datetime.now(),
@@ -669,8 +669,8 @@ if __name__ == '__main__':
     url = open("/Users/judemaey/code/csxj-crawler/sample_data/septsursept/moved_permanently.html")
     url = "http://www.7sur7.be/7s7/fr/1513/tennis/article/detail/1455721/2012/06/18/Les-10-plus-gros-petages-de-plomb-de-l-histoire-du-tennis.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1426303/2012/04/20/Wesphael-annonce-la-creation-de-son-parti.dhtml"
-    url = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1415778/2012/03/29/La-lingerie-belge-de-Carine-Gilson-primee.dhtml"
-    url_test = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1436819/2012/05/11/Comment-etre-un-bon-Flamand-la-brochure-qui-fait-jaser.dhtml"
+    url_test = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1415778/2012/03/29/La-lingerie-belge-de-Carine-Gilson-primee.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1436819/2012/05/11/Comment-etre-un-bon-Flamand-la-brochure-qui-fait-jaser.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1536/Economie/article/detail/1446084/2012/05/30/Ces-grandes-entreprises-belges-qui-ne-paient-pas-d-impots.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1495469/2012/09/04/Gad-Elmaleh-et-Charlotte-de-Monaco-officialisent-leur-relation.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1504847/2012/09/21/Le-Standard-voit-rouge-Trond-Sollied-sauve-sa-tete.dhtml"

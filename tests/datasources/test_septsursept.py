@@ -99,3 +99,21 @@ class Test7sur7LinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_embedded_video_and_in_text_links(self):
+        """ The 7sur7.be parser can extract and tag embedded video, in-text links, link to document"""
+        with open(os.path.join(DATA_ROOT, "embedded_video_and_in_text_links.html")) as f:
+            article, raw_html = septsursept.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.facebook.com/pages/Carine-Gilson-Lingerie-Couture/161436673890010", u"""page Facebook""", set(['external', 'in text'])),
+                make_tagged_url("http://www.carinegilson.com/", u"""http://www.carinegilson.com/""", set(['external', 'in text'])),
+                make_tagged_url("/7s7/fr/1525/Tendances/article/detail/1517986/2012/10/16/Un-nouveau-fiasco-Photoshop.dhtml", u"""Un nouveau fiasco Photoshop""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/7s7/fr/1525/Tendances/article/detail/1515857/2012/10/12/Les-talons-de-la-mort.dhtml", u"""Les talons de la mort""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/7s7/fr/1525/Tendances/article/detail/1515660/2012/10/12/Des-bijoux-tres-intimes.dhtml", u"""Des bijoux très intimes""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/7s7/fr/1481/Home/400619/Tendances/actualite/index.dhtml", u"""Tendances""", set(['internal', 'sidebar box', 'keyword'])),
+                make_tagged_url("/7s7/fr/1481/Home/558/Entreprises/actualite/index.dhtml", u"""Entreprises""", set(['internal', 'sidebar box', 'keyword'])),
+                make_tagged_url("http://static1.7sur7.be/static/asset/2012/Look_book_CG_Couture_SS_012_dff_low_41.pdf", u"""Téléchargez pdf""", set(['internal', 'internal site', 'embedded'])),
+                make_tagged_url("http://www.youtube.com/embed/mDzPISNuHCs/?wmode=opaque", u"""http://www.youtube.com/embed/mDzPISNuHCs/?wmode=opaque""", set(['external', 'embedded'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
