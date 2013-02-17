@@ -130,7 +130,7 @@ class ArticleData(object):
 
 
     @classmethod
-    def from_json(kls, json_string):
+    def from_json(cls, json_string):
         """
         Class method to rebuild an ArticleData object from a json string.
         Takes care of non natively deserializable objects (such as datetime).
@@ -149,4 +149,4 @@ class ArticleData(object):
         d['links'] = tagged_urls
 
         d = make_dict_keys_str(d)
-        return kls(**d)
+        return cls(**d)

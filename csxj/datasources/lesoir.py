@@ -119,7 +119,7 @@ def extract_text_content(story):
             tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
             tags.add('in text')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
-    
+
     else :
         text = u""
 
@@ -189,7 +189,7 @@ def extract_title(story):
     if title:
         return unicode(title)
     else:
-        return 'No title found'
+        return u'No title found'
 
 
 def extract_author_name(story):
@@ -420,27 +420,12 @@ def get_rss_toc():
     return titles_in_rss
 
 
-def parse_sample_data():
-    import sys
-    data_directory = '../../sample_data'
-    sys.path.append(data_directory)
-    from dataset import dataset
-
-    for entry in dataset['le soir']:
-        url = entry['URL']
-        filename = entry['file']
-        filepath = '%s/%s' % (data_directory, filename)
-
-        with open(filepath) as f:
-            extract_article_data(f)
-
-
 def is_external_blog(url):
     return not url.startswith('/')
 
 
 def get_frontpage_articles_data():
-    articles_toc, blogposts_toc = get_frontpage_toc()
+    articles_toc, blogposts_toc, _ = get_frontpage_toc()
 
     articles = []
     errors = []
