@@ -4,10 +4,13 @@ import urllib2
 import urlparse
 import re
 import random
-from BeautifulSoup import BeautifulSoup, Tag, NavigableString
-from useragents import USER_AGENT_STRINGS
 from datetime import datetime
+
+from BeautifulSoup import BeautifulSoup, Tag, NavigableString
 import bs4
+
+from useragents import USER_AGENT_STRINGS
+from icann_tlds import TLD_LIST
 
 
 def pick_random_ua_string():
@@ -41,6 +44,9 @@ def make_soup_from_html_content(html_content, convert_entities=True):
 url_regexp = r'''(?i)\b((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))'''
 URL_MATCHER = re.compile(url_regexp)
 
+NETLOC_REGEXP = r'[a-z0-9.\-]+[.][a-z]{2,4}'
+NETLOC_MATCHER = re.compile(NETLOC_REGEXP)
+
 
 def strip_matching_parenthesis(text):
     """
@@ -61,13 +67,50 @@ def strip_matching_parenthesis(text):
     return text
 
 
+def is_netloc_part_of_mail_address(text, netloc):
+    """
+    >>> is_netloc_part_of_mail_address("blah@foo.com", "foo.com")
+    True
+
+    >>> is_netloc_part_of_mail_address("foo.com", "foo.com")
+    False
+
+    >>> is_netloc_part_of_mail_address("foo.be@foo.com", "foo.be")
+    True
+
+    >>> is_netloc_part_of_mail_address("hello foo.be@foo.com world", "foo.be")
+    True
+    """
+
+    if netloc in text and len(text) >= len(netloc):
+        idx = text.find(netloc)
+        before = idx - 1
+        after = idx + len(netloc)
+
+        if 0 < idx and text[before] == '@':
+            return True
+        elif after < len(text) and text[after] == '@':
+            return True
+
+        return False
+    else:
+        raise ValueError(u"Netloc {0} not present in text".format(netloc))
+
+
 def extract_plaintext_urls_from_text(some_text):
     """
     """
     urls = [c[0] for c in URL_MATCHER.findall(some_text)]
-
     urls = [strip_matching_parenthesis(url) for url in urls]
-    return urls
+
+    for url in urls:
+        some_text = some_text.replace(url, '')
+
+    some_text = some_text.lower()
+    matched = NETLOC_MATCHER.findall(some_text)
+    netloc_urls = [c for c in matched if c and not is_netloc_part_of_mail_address(some_text, c) and c.split('.')[-1] in TLD_LIST]
+
+    return urls + netloc_urls
 
 
 TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1', 'h2', 'h3', 'h4', 'h5', 'span', 'sub', 'sup', 'p', 'img']
@@ -158,10 +201,9 @@ def convert_utf8_url_to_ascii(url):
     host = host.encode('idna')
     colon2 = colon2.encode('utf8')
     port = port.encode('utf8')
-    path = '/'.join(  # could be encoded slashes!
-        urllib2.quote(urllib2.unquote(pce).encode('utf8'), '')
-        for pce in parsed.path.split('/')
-    )
+    # could be encoded slashes!
+    path = '/'.join(urllib2.quote(urllib2.unquote(pce).encode('utf8'), '')
+                    for pce in parsed.path.split('/'))
     query = urllib2.quote(urllib2.unquote(parsed.query).encode('utf8'), '=&?/')
     fragment = urllib2.quote(urllib2.unquote(parsed.fragment).encode('utf8'))
 
@@ -170,7 +212,5 @@ def convert_utf8_url_to_ascii(url):
     return urlparse.urlunsplit((scheme, netloc, path, query, fragment))
 
 
-
 if __name__ == '__main__':
-
     print URL_MATCHER.findall("http://fff.com")

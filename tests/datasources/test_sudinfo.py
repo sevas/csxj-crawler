@@ -45,6 +45,7 @@ class TestSudinfoLinkExtraction(object):
             tagged_urls = [
                 make_tagged_url("http://www.lesoir.be/sports/football/2012-05-31/en-combien-de-temps-hazard-gagne-t-il-votre-salaire-918967.php", u"""Le Soir.be""", set(['same owner', 'external', 'in text'])),
                 make_tagged_url("http://www.lesoir.be/sports/football/2012-05-31/en-combien-de-temps-hazard-gagne-t-il-votre-salaire-918967.php", u"""En combien de temps, Eden Hazard gagne votre salaire?""", set(['sidebar box', 'external', 'same owner'])),
+                make_tagged_url("slate.fr", u"""slate.fr""", set(['in text', 'plaintext', 'external']))
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)

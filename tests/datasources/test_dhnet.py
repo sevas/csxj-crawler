@@ -177,7 +177,11 @@ class TestDHNetLinkExtraction(object):
                                 set(['kplayer', 'video', 'external', 'embedded']))
             ]
 
-            expected_links = expected_sidebox_links + expected_bottom_links + expected_embedded_media_links
+            expected_intext_urls = [
+                make_tagged_url("flightaware.com", u"flightaware.com", set(['in text', 'plaintext', 'external']))
+            ]
+
+            expected_links = expected_sidebox_links + expected_bottom_links + expected_embedded_media_links + expected_intext_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_media_overload(self):

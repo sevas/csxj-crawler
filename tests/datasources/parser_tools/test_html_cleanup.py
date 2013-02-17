@@ -10,7 +10,7 @@ def make_fragments(html_data):
     return soup.contents
 
 
-class TestHTMLCleanup():
+class TestHTMLCleanup(object):
     def test_one_tag(self):
         html_fragments = make_fragments(u"<strong>hello</strong>")
         clean_fragments = remove_text_formatting_markup_from_fragments(html_fragments)

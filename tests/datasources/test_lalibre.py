@@ -119,7 +119,11 @@ class TestLalibreLinkExtraction(object):
                 make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=bf195c8ba4f5&configKey=&suffix=&sig=b5224f57c4cs&autostart=false", u"""Sandy menace 50 millions d'Américains""", set(['kplayer', 'video', 'external', 'embedded'])),
             ]
 
-            expected_links = expected_audio_links + expected_sidebox_links + expected_bottom_links + expected_embbeded_media_links
+            expected_intext_links = [
+                make_tagged_url("lalibre.be", u"lalibre.be", set(['in text', 'plaintext']))
+            ]
+
+            expected_links = expected_audio_links + expected_sidebox_links + expected_bottom_links + expected_embbeded_media_links + expected_intext_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_embedded_videos_links(self):
