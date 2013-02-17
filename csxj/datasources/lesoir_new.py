@@ -148,12 +148,14 @@ def extract_title_and_url_from_bslink(link):
 def extract_text_content_and_links(soup) :
     tagged_urls = list()
     inline_links = []
+    text = list()
 
     article_body = soup.find(attrs = {"class" : "article-body"})
     text_fragments = article_body.find_all("p")
 
     if text_fragments:
-        text = u"".join(remove_text_formatting_markup_from_fragments(text_fragments))
+        for paragraph in text_fragments:
+            text.append(u"".join(remove_text_formatting_markup_from_fragments(paragraph)))
 
         plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
         for url in plaintext_urls:
@@ -359,8 +361,8 @@ if __name__ == '__main__':
     
     article, html = extract_article_data(urls[-1])
 
-    # print article.title
-    # print article.content
+    print article.title
+    print article.content
 
     # for link in article.links:
     #     print link.title

@@ -101,31 +101,26 @@ def extract_text_content(story):
     # extract regular, in text links
     inline_links = list()
     plaintext_urls = list()
+    text = list()
 
-    for paragraph in paragraphs:
-        links = paragraph.findAll('a', recursive=True)
-        inline_links.extend(links)
+    if paragraphs :
+        for paragraph in paragraphs:
+            text.append(u"".join(remove_text_formatting_markup_from_fragments(paragraph)))
+            links = paragraph.findAll('a', recursive=True)
+            inline_links.extend(links)
+            plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(paragraph))
+            for url in plaintext_urls:
+                tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+                tags.update(['plaintext', 'in text'])
+                tagged_urls.append(make_tagged_url(url, url, tags))
 
-    titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
-    for title, url, base_tags in titles_and_urls:
-        tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
-        tags.add('in text')
-        tagged_urls.append(tagging.make_tagged_url(url, title, tags))
-
+        titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
+        for title, url, base_tags in titles_and_urls:
+            tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+            tags.add('in text')
+            tagged_urls.append(tagging.make_tagged_url(url, title, tags))
     
-
-    # extract text and plaintext links
-    text_fragments = paragraphs
-    if text_fragments:
-        text = u"".join(remove_text_formatting_markup_from_fragments(text_fragments))
-
-        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
-        for url in plaintext_urls:
-            tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
-            tags.update(['plaintext', 'in text'])
-
-            tagged_urls.append(make_tagged_url(url, url, tags))
-    else:
+    else :
         text = u""
 
     return text, tagged_urls
@@ -509,13 +504,13 @@ def test_sample_data():
         # print article.category
         # article_data.print_summary()
 
-        for link in article_data.links:
-            print link.title
-            print link.URL
-            print link.tags
+        # for link in article_data.links:
+        #     print link.title
+        #     print link.URL
+        #     print link.tags
 
-        print article_data.intro
-        print article_data.content
+        # print article_data.intro
+        # print article_data.content
 
 if __name__ == '__main__':
     test_sample_data()

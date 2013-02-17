@@ -142,7 +142,8 @@ def extract_text_content_and_links_from_articletext(main_content, has_intro=True
     article_text = main_content
 
     in_text_tagged_urls = []
-    all_fragments = []
+    all_cleaned_paragraphs = []
+    all_rough_paragraphs = []
     all_plaintext_urls = []
     embedded_tweets = []
 
@@ -156,32 +157,35 @@ def extract_text_content_and_links_from_articletext(main_content, has_intro=True
 
     text_fragments = [c for c in article_text.contents if is_text_content(c)]
 
+    if text_fragments:
     # we first need to avoid treating embedded tweets as text
-    for paragraph in text_fragments:
-        if isinstance(paragraph, bs.NavigableString):
-            all_fragments.append(paragraph)
-                
-        else:
-            if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
-                in_text_links = extract_and_tag_in_text_links(paragraph)
-                in_text_tagged_urls.extend(in_text_links)
-                all_fragments.append(paragraph)
+        for paragraph in text_fragments:
+            if isinstance(paragraph, bs.NavigableString):
+                all_cleaned_paragraphs.append(remove_text_formatting_markup_from_fragments(paragraph))
+                all_rough_paragraphs.append(paragraph)
+                    
             else:
-                embedded_tweets.extend(
-                    twitter_utils.extract_rendered_tweet(paragraph, DHNET_NETLOC, DHNET_INTERNAL_SITES))
+                if not paragraph.find('blockquote', {'class': 'twitter-tweet'}):
+                    in_text_links = extract_and_tag_in_text_links(paragraph)
+                    in_text_tagged_urls.extend(in_text_links)
+                    all_cleaned_paragraphs.append(remove_text_formatting_markup_from_fragments(paragraph))
+                    all_rough_paragraphs.append(paragraph)
+                else:
+                    embedded_tweets.extend(
+                        twitter_utils.extract_rendered_tweet(paragraph, DHNET_NETLOC, DHNET_INTERNAL_SITES))
 
-    text_content = u"".join(remove_text_formatting_markup_from_fragments(all_fragments))
+        
 
     # extracting plaintext links
-    if text_fragments:    
-        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
+        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(all_rough_paragraphs))
         for url in plaintext_urls:
             tags = classify_and_tag(url, DHNET_NETLOC, DHNET_INTERNAL_SITES)
             tags.update(['plaintext', 'in text'])
             all_plaintext_urls.append(make_tagged_url(url, url, tags))
-
-
-    return text_content, in_text_tagged_urls + all_plaintext_urls + embedded_tweets
+    else:
+        text = u""
+        
+    return all_cleaned_paragraphs, in_text_tagged_urls + all_plaintext_urls + embedded_tweets
 
 
 

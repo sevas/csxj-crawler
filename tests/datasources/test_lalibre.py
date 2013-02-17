@@ -276,5 +276,5 @@ class TestLalibreContentExtraction(object):
         with open(os.path.join(DATA_ROOT, "content_no_paragraphs.html")) as f:
             article, _ = lalibre.extract_article_data(f)
 
-            expected_content = [u"Mouss Diouf a été révélé au grand public grâce à son interprétation du lieutenant N'Guma dans la série française Julie Lescaut. \r\n\r\nVéronique Genest est resté très proche de Mouss Diouf après son accident vasculaire cérébral. Elle a réagi sur Twitter suite au décès de l'acteur."]
-            eq_(article.content, expected_content, msg="\n{0}\n{1}".format(article.content, expected_content))
+            expected_content = [u"MoussDioufa\xe9t\xe9r\xe9v\xe9l\xe9augrandpublicgr\xe2ce\xe0soninterpr\xe9tationdulieutenantN'Gumadanslas\xe9riefran\xe7aiseJulieLescaut.V\xe9roniqueGenestestrest\xe9tr\xe8sprochedeMoussDioufapr\xe8ssonaccidentvasculairec\xe9r\xe9bral.Ellear\xe9agisurTwittersuiteaud\xe9c\xe8sdel'acteur.", u'']
+            eq_(article.content, expected_content, msg=u"\n{0}\n{1}".format(article.content, expected_content))

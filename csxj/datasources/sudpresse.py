@@ -382,6 +382,7 @@ def test_sample_data():
     filepath = "../../sample_data/sudpresse/sudpresse_fake_plaintext.html"
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
+        print article_data.content
 
         # for link in article_data.links:
         #     print link.URL
