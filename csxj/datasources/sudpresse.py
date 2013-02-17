@@ -6,7 +6,7 @@ import urllib
 from BeautifulSoup import Tag, NavigableString
 from parser_tools.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text
-from parser_tools.utils import remove_text_formatting_markup_from_fragments
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments
 from parser_tools.utils import setup_locales
 from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
@@ -92,33 +92,20 @@ def extract_text_and_links_from_paragraph(paragraph):
         tags.update(['in text'])
         tagged_urls.append(make_tagged_url(url, title, tags))
 
-    text = remove_text_formatting_markup_from_fragments(paragraph.contents)
 
-    # plaintext_urls = extract_plaintext_urls_from_text(text)
-    # for url in plaintext_urls:
-    #     tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
-    #     tags.update(['plaintext', 'in text'])
-    #     tagged_urls.append(make_tagged_url(url, url, tags))
+    text_fragments = paragraph.contents
 
+    if text_fragments:
+        text = u"".join(remove_text_formatting_markup_from_fragments(text_fragments))
 
-    # extract and tag plaintext urls
-    plaintext_urls = []
-    for fragment in paragraph.contents:
-        if type(fragment) is Tag:
-            if not fragment.name == "a":
-                clean_fragment = remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")
-                plaintext_links = extract_plaintext_urls_from_text(clean_fragment)
-                plaintext_urls.extend(plaintext_links)
-        if type(fragment) is NavigableString:
-            clean_fragment = remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")   
-            plaintext_links = extract_plaintext_urls_from_text(clean_fragment)
-            plaintext_urls.extend(plaintext_links)
+        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
+        for url in plaintext_urls:
+            tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
+            tags.update(['plaintext', 'in text'])
 
-    for url in plaintext_urls:
-        tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
-        tags.add('in text')
-        tags.add('plaintext')
-        tagged_urls.append(make_tagged_url(url, url, tags))
+            tagged_urls.append(make_tagged_url(url, url, tags))
+    else:
+        text = u""
 
     return text, tagged_urls
 
