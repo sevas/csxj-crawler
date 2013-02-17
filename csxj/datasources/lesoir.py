@@ -10,7 +10,7 @@ import codecs
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
-from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, remove_text_formatting_and_links_from_fragments
 from parser_tools.utils import setup_locales
 from parser_tools import constants
 from csxj.common import tagging
@@ -112,23 +112,23 @@ def extract_text_content(story):
         tags.add('in text')
         tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
+    
 
-    # extract story text
-    clean_paragraphs = [sanitize_paragraph(p) for p in paragraphs]
+    # extract text and plaintext links
+    text_fragments = paragraphs
+    if text_fragments:
+        text = u"".join(remove_text_formatting_markup_from_fragments(text_fragments))
 
-    # extract plaintext links
-    plaintext_urls = []
-    for text in clean_paragraphs:
-        plaintext_urls.extend(extract_plaintext_urls_from_text(text))
+        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
+        for url in plaintext_urls:
+            tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
+            tags.update(['plaintext', 'in text'])
 
-    for url in plaintext_urls:
-        tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
-        tags.add('in text')
-        tags.add('plaintext')
-        tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+            tagged_urls.append(make_tagged_url(url, url, tags))
+    else:
+        text = u""
 
-
-    return clean_paragraphs, tagged_urls
+    return text, tagged_urls
 
 
 
@@ -501,19 +501,21 @@ def dowload_one_article():
 def test_sample_data():
     filepath = '../../sample_data/lesoir/same_owner_links.html'
     filepath = '../../tests/datasources/test_data/lesoir/same_owner_tagging.html'
+    filepath = '../../tests/datasources/test_data/lesoir/lesoir_intext.html'
+    filepath = "../../sample_data/lesoir/lesoir_intext.html"
 
     with open(filepath) as f:
-        article, raw = extract_article_data(f)
-        print article.category
+        article_data, raw = extract_article_data(f)
+        # print article.category
         # article_data.print_summary()
 
-        # for link in article_data.links:
-        #     print link.title
-        #     print link.URL
-        #     print link.tags
+        for link in article_data.links:
+            print link.title
+            print link.URL
+            print link.tags
 
-        # print article_data.intro
-        # print article_data.content
+        print article_data.intro
+        print article_data.content
 
 if __name__ == '__main__':
     test_sample_data()
