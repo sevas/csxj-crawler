@@ -20,6 +20,9 @@ def save_sample_data_file(html_data, source_url, test_name, root_path):
             print "{0} already exists. Delete it if you want to overwrite it. Aborting.".format(full_path_name)
             return
 
+
+        print "Writing source html for {0} to.".format(source_url, full_path_name)
+
         with open(full_path_name, 'w') as f:
             f.write(html_data)
 
