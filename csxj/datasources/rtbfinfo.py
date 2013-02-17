@@ -55,7 +55,7 @@ def get_frontpage_toc():
 
     titles_and_urls = [extract_title_and_url(link_hxs) for link_hxs in chain(main_story, featured_stories, anchored_stories)] + chronic_stories
 
-    return titles_and_urls, []
+    return titles_and_urls, [], []
 
 
 

@@ -14,6 +14,7 @@ from parser_tools import constants
 from parser_tools import ipm_utils
 from parser_tools import twitter_utils
 
+import os
 from helpers.unittest_generator import generate_unittest
 
 LALIBRE_ASSOCIATED_SITES = {
@@ -245,10 +246,10 @@ def extract_article_data_from_html(html_content, source_url):
 
     updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.LALIBRE_SAME_OWNER)
 
-    # print generate_test_func('embedded_tweet', 'lalibre', dict(tagged_urls=updated_tagged_urls))
-    # save_sample_data_file(html_content, source_url, 'embedded_tweet', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lalibre')
-
-
+    # generate_unittest("links_intext_overload", 'lalibre', dict(updated_tagged_urls=updated_tagged_urls),
+    #                   html_content, source_url,
+    #                   os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lalibre"),
+    #                   save_file=True)
 
     new_article = ArticleData(source_url, title,
                               pub_date, pub_time, fetched_datetime,
@@ -283,7 +284,7 @@ def get_frontpage_toc():
         title, url = announce.h1.a.contents[0], announce.h1.a.get('href')
         return title, '{0}{1}'.format(hostname_url, url)
 
-    return [extract_title_and_link(announce) for announce in announces], []
+    return [extract_title_and_link(announce) for announce in announces], [], []
 
 
 def test_sample_data():
@@ -300,7 +301,8 @@ def test_sample_data():
             "http://www.lalibre.be/economie/actualite/article/789261/le-fmi-s-est-trompe-et-fait-son-mea-culpa.html",
             "http://www.lalibre.be/societe/general/article/779522/la-pornographie-une-affaire-d-hommes-pas-seulement.html",
             "http://www.lalibre.be/societe/insolite/article/787359/des-chocolats-aux-insectes.html",
-            "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html"]
+            "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html",
+            "http://www.lalibre.be/economie/actualite/article/755845/les-bourses-avancent-timidement-vers-le-web.html"]
 
     from pprint import pprint
     import os

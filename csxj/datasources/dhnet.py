@@ -384,9 +384,9 @@ def get_frontpage_toc():
             titles_and_urls = extract_title_and_link_from_anounce_group(announce_group)
             all_titles_and_urls.extend(titles_and_urls)
 
-        return [(title, 'http://www.dhnet.be%s' % url) for (title, url) in all_titles_and_urls], []
+        return [(title, 'http://www.dhnet.be%s' % url) for (title, url) in all_titles_and_urls], [], []
     else:
-        return [], []
+        return [], [], []
 
 
 if __name__ == "__main__":

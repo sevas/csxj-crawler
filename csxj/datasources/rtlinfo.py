@@ -319,7 +319,7 @@ def get_frontpage_toc():
 
     news_items, blogposts = separate_news_and_blogposts(all_articles)
 
-    return [make_full_url(title_and_url) for title_and_url in news_items], list(blogposts)
+    return [make_full_url(title_and_url) for title_and_url in news_items], list(blogposts), []
 
 
 

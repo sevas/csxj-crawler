@@ -67,7 +67,7 @@ def get_frontpage_toc():
     titles_and_urls = [extract_title_and_url(link) for link in all_links_hxs]
 
     articles_toc, blogpost_toc = separate_news_and_blogposts(titles_and_urls)
-    return [(title, reconstruct_full_url(url)) for (title, url) in articles_toc], blogpost_toc
+    return [(title, reconstruct_full_url(url)) for (title, url) in articles_toc], blogpost_toc, []
 
 
 if __name__ == "__main__":

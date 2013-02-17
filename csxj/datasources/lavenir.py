@@ -99,7 +99,6 @@ def extract_publication_date(raw_date):
     return datetime_published.date(), datetime_published.time()
 
 
-
 def extract_links_from_article_body(article_body_hxs):
     links = list()
     # intext urls
@@ -121,7 +120,6 @@ def extract_links_from_article_body(article_body_hxs):
         tags = tags.union(['in text', 'plaintext'])
         links.append(make_tagged_url(url, url, tags))
 
-
     #embedded objects
     iframe_sources = article_body_hxs.select(".//iframe/@src").extract()
     for url in iframe_sources:
@@ -131,11 +129,12 @@ def extract_links_from_article_body(article_body_hxs):
 
     return links
 
+
 def select_title_and_url(selector, tag_name):
     url = selector.select("./@href").extract()[0]
     title = selector.select(".//text()").extract()
     if title:
-        title =  remove_text_formatting_markup_from_fragments(title[0])
+        title = remove_text_formatting_markup_from_fragments(title[0])
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
         tags = tags.union([tag_name])
     else:
@@ -143,11 +142,13 @@ def select_title_and_url(selector, tag_name):
         title = '__GHOST_LINK__'
     return make_tagged_url(url, title, tags)
 
+
 def extract_sidebar_links(sidebar_links):
     tagged_urls = [select_title_and_url(sidebar_link, 'sidebar box') for sidebar_link in sidebar_links]
     return tagged_urls
 
-def extract_bottom_links(bottom_links):    
+
+def extract_bottom_links(bottom_links):
     tagged_urls = [select_title_and_url(bottom_link, 'bottom box') for bottom_link in bottom_links]
     return tagged_urls
 
@@ -157,7 +158,6 @@ def extract_article_data(source):
         html_content = source.read()
     else:
         html_content = fetch_html_content(source)
-
 
     hxs = HtmlXPathSelector(text=html_content)
 
@@ -180,7 +180,6 @@ def extract_article_data(source):
     pub_date, pub_time = extract_publication_date(raw_date)
     fetched_datetime = datetime.today()
 
-
     #author(s)
     raw_author = article_detail_hxs.select("./div/ul/li[@class='author']/text()").extract()
     author = None
@@ -199,7 +198,6 @@ def extract_article_data(source):
     if raw_intro:
         intro = ''.join([fragment.strip() for fragment in raw_intro])
 
-
     #detect photoset
     full_class = article_detail_hxs.select("./@class").extract()[0]
     if 'article-with-photoset' in full_class.split(" "):
@@ -211,9 +209,7 @@ def extract_article_data(source):
     article_body = article_detail_hxs.select("./div/div[@class='article-body ']")
     content = article_body.select(".//p//text()").extract()
 
-
     all_links.extend(extract_links_from_article_body(article_body))
-
 
     # associated sidebar links
     sidebar_links = article_detail_hxs.select("./div/div[@class='article-side']/div[@class='article-related']//li/a")
@@ -227,7 +223,6 @@ def extract_article_data(source):
 
     #print generate_test_func('bottom_box_and_sidebar_and_intext_links', 'lavenir', dict(tagged_urls=updated_tagged_urls))
     #save_sample_data_file(html_content, source, 'bottom_box_and_sidebar_and_intext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
-
 
     # wrapping up
     article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -246,12 +241,10 @@ def expand_full_url(local_url):
         return local_url
 
 
-
 def extract_title_and_url(link_hxs):
     url = link_hxs.select("./@href").extract()[0]
     title = link_hxs.select("./text()").extract()[0].strip()
     return title, url
-
 
 
 def separate_blogposts(all_items):
@@ -274,12 +267,10 @@ def get_frontpage_toc():
 
     all_links = chain(story_links, more_story_links, local_sport_links, nopic_story_list)
 
-
     all_items = [extract_title_and_url(link_hxs) for link_hxs in all_links]
     news_items, blogpost_items = separate_blogposts(all_items)
 
-    return  [(title, expand_full_url(url)) for (title, url) in news_items if url not in BLACKLIST], list(blogpost_items)
-
+    return  [(title, expand_full_url(url)) for (title, url) in news_items if url not in BLACKLIST], list(blogpost_items), []
 
 
 def show_sample_articles():
@@ -288,7 +279,6 @@ def show_sample_articles():
     photoset_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120224_00122366"
     intro_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_002"
     photoset_with_links = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120222_00121489"
-
 
     norma_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582"
     for url in [normal_url, photoset_url, intro_url, photoset_with_links]:
@@ -300,7 +290,7 @@ def show_sample_articles():
 
 
 def show_sample_articles():
-    urls = [  "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120326_023",
+    urls = ["http://www.lavenir.net/article/detail.aspx?articleid=DMF20120326_023",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120331_00140331",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199571",
@@ -319,9 +309,8 @@ def show_sample_articles():
     #     article.print_summary()
     #     for tagged_link in article.links:
     #         print tagged_link.URL, tagged_link.title, tagged_link.tags
-    
-    article, html = extract_article_data(urls[-1])
 
+    article, html = extract_article_data(urls[-1])
 
 
 def show_frontpage():

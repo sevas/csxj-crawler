@@ -498,7 +498,7 @@ def get_frontpage_toc():
     headlines.extend(regional_headlines)
 
     news, blogposts = separate_blogposts_and_news(headlines)
-    return make_full_url(BASE_URL, news), blogposts
+    return [(title, convert_utf8_url_to_ascii(url)) for title, url in make_full_url(BASE_URL, news)], blogposts, []
 
 
 def show_article():
@@ -530,7 +530,9 @@ def show_article():
         u"http://www.sudinfo.be/306989/article/sports/foot-belge/standard/2012-01-08/standard-chattez-en-exclusivite-avec-sebastien-pocognoli-ce-lundi-des-13h30",
 
         # embeddes scribble
-        u"http://www.sudinfo.be/655859/article/sports/foot-belge/anderlecht/2013-02-03/suivez-le-super-sunday-en-live-genk-ecrase-bruges-4-1-le-standard-en-visi"
+        u"http://www.sudinfo.be/655859/article/sports/foot-belge/anderlecht/2013-02-03/suivez-le-super-sunday-en-live-genk-ecrase-bruges-4-1-le-standard-en-visi",
+
+        u"http://www.sudinfo.be/648601/article/regions/tournai/actualite/2013-01-23/le-papa-se-fait-operer-et-devient%E2%80%A6-maman"
     ]
 
     article, html = extract_article_data(urls[-1])

@@ -110,7 +110,7 @@ def extract_text_and_links_from_paragraph(paragraph):
                 plaintext_links = extract_plaintext_urls_from_text(clean_fragment)
                 plaintext_urls.extend(plaintext_links)
         if type(fragment) is NavigableString:
-            clean_fragment = remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")   
+            clean_fragment = remove_text_formatting_markup_from_fragments(fragment, strip_chars = "\n")
             plaintext_links = extract_plaintext_urls_from_text(clean_fragment)
             plaintext_urls.extend(plaintext_links)
 
@@ -175,7 +175,7 @@ def extract_associated_links(article):
             if  link_type in LINK_TYPE_TO_TAG:
                 tags.update(LINK_TYPE_TO_TAG[link_type])
 
-            tags.add("sidebar box")  
+            tags.add("sidebar box")
 
             all_tagged_urls.append(make_tagged_url(url, title, tags))
 
@@ -236,7 +236,7 @@ def extract_article_data(source):
 
         #print generate_test_func('intext_links_tagging', 'sudpresse', dict(tagged_urls=updated_tagged_urls))
         #save_sample_data_file(html_content, source.name, 'intext_links_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudpresse')
-        
+
         return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                            updated_tagged_urls,
                            category, author,
@@ -364,7 +364,7 @@ def get_frontpage_toc():
     regional_headlines = make_full_url(url, get_regional_toc())
     headlines.extend(regional_headlines)
 
-    return make_full_url(url, headlines), []
+    return make_full_url(url, headlines), [], []
 
 
 def show_frontpage_articles():

@@ -4,7 +4,7 @@
 import sys
 import locale
 from datetime import datetime
-from BeautifulSoup import  BeautifulStoneSoup,  Tag
+from BeautifulSoup import BeautifulStoneSoup, Tag
 import urlparse
 import codecs
 from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL, update_tagged_urls
@@ -26,7 +26,7 @@ SOURCE_NAME = u"lesoir"
 LESOIR_INTERNAL_BLOGS = {
 
     'archives.lesoir.be': ['archives', 'internal'],
-   
+
     'belandroid.lesoir.be': ['internal', 'jblog'],
     'geeko.lesoir.be': ['internal', 'jblog'],
     'blog.lesoir.be': ['internal', 'jblog'],
@@ -75,7 +75,7 @@ def extract_title_and_url_from_bslink(link):
     if link.get('href'):
         url = link.get('href')
 
-    else :
+    else:
         url = "__GHOST_LINK__"
         base_tags.append("ghost link")
 
@@ -93,7 +93,7 @@ def extract_text_content(story):
     Finds the story's body, cleans up the text to remove all html formatting.
     Returns a list of strings, one per found paragraph, and all the plaintext urls, as TaggedURLs
     """
-    story = story.find('div', {'id':'story_body'})
+    story = story.find('div', {'id': 'story_body'})
     paragraphs = story.findAll('p', recursive=False)
 
     tagged_urls = list()
@@ -129,22 +129,22 @@ def extract_text_content(story):
 
 
 def extract_to_read_links_from_sidebar(sidebar):
-    to_read_links_container = sidebar.find('div', {'id':'lire_aussi'})
+    to_read_links_container = sidebar.find('div', {'id': 'lire_aussi'})
     #sometimes, it does not exist at all
     if to_read_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
-                            for link in to_read_links_container.findAll('a')]
+                           for link in to_read_links_container.findAll('a')]
         return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['sidebar box', 'to read']))
     else:
         return []
 
 
 def extract_external_links_from_sidebar(sidebar):
-    external_links_container = sidebar.find('div', {'id':'external'})
+    external_links_container = sidebar.find('div', {'id': 'external'})
 
     if external_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
-                            for link in external_links_container.findAll('a')]
+                           for link in external_links_container.findAll('a')]
         return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['sidebar box', 'web']))
     else:
         return []
@@ -161,7 +161,7 @@ def extract_recent_links_from_soup(soup):
         return url, title
 
     #todo : check if those links are actually associated to the article
-    recent_links_container = soup.find('div', {'id':'les_plus_recents'})
+    recent_links_container = soup.find('div', {'id': 'les_plus_recents'})
     if recent_links_container:
         urls_and_titles = [extract_url_and_title(item)
                            for item in recent_links_container.findAll('a')]
@@ -175,7 +175,7 @@ def extract_links(soup):
     Get the link lists for one news item, from the parsed html content.
     'Le Soir' has 3 kinds of links, but they're not all always there.
     """
-    sidebar = soup.find('div', {'id':'st_top_center'})
+    sidebar = soup.find('div', {'id': 'st_top_center'})
 
     all_tagged_urls = extract_external_links_from_sidebar(sidebar)
     all_tagged_urls.extend(extract_to_read_links_from_sidebar(sidebar))
@@ -185,7 +185,7 @@ def extract_links(soup):
 
 
 def extract_title(story):
-    header = story.find('div', {'id':'story_head'})
+    header = story.find('div', {'id': 'story_head'})
     title = header.h1.contents[0]
     if title:
         return unicode(title)
@@ -194,8 +194,8 @@ def extract_title(story):
 
 
 def extract_author_name(story):
-    header = story.find('div', {'id':'story_head'})
-    author_name = header.find('p', {'class':'info st_signature'})
+    header = story.find('div', {'id': 'story_head'})
+    author_name = header.find('p', {'class': 'info st_signature'})
 
     if author_name and author_name.contents:
         return author_name.contents[0]
@@ -204,8 +204,8 @@ def extract_author_name(story):
 
 
 def extract_date(story):
-    header = story.find('div', {'id':'story_head'})
-    publication_date = header.find('p', {'class':'info st_date'})
+    header = story.find('div', {'id': 'story_head'})
+    publication_date = header.find('p', {'class': 'info st_date'})
 
     if publication_date:
         date_string = publication_date.contents[0]
@@ -219,8 +219,8 @@ def extract_date(story):
 
 
 def extract_intro(story):
-    header = story.find('div', {'id':'story_head'})
-    intro = header.find('h4', {'class':'chapeau'})
+    header = story.find('div', {'id': 'story_head'})
+    intro = header.find('h4', {'class': 'chapeau'})
     # so yeah, sometimes the intro paragraph contains some <span> tags with things
     # we don't really care about. Filtering that out.
     text_fragments = [fragment for fragment in intro.contents if not isinstance(fragment, Tag)]
@@ -229,8 +229,8 @@ def extract_intro(story):
 
 
 def extract_category(story):
-    breadcrumbs = story.find('div', {'id':'fil_ariane'})
-    category_stages = [a.contents[0] for a in breadcrumbs.findAll('a') ]
+    breadcrumbs = story.find('div', {'id': 'fil_ariane'})
+    category_stages = [a.contents[0] for a in breadcrumbs.findAll('a')]
     return category_stages
 
 
@@ -246,9 +246,9 @@ def extract_links_from_embedded_content(story):
 
     # extract embedded storify
     scripts = story.findAll('script', recursive=True)
-    for script in scripts :
+    for script in scripts:
         url = script.get('src')
-        if url :
+        if url:
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
             if netloc == "storify.com":
                 url = url.rstrip(".js")
@@ -256,11 +256,11 @@ def extract_links_from_embedded_content(story):
                 tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
 
     # TO DO NEXT : reconstruc kplayer URL
-    kplayer = story.find('div', {'class':'containerKplayer'})
+    kplayer = story.find('div', {'class': 'containerKplayer'})
     if kplayer:
         kplayer_flash = kplayer.find('div', {'class': 'flash_kplayer'})
         url_part1 = kplayer_flash.object['data']
-        url_part2 = kplayer_flash.object.find('param', {'name' : 'flashVars'})['value']
+        url_part2 = kplayer_flash.object.find('param', {'name': 'flashVars'})['value']
         if url_part1 is not None and url_part2 is not None:
             url = "%s?%s" % (url_part1, url_part2)
             all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
@@ -283,7 +283,7 @@ def extract_article_data(source):
         html_content = fetch_html_content(source)
 
     soup = make_soup_from_html_content(html_content)
-    story = soup.find('div', {'id':'story'})
+    story = soup.find('div', {'id': 'story'})
 
     category = extract_category(story)
     title = extract_title(story)
@@ -303,14 +303,13 @@ def extract_article_data(source):
 
     updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
-
     #print generate_test_func('same_owner_tagging', 'lesoir', dict(tagged_urls=updated_tagged_urls))
     #save_sample_data_file(html_content, source.name, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir')
 
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                              updated_tagged_urls,
-                              category, author,
-                              intro, content), html_content
+                       updated_tagged_urls,
+                       category, author,
+                       intro, content), html_content
 
 
 def extract_main_content_links(source):
@@ -322,7 +321,7 @@ def extract_main_content_links(source):
     soup = make_soup_from_html_content(html_content)
 
     # get maincontent div
-    story = soup.find('div', {'id':'story'})
+    story = soup.find('div', {'id': 'story'})
 
     all_links = soup.findAll('a', recursive=True)
 
@@ -344,7 +343,7 @@ def get_two_columns_stories(element):
     This function assumes we already checked that the element actually has
     two sub stories
     """
-    two_columns_stories_list = element.findAll('ul', {'class':'two_cols'}, recursive=False)[0]
+    two_columns_stories_list = element.findAll('ul', {'class': 'two_cols'}, recursive=False)[0]
     return two_columns_stories_list.findAll('li', recursive=False)
 
 
@@ -353,7 +352,7 @@ def element_has_two_columns_stories(element):
     Checks whether or not a frontpage entry is a stand alone news item, or a container
     for two 'two columns' items.
     """
-    return len(element.findAll('ul', {'class':'two_cols'}, recursive=False)) == 1
+    return len(element.findAll('ul', {'class': 'two_cols'}, recursive=False)) == 1
 
 
 def get_frontpage_toc():
@@ -368,8 +367,7 @@ def get_frontpage_toc():
 
     # Here we have interlaced <ul>'s with a bunch of random other shit that
     # need some filtering
-    stories_containers = soup.findAll('ul', {'class':'stories_list grid_6'})
-
+    stories_containers = soup.findAll('ul', {'class': 'stories_list grid_6'})
 
     articles_toc, blogpost_toc = [], []
 
@@ -410,7 +408,7 @@ def get_frontpage_toc():
                 else:
                     articles_toc.append((title, url))
 
-    return [(title, 'http://www.lesoir.be{0}'.format(url)) for (title, url) in articles_toc], blogpost_toc
+    return [(title, 'http://www.lesoir.be{0}'.format(url)) for (title, url) in articles_toc], blogpost_toc, []
 
 
 def get_rss_toc():
@@ -421,7 +419,6 @@ def get_rss_toc():
     titles_in_rss = [(item.title.contents[0], item.link.contents[0]) for item in stonesoup.findAll('item')]
 
     return titles_in_rss
-
 
 
 def parse_sample_data():

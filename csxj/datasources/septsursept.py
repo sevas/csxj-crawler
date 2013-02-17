@@ -92,7 +92,7 @@ def try_extract_frontpage_items(url):
 
     frontpage_items = left_items + right_items
     article_links, photoalbum_links = separate_articles_and_photoalbums(frontpage_items)
-    return [make_full_url(item) for item in article_links], [make_full_url(item) for item in photoalbum_links]
+    return [make_full_url(item) for item in article_links], [make_full_url(item) for item in photoalbum_links], []
 
 
 def get_frontpage_toc():

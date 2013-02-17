@@ -67,7 +67,7 @@ def get_frontpage_toc():
 
     frontpage_items, blogposts = split_news_and_blogposts(titles_and_urls)
 
-    return frontpage_items, blogposts
+    return frontpage_items, blogposts, []
 
 
 
