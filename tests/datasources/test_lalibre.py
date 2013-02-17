@@ -254,6 +254,32 @@ class TestLalibreLinkExtraction(object):
             expected_links = embedded_content_links + bottom_links + associated_tagged_urls + embedded_audio_links + in_text_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_links_intext_overload(self):
+        """ lalibre parser is very good with plaintext links"""
+        with open(os.path.join(DATA_ROOT, "links_intext_overload.html")) as f:
+            article, raw_html = lalibre.extract_article_data(f)
+            extracted_links = article.links
+            updated_tagged_urls = [
+                make_tagged_url("www.nyx.com", u"""www.nyx.com""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("europeanequities.nyx.com", u"""europeanequities.nyx.com""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("www.bourse.be", u"""www.bourse.be""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("www.beurs.be", u"""www.beurs.be""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("bourse.be", u"""bourse.be""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("http://www.londonstockexchange.com", u"""http://www.londonstockexchange.com""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("http://www.six-swiss-exchange.com/", u"""http://www.six-swiss-exchange.com/""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("http://deutsche-boerse.com", u"""http://deutsche-boerse.com""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("/economie/actualite/article/754828/le-jeu-video-sans-console-via-belgacom.html", u"""Le jeu vidéo sans console via Belgacom""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/economie/actualite/article/753635/suivre-les-cours-de-bourse-a-la-plage-gare-aux-plongeons.html", u"""Suivre les cours de Bourse à la plage ? Gare aux plongeons !""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/economie/actualite/article/752413/travailler-en-vacances-une-autre-facon-de-garder-la-ligne.html", u"""Travailler en vacances : une autre façon de garder la ligne !""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/economie/actualite/article/754828/le-jeu-video-sans-console-via-belgacom.html", u"""Le jeu vidéo sans console via Belgacom""", set(['bottom box', 'internal'])),
+                make_tagged_url("/economie/actualite/article/753635/suivre-les-cours-de-bourse-a-la-plage-gare-aux-plongeons.html", u"""Suivre les cours de Bourse à la plage ? Gare aux plongeons !""", set(['bottom box', 'internal'])),
+                make_tagged_url("/economie/actualite/article/752413/travailler-en-vacances-une-autre-facon-de-garder-la-ligne.html", u"""Travailler en vacances : une autre façon de garder la ligne !""", set(['bottom box', 'internal'])),
+                make_tagged_url("/economie/actualite/article/755981/la-grece-lance-une-bataille-diplomatique.html", u"""La Grèce lance une bataille diplomatique""", set(['bottom box', 'internal'])),
+                make_tagged_url("/economie/actualite/article/755996/apple-roi-de-la-bourse-us.html", u"""Apple, roi de la bourse US""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = updated_tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestLalibreContentExtraction(object):
     def test_clean_paragraph_extraction(self):
