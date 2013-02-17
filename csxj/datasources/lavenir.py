@@ -13,7 +13,7 @@ from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
-from parser_tools.utils import remove_text_formatting_markup_from_fragments
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments
 from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
 setup_locales()
@@ -113,13 +113,13 @@ def extract_links_from_article_body(article_body_hxs):
 
     #plaintext text urls
     raw_content = article_body_hxs.select(".//p/text()").extract()
-    content_as_text = ''.join(raw_content)
-    plaintext_urls = extract_plaintext_urls_from_text(content_as_text)
 
-    for url in plaintext_urls:
-        tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-        tags = tags.union(['in text', 'plaintext'])
-        links.append(make_tagged_url(url, url, tags))
+    if raw_content:
+        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(raw_content))
+        for url in plaintext_urls:
+            tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+            tags.update(['plaintext', 'in text'])
+            links.append(make_tagged_url(url, url, tags))
 
 
     #embedded objects
@@ -321,6 +321,14 @@ def show_sample_articles():
     #         print tagged_link.URL, tagged_link.title, tagged_link.tags
     
     article, html = extract_article_data(urls[-1])
+    for p in article.content:
+        print p
+    print "LINKS:"
+    for link in article.links:
+        print link.title
+        print link.URL
+        print link.tags
+        print "___________"
 
 
 
