@@ -320,7 +320,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
 
         elif 'asset' in section.attrs['class']:
             url = section.find('a').get('href')
-            title = section.find('a').contents
+            title = section.find('a').contents[0]
             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
             tags.add('embedded')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
@@ -537,8 +537,8 @@ def extract_article_data(source):
 
         updated_tagged_urls = tagging.update_tagged_urls(tagged_urls, SEPTSURSEPT_SAME_OWNER)
 
-        #print generate_test_func('embedded_tweets', 'septsursept', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_data, source, 'embedded_tweets', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/septsursept')
+        # print generate_test_func('embedded_document', 'septsursept', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_data, source, 'embedded_document', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/septsursept')
 
 
         return (ArticleData(source, title, pub_date, pub_time, dt.datetime.now(),
@@ -657,7 +657,7 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1407359/2012/03/12/Les-malheurs-d-un-journaliste-amusent-le-web.dhtml"
     url = "http://7sur7.be/7s7/fr/1527/People/article/detail/1408039/2012/03/13/Premier-apercu-de-la-frimousse-de-Giulia-Sarkozy.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1505/Monde/article/detail/1487322/2012/08/17/La-tumeur-cancereuse-d-Israel-va-bientot-disparaitre.dhtml"
-    url_test = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1452608/2012/06/12/Mathieu-Kassovitz-traite-Nadine-Morano-de-conne.dhtml"
+    url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1452608/2012/06/12/Mathieu-Kassovitz-traite-Nadine-Morano-de-conne.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1455287/2012/06/17/Lindsay-Lohan-plaisante-sur-son-malaise.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1773/Festivals/article/detail/1486845/2012/08/16/Le-Pukkelpop-revit.dhtml"
     url = "http://www.7sur7.be/7s7/fr/9100/Infos/article/detail/1489178/2012/08/21/Myriam-Leroy-et-Pure-Fm-c-est-fini.dhtml"
@@ -670,7 +670,7 @@ if __name__ == '__main__':
     url = "http://www.7sur7.be/7s7/fr/1513/tennis/article/detail/1455721/2012/06/18/Les-10-plus-gros-petages-de-plomb-de-l-histoire-du-tennis.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1426303/2012/04/20/Wesphael-annonce-la-creation-de-son-parti.dhtml"
     url = "http://7sur7.be/7s7/fr/1525/Tendances/article/detail/1415778/2012/03/29/La-lingerie-belge-de-Carine-Gilson-primee.dhtml"
-    url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1436819/2012/05/11/Comment-etre-un-bon-Flamand-la-brochure-qui-fait-jaser.dhtml"
+    url_test = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1436819/2012/05/11/Comment-etre-un-bon-Flamand-la-brochure-qui-fait-jaser.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1536/Economie/article/detail/1446084/2012/05/30/Ces-grandes-entreprises-belges-qui-ne-paient-pas-d-impots.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1495469/2012/09/04/Gad-Elmaleh-et-Charlotte-de-Monaco-officialisent-leur-relation.dhtml"
     url = "http://www.7sur7.be/7s7/fr/1509/Football-Belge/article/detail/1504847/2012/09/21/Le-Standard-voit-rouge-Trond-Sollied-sauve-sa-tete.dhtml"

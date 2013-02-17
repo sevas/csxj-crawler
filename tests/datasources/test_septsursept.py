@@ -58,7 +58,7 @@ class TestFrontpageItemsFilter(object):
 
 
 
-class Test7sur7Extraction(object):
+class Test7sur7LinkExtraction(object):
     def test_embedded_tweets(self):
         """ The 7sur7.be parser can extract and tag embedded tweets (as well as sidebar box links, bottom box links). """
         with open(os.path.join(DATA_ROOT, "embedded_tweets.html")) as f:
@@ -80,3 +80,22 @@ class Test7sur7Extraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_document(self):
+        """ The 7sur7.be parser can extract and tag link to embedded document """
+        with open(os.path.join(DATA_ROOT, "embedded_document.html")) as f:
+            article, raw_html = septsursept.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("/7s7/fr/1502/Belgique/article/detail/1529567/2012/11/06/Forte-augmentation-du-nombre-de-demandeurs-d-asile-venant-de-Syrie.dhtml", u"""Forte augmentation du nombre de demandeurs d'asile venant de Syrie""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/7s7/fr/1502/Belgique/article/detail/1522934/2012/10/24/Le-code-de-la-nationalite-durci.dhtml", u"""Le code de la nationalité durci""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/7s7/fr/1502/Belgique/article/detail/1522338/2012/10/23/Regroupement-familial-refus-de-visas-a-foison.dhtml", u"""Regroupement familial: refus de visas à foison""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/7s7/fr/1481/Home/1445/immigration/actualite/index.dhtml", u"""immigration""", set(['internal', 'sidebar box', 'keyword'])),
+                make_tagged_url("/7s7/fr/1481/Home/152/Politique/actualite/index.dhtml", u"""Politique""", set(['internal', 'sidebar box', 'keyword'])),
+                make_tagged_url("/7s7/fr/1481/Home/972/Geert-Bourgeois/actualite/index.dhtml", u"""Geert Bourgeois""", set(['internal', 'sidebar box', 'keyword'])),
+                make_tagged_url("/7s7/fr/1481/Home/1135/N-VA/actualite/index.dhtml", u"""N-VA""", set(['internal', 'sidebar box', 'keyword'])),
+                make_tagged_url("http://static1.7sur7.be/static/asset/2012/BOEKJE_FR_181.pdf", u"""Téléchargez pdf""", set(['internal', 'internal site', 'embedded'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
