@@ -23,6 +23,14 @@
     [
       "csxjdb://sudinfo/2012-06-22/17.05.07/raw_data/1.html", 
       "links_embedded_youtube.html"
+    ], 
+    [
+      "csxjdb://sudinfo/2012-06-26/16.05.08/raw_data/2.html", 
+      "links_empty_gallery_div.html"
+    ], 
+    [
+      "csxjdb://sudinfo/2012-03-26/13.05.07/raw_data/7.html", 
+      "links_embedded_kewego_gallery.html"
     ]
   ]
 }

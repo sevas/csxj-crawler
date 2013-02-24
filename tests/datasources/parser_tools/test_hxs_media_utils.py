@@ -115,3 +115,110 @@ class TestYoutubeURLExtraction(object):
         hxs = HtmlXPathSelector(text=raw_html)
         youtube_object = hxs.select("//div [@id='youtube-media']/object")
         hxs_media_utils.extract_url_from_youtube_object(youtube_object)
+
+
+
+class TestKewegoURLExtraction(object):
+    def test_from_flash_object(self):
+        """hxs_media_utils.extract_url_from_kplayer_object() can extract the source url from the object parameters"""
+        raw_html = """
+        <html>
+        <body>
+        <div id="kewego-media">
+        <object width="300" height="200" type="application/x-shockwave-flash" id="054c411daa8s" data="http://sll.kewego.com/swf/p3/epix.swf">
+          <param name="flashVars" value="language_code=fr&amp;playerKey=7b7e2d7a9682&amp;skinKey=a07930e183e6&amp;sig=054c411daa8s&amp;autostart=0&amp;advertise=true">
+          <param name="movie" value="http://sll.kewego.com/swf/p3/epix.swf">
+          <param name="allowFullScreen" value="true">
+          <param name="allowscriptaccess" value="always">
+          <param name="wmode" value="opaque">
+
+          <video width="300" height="200" preload="none" poster="http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&amp;sig=054c411daa8s" controls="controls">&nbsp;</video>
+          <script src="//sll.kewego.com/embed/assets/kplayer-standalone.js"></script>
+          <script defer="defer">kitd.html5loader("flash_epix_054c411daa8s");</script>
+        </object>
+        </div>
+        </body>
+        </html>
+        """
+        hxs = HtmlXPathSelector(text=raw_html)
+        kewego_object = hxs.select("//div [@id='kewego-media']/object")
+        expected_url = "http://sll.kewego.com/swf/p3/epix.swf?language_code=fr&playerKey=7b7e2d7a9682&skinKey=a07930e183e6&sig=054c411daa8s&autostart=0&advertise=true"
+        url = hxs_media_utils.extract_url_from_kplayer_object(kewego_object)
+        eq_(expected_url, url)
+
+    @raises(ValueError)
+    def test_no_params(self):
+        """hxs_media_utils.extract_url_from_kplayer_object() raises ValueError when the 'flashVars' child parameter is missing """
+        raw_html = """
+        <html>
+        <body>
+        <div id="kewego-media">
+        <object width="300" height="200" type="application/x-shockwave-flash" id="054c411daa8s" data="http://sll.kewego.com/swf/p3/epix.swf">
+          <param name="movie" value="http://sll.kewego.com/swf/p3/epix.swf">
+          <param name="allowFullScreen" value="true">
+          <param name="allowscriptaccess" value="always">
+          <param name="wmode" value="opaque">
+
+          <video width="300" height="200" preload="none" poster="http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&amp;sig=054c411daa8s" controls="controls">&nbsp;</video>
+          <script src="//sll.kewego.com/embed/assets/kplayer-standalone.js"></script>
+          <script defer="defer">kitd.html5loader("flash_epix_054c411daa8s");</script>
+        </object>
+        </div>
+        </body>
+        </html>
+        """
+        hxs = HtmlXPathSelector(text=raw_html)
+        kewego_object = hxs.select("//div [@id='kewego-media']/object")
+        hxs_media_utils.extract_url_from_kplayer_object(kewego_object)
+
+    @raises(ValueError)
+    def test_missing_data_attr(self):
+        """hxs_media_utils.extract_url_from_kplayer_object() raises ValueError when the 'data' attribute is missing"""
+        raw_html = """
+        <html>
+        <body>
+        <div id="kewego-media">
+        <object width="300" height="200" type="application/x-shockwave-flash" id="054c411daa8s" >
+          <param name="flashVars" value="language_code=fr&amp;playerKey=7b7e2d7a9682&amp;skinKey=a07930e183e6&amp;sig=054c411daa8s&amp;autostart=0&amp;advertise=true">
+          <param name="movie" value="http://sll.kewego.com/swf/p3/epix.swf">
+          <param name="allowFullScreen" value="true">
+          <param name="allowscriptaccess" value="always">
+          <param name="wmode" value="opaque">
+
+          <video width="300" height="200" preload="none" poster="http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&amp;sig=054c411daa8s" controls="controls">&nbsp;</video>
+          <script src="//sll.kewego.com/embed/assets/kplayer-standalone.js"></script>
+          <script defer="defer">kitd.html5loader("flash_epix_054c411daa8s");</script>
+        </object>
+        </div>
+        </body>
+        </html>
+        """
+        hxs = HtmlXPathSelector(text=raw_html)
+        kewego_object = hxs.select("//div [@id='kewego-media']/object")
+        hxs_media_utils.extract_url_from_kplayer_object(kewego_object)
+
+    @raises(ValueError)
+    def test_data_attr_not_url(self):
+        """hxs_media_utils.extract_url_from_kplayer_object() raises ValueError when the 'data' attribute does not look like a URL"""
+        raw_html = """
+        <html>
+        <body>
+        <div id="kewego-media">
+        <object width="300" height="200" type="application/x-shockwave-flash" id="054c411daa8s" data="HELLO">
+          <param name="flashVars" value="language_code=fr&amp;playerKey=7b7e2d7a9682&amp;skinKey=a07930e183e6&amp;sig=054c411daa8s&amp;autostart=0&amp;advertise=true">
+          <param name="movie" value="http://sll.kewego.com/swf/p3/epix.swf">
+          <param name="allowFullScreen" value="true">
+          <param name="allowscriptaccess" value="always">
+          <param name="wmode" value="opaque">
+
+          <video width="300" height="200" preload="none" poster="http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&amp;sig=054c411daa8s" controls="controls">&nbsp;</video>
+          <script src="//sll.kewego.com/embed/assets/kplayer-standalone.js"></script>
+          <script defer="defer">kitd.html5loader("flash_epix_054c411daa8s");</script>
+        </object>
+        </div>
+        </body>
+        </html>
+        """
+        hxs = HtmlXPathSelector(text=raw_html)
+        kewego_object = hxs.select("//div [@id='kewego-media']/object")
+        url = hxs_media_utils.extract_url_from_kplayer_object(kewego_object)

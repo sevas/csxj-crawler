@@ -121,6 +121,33 @@ class TestSudinfoLinkExtraction(object):
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_links_empty_gallery_div(self):
+        """ sudinfo parser ignores empty divs in the article media gallery"""
+        with open(os.path.join(DATA_ROOT, "links_empty_gallery_div.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url(u"http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=3efed3214b/height=650/width=450", u"""__EMBEDDED_IFRAME__""", set(['iframe', 'external', 'embedded'])),
+                make_tagged_url(u"/443260/article/sports/tennis/2012-06-26/wimbledon-olivier-rochus-elimine-des-le-1er-tour", u"""Wimbledon: Olivier Rochus éliminé dès le 1er tour""", set(['internal', 'sidebar box'])),
+                make_tagged_url(u"/440873/article/regions/liege/sports/2012-06-22/le-perron-d’or-est-pour-david-goffin", u"""Le Perron d’Or est pour David Goffin""", set(['internal', 'sidebar box'])),
+                make_tagged_url(u"/438432/article/actualite/l-info-en-continu/2012-06-19/15 nouveaux-athletes-pour-les-jo-de-londres-avec-david-goffin", u"""15 nouveaux athlètes pour les JO de Londres avec David Goffin""", set(['internal', 'sidebar box'])),
+                make_tagged_url(u"http://portfolio.sudpresse.be/main.php?g2_itemId=1063685", u"""Les photos de David et Stéphanie à Wimbledon""", set(['internal', 'sidebar box', 'gallery', 'external'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_embedded_kewego_gallery(self):
+        """ sudinfo parser can extract kewego videos from the article media gallery"""
+        with open(os.path.join(DATA_ROOT, "links_embedded_kewego_gallery.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://portfolio.sudpresse.be/main.php?g2_itemId=992521", u"""Une belle après-midi à Bleid""", set(['internal', 'sidebar box', 'gallery', 'external'])),
+                make_tagged_url("http://sll.kewego.com/swf/p3/epix.swf?language_code=fr&playerKey=7b7e2d7a9682&skinKey=a07930e183e6&sig=054c411daa8s&autostart=0&advertise=true", u"""__NO_TITLE__""", set(['kewego', 'video', 'external', 'embedded'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestSudinfoContentExtracttion(object):
     def test_intext_link(self):
