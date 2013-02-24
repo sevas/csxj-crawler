@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-import locale
 from datetime import datetime
 from BeautifulSoup import BeautifulStoneSoup, Tag
 import urlparse
 import codecs
-from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL, update_tagged_urls
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
 from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, remove_text_formatting_and_links_from_fragments
@@ -16,7 +14,7 @@ from parser_tools import constants
 from csxj.common import tagging
 from parser_tools import rossel_utils
 
-from helpers.unittest_generator import generate_test_func, save_sample_data_file
+from helpers.unittest_generator import generate_unittest
 
 setup_locales()
 
@@ -80,7 +78,7 @@ def extract_title_and_url_from_bslink(link):
         base_tags.append("ghost link")
 
     if link.contents:
-        title = link.contents[0].strip()
+        title = remove_text_formatting_markup_from_fragments(link.contents)
     else:
         title = "__GHOST_LINK__"
         base_tags.append("ghost link")
@@ -114,7 +112,7 @@ def extract_text_content(story):
                 tags.update(['plaintext', 'in text'])
                 tagged_urls.append(make_tagged_url(url, url, tags))
 
-        titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
+        titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links if not i.find('img')]
         for title, url, base_tags in titles_and_urls:
             tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
             tags.add('in text')
@@ -267,8 +265,6 @@ def extract_links_from_embedded_content(story):
         else:
             raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
 
-    for x in tagged_urls:
-        print x
     return tagged_urls
 
 
@@ -302,8 +298,7 @@ def extract_article_data(source):
 
     updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
-    #print generate_test_func('same_owner_tagging', 'lesoir', dict(tagged_urls=updated_tagged_urls))
-    #save_sample_data_file(html_content, source.name, 'same_owner_tagging', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir')
+    # generate_unittest("links_overload", "lesoir", dict(urls=updated_tagged_urls), html_content, source.name, "/Users/sevas/PycharmProjects/csxj-crawler-dev/tests/datasources/test_data/lesoir", True)
 
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                        updated_tagged_urls,
@@ -318,10 +313,6 @@ def extract_main_content_links(source):
         html_content = fetch_html_content(source)
 
     soup = make_soup_from_html_content(html_content)
-
-    # get maincontent div
-    story = soup.find('div', {'id': 'story'})
-
     all_links = soup.findAll('a', recursive=True)
 
     def extract_url_and_title(item):
@@ -437,45 +428,17 @@ def get_frontpage_articles_data():
     return articles, blogposts_toc, errors
 
 
-def dowload_one_article():
-    url = "http://www.lesoir.be/sports/sports_mecaniques/2012-01-07/pas-de-grand-prix-de-spa-francorchamps-en-2013-888811.php"
-    url = "http://www.lesoir.be/actualite/belgique/elections_2010/2012-01-10/budget-2012-chastel-appele-a-s-expliquer-cet-apres-midi-889234.php"
-    url = "http://www.lesoir.be/actualite/france/2012-01-10/free-defie-les-telecoms-francais-avec-un-forfait-illimite-a-19-99-euros-889276.php"
-    url = "http://www.lesoir.be/actualite/belgique/2012-08-21/guy-spitaels-est-decede-933203.php"
-    url = "../../sample_data/lesoir/lesoir_storify2.html"
-    art, raw_html = extract_article_data(url)
-    for link in art.links:
-        print link
-
-    # maincontent_links = set(extract_main_content_links(url))
-    # processed_links = set([(l.URL, l.title) for l in art.links])
-
-
-    # missing_links = maincontent_links - processed_links
-
-    # print "total links: ", len(maincontent_links)
-    # print "processed links: ", len(processed_links)
-    # print "missing: ", len(missing_links)
-
-
 def test_sample_data():
-    filepath = '../../sample_data/lesoir/same_owner_links.html'
-    filepath = '../../tests/datasources/test_data/lesoir/same_owner_tagging.html'
-    filepath = '../../tests/datasources/test_data/lesoir/lesoir_intext.html'
-    filepath = "../../sample_data/lesoir/lesoir_intext.html"
+    fpaths = [
+        "/Volumes/Curst/csxj/tartiflette/json_db_0_5/lesoir/2012-08-06/07.05.03/raw_data/0.html",
 
-    with open(filepath) as f:
-        article_data, raw = extract_article_data(f)
-        # print article.category
-        # article_data.print_summary()
+    ]
 
-        # for link in article_data.links:
-        #     print link.title
-        #     print link.URL
-        #     print link.tags
+    for i, fpath in enumerate(fpaths):
+        print i, "*" * 30
+        with open(fpath) as f:
+            article_data, raw = extract_article_data(f)
 
-        # print article_data.intro
-        # print article_data.content
 
 if __name__ == '__main__':
     test_sample_data()

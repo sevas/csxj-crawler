@@ -3,6 +3,18 @@
     [
       "../../sample_data/lesoir/same_owner_links.html", 
       "same_owner_tagging.html"
+    ], 
+    [
+      "/Volumes/Curst/csxj/tartiflette/json_db_0_5/lesoir/2012-08-06/07.05.03/raw_data/0.html", 
+      "ignore_embedded_images.html"
+    ], 
+    [
+      "/Volumes/Curst/csxj/tartiflette/json_db_0_5/lesoir/2012-05-11/18.05.03/raw_data/0.html", 
+      "ignore_embedded_images.html"
+    ], 
+    [
+      "/Volumes/Curst/csxj/tartiflette/json_db_0_5/lesoir/2012-08-06/07.05.03/raw_data/0.html", 
+      "links_overload.html"
     ]
   ]
 }
