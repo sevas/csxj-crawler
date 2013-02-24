@@ -21,7 +21,7 @@ def save_sample_data_file(html_data, source_url, test_name, root_path):
             return
 
 
-        print "Writing source html for {0} to.".format(source_url, full_path_name)
+        print "Writing source html for {0} to {1}.".format(source_url, full_path_name)
 
         with open(full_path_name, 'w') as f:
             f.write(html_data)
