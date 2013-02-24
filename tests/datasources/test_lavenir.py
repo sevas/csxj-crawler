@@ -30,3 +30,31 @@ class TestLavenirLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+class TestLavenirContentExtraction(object):
+
+    def test_clean_title_extraction(self):
+        """ lavenir parser correctly extracts the title"""
+        with open(os.path.join(DATA_ROOT, "title_and_text.html")) as f:
+            article, _ = lavenir.extract_article_data(f)
+
+            expected_title = u'Verglas et neige sur nos routes'
+            eq_(article.title, expected_title)
+
+    def test_clean_intro_extraction(self):
+        """ lavenir parser correctly extracts the intro"""
+        with open(os.path.join(DATA_ROOT, "title_and_text.html")) as f:
+            article, _ = lavenir.extract_article_data(f)
+
+            expected_intro = u'Prudence sur les routes, la neige a \xe0 nouveau fait son apparition. La situation est particuli\xe8rement difficile sur le r\xe9seau secondaire.'
+            eq_(article.intro, expected_intro)
+
+    def test_clean_content_extraction(self):
+        """ lavenir parser correctly extracts the article content"""
+        with open(os.path.join(DATA_ROOT, "title_and_text.html")) as f:
+            article, _ = lavenir.extract_article_data(f)
+            expected_content = [u'Il a neig\xe9 en faible quantit\xe9 sur la Belgique. C\'est particuli\xe8rement l\'est de la Belgique qui est concern\xe9. "On a constat\xe9 de 1 \xe0 3 cm en plaine et jusqu\'\xe0 10 cm dans les Hautes Fagnes. Il s\'agit d\'une neige fine qui continuera \xe0 tomber dimanche apr\xe8s-midi". ', u'De nombreuses zones nuageuses sont pr\xe9vues ce dimanche avec des p\xe9riodes de faibles chutes de neige.', u"Un seul accident, survenu de nuit sur la N4, a \xe9t\xe9 constat\xe9. Mais la circulation y a d\xe9j\xe0 \xe9t\xe9 r\xe9tablie. Les services d'\xe9pandage ont travaill\xe9 toute la nuit et sont encore en tourn\xe9e dimanche matin.", u'"Le fait que nous sommes dimanche explique le peu de tracas rencontr\xe9. En pleine semaine, les choses ne se seraient probablement pas pass\xe9es aussi facilement", a encore d\xe9clar\xe9 le centre Perex qui appelle  \xe0 les conducteurs \xe0 adapter leur conduite sur le r\xe9seau secondaire.du  pays malgr\xe9 la neige, ont-ils annonc\xe9 dimanche matin.', u'Le verglas tend \xe0 se g\xe9n\xe9raliser sur le r\xe9seau autoroutier de Flandre', u'En Flandre, selon le centre de trafic routier r\xe9gional, la circulation sur la bande de gauche de nombreuses autoroutes \xe9tait rendue difficile \xe0 cause de la pr\xe9sence de neige.', u"Le nord du pays n'a aussi connu qu'un seul accident dans la nuit de samedi \xe0 dimanche, survenu sur le viaduc de Merksem.", u'Quelques conseils: adaptez votre vitesse; respectez les distances de s\xe9curit\xe9; et ne freinez pas brusquement sans n\xe9cessit\xe9 absolue.', u'Encore des chutes de neige ', u'Dimanche soir et nuit, le temps restera nuageux avec surtout de l\xe9g\xe8res averses de pluie ou de neige fondante dans la partie basse et moyenne de la Belgique.', u'Le haut du pays sera travers\xe9 par de faibles chutes de neige. Les minima varieront de -2\xb0C dans les Ardennes \xe0 +2\xb0C au littoral.', u'Lundi, il fera encore nuageux avec pr\xe9sence, de temps \xe0 autre, de pluie ou de neige fondante. En haute Belgique, on palera de faibles chutes de neige. Le vent de nord-est sera mod\xe9r\xe9 dans le pays \xe0 assez fort au littoral. Les maxima seront compris entre -1\xb0C dans les Ardennes et de +1\xb0C \xe0 +4\xb0C ailleurs.', u"Le reste de la semaine, il fera g\xe9n\xe9ralement sec et plut\xf4t sombre, surtout en d\xe9but de semaine. Les temp\xe9ratures \xe0 mi-journ\xe9e avoisineront les +4\xb0C.Durant le seconde partie de semaine, les chances d'\xe9claircies grandiront avec des temp\xe9ratures pouvant atteindre les +6\xb0C.", u'Cependant, les nuits resteront tr\xe8s fra\xeeches et le mercure continuera de flirter avec les 0\xb0C. ']
+            eq_(article.content, expected_content)
+
+
+

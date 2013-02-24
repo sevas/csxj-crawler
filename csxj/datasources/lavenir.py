@@ -221,8 +221,8 @@ def extract_article_data(source):
 
     updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
-    #print generate_test_func('bottom_box_and_sidebar_and_intext_links', 'lavenir', dict(tagged_urls=updated_tagged_urls))
-    #save_sample_data_file(html_content, source, 'bottom_box_and_sidebar_and_intext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
+    # print generate_test_func('title_and_text', 'lavenir', dict(tagged_urls=updated_tagged_urls))
+    # save_sample_data_file(html_content, source, 'title_and_text', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
 
     # wrapping up
     article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -300,7 +300,8 @@ def show_sample_articles():
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002"
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_001"
 
             ]
 
@@ -311,14 +312,16 @@ def show_sample_articles():
     #         print tagged_link.URL, tagged_link.title, tagged_link.tags
 
     article, html = extract_article_data(urls[-1])
-    for p in article.content:
-        print p
-    print "LINKS:"
-    for link in article.links:
-        print link.title
-        print link.URL
-        print link.tags
-        print "___________"
+    # print [article.title]
+    # print [article.intro]
+    # print article.url
+    print [article.content]
+    # print "LINKS:"
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "___________"
 
 
 def show_frontpage():
