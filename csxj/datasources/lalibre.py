@@ -305,7 +305,8 @@ def test_sample_data():
             "http://www.lalibre.be/societe/insolite/article/787359/des-chocolats-aux-insectes.html",
             "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html",
             "http://www.lalibre.be/economie/actualite/article/755845/les-bourses-avancent-timidement-vers-le-web.html",
-            'http://www.lalibre.be/culture/mediastele/article/748553/veronique-genest-mon-coeur-est-en-berne.html']
+            'http://www.lalibre.be/culture/mediastele/article/748553/veronique-genest-mon-coeur-est-en-berne.html',
+            'http://www.lalibre.be/actu/usa-2012/article/773294/obama-raille-les-chevaux-et-baionnettes-de-romney.html']
 
     from pprint import pprint
     import os
