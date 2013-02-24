@@ -298,7 +298,7 @@ def extract_article_data(source):
 
     updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
-    generate_unittest("links_overload", "lesoir", dict(urls=updated_tagged_urls), html_content, source.name, "/Users/sevas/PycharmProjects/csxj-crawler-dev/tests/datasources/test_data/lesoir", True)
+    #generate_unittest("links_overload", "lesoir", dict(urls=updated_tagged_urls), html_content, source.name, "/Users/sevas/PycharmProjects/csxj-crawler-dev/tests/datasources/test_data/lesoir", True)
 
     return ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                        updated_tagged_urls,
