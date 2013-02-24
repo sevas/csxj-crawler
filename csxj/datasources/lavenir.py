@@ -114,11 +114,12 @@ def extract_links_from_article_body(article_body_hxs):
     raw_content = article_body_hxs.select(".//p/text()").extract()
 
     if raw_content:
-        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(raw_content))
-        for url in plaintext_urls:
-            tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-            tags.update(['plaintext', 'in text'])
-            links.append(make_tagged_url(url, url, tags))
+        for paragraph in raw_content:
+            plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(paragraph))
+            for url in plaintext_urls:
+                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                tags.update(['plaintext', 'in text'])
+                links.append(make_tagged_url(url, url, tags))
 
     #embedded objects
     iframe_sources = article_body_hxs.select(".//iframe/@src").extract()
@@ -221,8 +222,8 @@ def extract_article_data(source):
 
     updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
-    # print generate_test_func('title_and_text', 'lavenir', dict(tagged_urls=updated_tagged_urls))
-    # save_sample_data_file(html_content, source, 'title_and_text', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
+    print generate_test_func('embedded_scribblelive', 'lavenir', dict(tagged_urls=updated_tagged_urls))
+    save_sample_data_file(html_content, source, 'embedded_scribblelive', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
 
     # wrapping up
     article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -301,7 +302,10 @@ def show_sample_articles():
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_001"
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_001",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_005",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_016",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130221_00271965"
 
             ]
 
@@ -312,10 +316,10 @@ def show_sample_articles():
     #         print tagged_link.URL, tagged_link.title, tagged_link.tags
 
     article, html = extract_article_data(urls[-1])
-    # print [article.title]
-    # print [article.intro]
+    # print article.title
+    # print article.intro
     # print article.url
-    print [article.content]
+    # print article.content
     # print "LINKS:"
     # for link in article.links:
     #     print link.title

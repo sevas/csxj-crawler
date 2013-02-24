@@ -31,6 +31,22 @@ class TestLavenirLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+
+    def test_in_text_links(self):
+        """ lavenir parser correctly extracts and tags in text links and does not mistakelny extracts the end of a sentence as a plaintext link"""
+        with open(os.path.join(DATA_ROOT, "in_text_links.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20130223_00273017", u"""Oscar Pistorius""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/sports/cnt/DMF20130222_00272411", u"""est sorti libre vendredi après-midi""", set(['internal', 'in text'])),
+                make_tagged_url("/channel/index.aspx?channelid=490", u"""L'athlète Pistorius tue sa compagne: toutes nos infos""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/channel/index.aspx?channelid=490", u"""L'athlète Pistorius tue sa compagne: toutes nos infos""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
 class TestLavenirContentExtraction(object):
 
     def test_clean_title_extraction(self):
