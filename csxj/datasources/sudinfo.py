@@ -18,8 +18,10 @@ from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged
 from csxj.db.article import ArticleData
 
 from parser_tools import rossel_utils
-from helpers.unittest_generator import generate_test_func, save_sample_data_file
+from parser_tools import hxs_media_utils
+from parser_tools import constants as parser_constants
 
+from helpers.unittest_generator import generate_unittest
 from csxj.common.tagging import print_taggedURLs
 
 setup_locales()
@@ -273,7 +275,7 @@ def extract_links_from_media_items(media_items):
         if title:
             title = title[0]
         else:
-            title = "__NO_TITLE__"
+            title = parser_constants.NO_TITLE
 
         if  media_type == 'video':
             if item.select(".//div [contains(@class, 'emvideo-kewego')]"):
@@ -390,14 +392,17 @@ def extract_associated_links(hxs):
 
     for i, item in enumerate(media_links):
         if item.select('./img'):
-            pass
+            pass # images are lame
+        elif item.select(".//div[starts-with(@id, 'media-youtube')]"):
+            youtube_div = item.select(".//div[starts-with(@id, 'media-youtube')]")
+            youtube_object = youtube_div.select("./object")
+            url = hxs_media_utils.extract_url_from_youtube_object(youtube_object)
+            tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+            tags |= set(['youtube', 'embedded', 'video'])
+            title = parser_constants.NO_TITLE
+            all_tagged_urls.append(make_tagged_url(url, title, tags))
         else:
-            raise ValueError("The media box contains something other than an image. Update your parser")
-            # item_id = item.select("./@class").extract()
-            # url = item_id[0]
-            # title = u"EMBEDDED MEDIA {0}".format(i)
-            # tags = set(['media', 'embedded'])
-            # all_tagged_urls.append(make_tagged_url(url, title, tags))
+            raise ValueError("The media box contains something other than an image or a youtube video. Update your parser")
 
     return all_tagged_urls
 
@@ -443,8 +448,8 @@ def extract_article_data(source):
         all_links = intro_links + content_links + associated_links
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
-        #print generate_test_func('links_embedded_thumbnails', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_content, source.name, 'in_text_same_owner', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
+        import os
+        generate_unittest("links_embedded_youtube", "sudinfo", dict(urls=updated_tagged_urls), html_content, "csxjdb://sudinfo/2012-06-22/17.05.07/raw_data/1.html", os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/sudinfo"), True)
 
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             updated_tagged_urls,
@@ -535,11 +540,18 @@ def show_article():
         u"http://www.sudinfo.be/648601/article/regions/tournai/actualite/2013-01-23/le-papa-se-fait-operer-et-devient%E2%80%A6-maman"
     ]
 
-    article, html = extract_article_data(urls[-1])
-    print article.content
-    for link in article.links:
-        print link
+
+    fpaths = [
+        "/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-22/17.05.07/raw_data/1.html",
+    ]
+
+    for fpath in fpaths:
+        with open(fpath) as f:
+            article, html = extract_article_data(f)
+            print article.content
+            for link in article.links:
+                print link
 
 
 if __name__ == '__main__':
-    pass
+    show_article()

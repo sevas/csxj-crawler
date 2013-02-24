@@ -110,6 +110,18 @@ class TestSudinfoLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
 
+    def test_links_embedded_youtube(self):
+        """ sudinfo parser extract links to youtube video presented inside the article media gallery"""
+        with open(os.path.join(DATA_ROOT, "links_embedded_youtube.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.youtube.com/watch?v=4tkHmGycfz4", u"""__NO_TITLE__""", set(['youtube', 'video', 'external', 'embedded'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
 class TestSudinfoContentExtracttion(object):
     def test_intext_link(self):
         """ sudinfo parser correctly extract text content, even when there is a link inside"""

@@ -19,6 +19,10 @@
     [
       "../../sample_data/sudinfo/sudinfo_intext_link.html", 
       "in_text_same_owner.html"
+    ], 
+    [
+      "csxjdb://sudinfo/2012-06-22/17.05.07/raw_data/1.html", 
+      "links_embedded_youtube.html"
     ]
   ]
 }
