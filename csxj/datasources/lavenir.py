@@ -330,6 +330,24 @@ def show_sample_articles():
     #     print link.tags
     #     print "___________"
 
+def test_sample_data():
+    filepath = "../../tests/datasources/test_data/lavenir/"
+    filepath = "/Volumes/CALIGULA/csxj_data/json_db_0_5/lavenir/2012-02-29/10.05.12/raw_data/2.html"
+    filepath = "/Volumes/CALIGULA/csxj_data/json_db_0_5/lavenir/2012-02-29/10.05.12/raw_data/5.html"
+    with open(filepath) as f:
+        article, raw = extract_article_data(f)
+        print article.title
+        print article.intro
+        print article.url
+        print article.content
+        print "LINKS:"
+        for link in article.links:
+            print link.title
+            print link.URL
+            print link.tags
+            print "___________"
+        
+
 
 def show_frontpage():
     toc, blogposts = get_frontpage_toc()
@@ -357,6 +375,7 @@ def show_frontpage_articles():
 
 
 if __name__ == "__main__":
-    show_sample_articles()
+    # show_sample_articles()
     #show_frontpage_articles()
     #show_frontpage()
+    test_sample_data()
