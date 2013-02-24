@@ -46,6 +46,22 @@ class TestLavenirLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_embedded_scribblelive(self):
+        """ lavenir parser correctly extracts embedded scribblelive in iframe"""
+        with open(os.path.join(DATA_ROOT, "embedded_scribblelive.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=dmf20130221_00271895", u"""Tout savoir sur cette manif""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/sports/cnt/dmf20130205_00264485", u"""Richard Virenque est venu en Belgique""", set(['internal', 'in text'])),
+                make_tagged_url("http://live.lavenir.net/event/manifestation_contre_lausterite_suivez_les_perturbations_en_direct", u"""Si vous surfez via notre application mobile, cliquez ici pour suivre le live""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://embed.scribblelive.com/Embed/v5.aspx?Id=84774&ThemeId=6630", u"""http://embed.scribblelive.com/Embed/v5.aspx?Id=84774&ThemeId=6630""", set(['iframe', 'external', 'embedded', 'in text'])),
+                make_tagged_url("/channel/index.aspx?channelid=487", u"""Tout sur la manifestation du 21 février 2013""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/channel/index.aspx?channelid=487", u"""Tout sur la manifestation du 21 février 2013""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestLavenirContentExtraction(object):
 

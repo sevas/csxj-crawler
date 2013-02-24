@@ -222,8 +222,8 @@ def extract_article_data(source):
 
     updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
-    print generate_test_func('embedded_scribblelive', 'lavenir', dict(tagged_urls=updated_tagged_urls))
-    save_sample_data_file(html_content, source, 'embedded_scribblelive', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
+    # print generate_test_func('embedded_scribblelive', 'lavenir', dict(tagged_urls=updated_tagged_urls))
+    # save_sample_data_file(html_content, source, 'embedded_scribblelive', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
 
     # wrapping up
     article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
