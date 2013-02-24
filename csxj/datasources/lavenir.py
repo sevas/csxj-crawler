@@ -332,6 +332,16 @@ def show_frontpage():
     print len(toc), len(blogposts)
 
 
+def test_sample_data():
+    """
+    Lorem ipsum culpa do dolor cillum amet qui exercitation in laborum aliqua Duis anim amet ex dolore ut cillum ullamco voluptate consequat occaecat laborum esse.
+    """
+    yield "Lorem ipsum ea laboris est aliquip laborum voluptate nulla in "
+    yield "ad do do consectetur voluptate irure culpa fugiat anim cupidatat "
+    yield "et aute aliqua velit ex laboris id exercitation ut aute pariatur "
+    yield "Excepteur esse. "
+
+
 def show_frontpage_articles():
     toc, posts = get_frontpage_toc()
     print len(toc), len(posts)
