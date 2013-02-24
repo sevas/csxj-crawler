@@ -102,8 +102,8 @@ def extract_publication_date(raw_date):
 def extract_links_from_article_body(article_body_hxs):
     links = list()
     # intext urls
-    urls = article_body_hxs.select(".//p/a/@href").extract()
-    titles = [t.strip() for t in article_body_hxs.select(".//p/a//text()").extract()]
+    urls = article_body_hxs.select(".//p//a/@href").extract()
+    titles = [t.strip() for t in article_body_hxs.select(".//p//a//text()").extract()]
 
     for title, url in izip(titles, urls):
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
@@ -210,7 +210,9 @@ def extract_article_data(source):
     article_body = article_detail_hxs.select("./div/div[@class='article-body ']")
     content = article_body.select(".//p//text()").extract()
 
+
     all_links.extend(extract_links_from_article_body(article_body))
+
 
     # associated sidebar links
     sidebar_links = article_detail_hxs.select("./div/div[@class='article-side']/div[@class='article-related']//li/a")
@@ -305,7 +307,8 @@ def show_sample_articles():
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_001",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_005",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_016",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130221_00271965"
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130221_00271965",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_00273104"
 
             ]
 
@@ -315,17 +318,17 @@ def show_sample_articles():
     #     for tagged_link in article.links:
     #         print tagged_link.URL, tagged_link.title, tagged_link.tags
 
-    article, html = extract_article_data(urls[-1])
-    # print article.title
-    # print article.intro
-    # print article.url
-    # print article.content
-    # print "LINKS:"
-    # for link in article.links:
-    #     print link.title
-    #     print link.URL
-    #     print link.tags
-    #     print "___________"
+    article, html = extract_article_data(urls[1])
+    print article.title
+    print article.intro
+    print article.url
+    print article.content
+    print "LINKS:"
+    for link in article.links:
+        print link.title
+        print link.URL
+        print link.tags
+        print "___________"
 
 
 def show_frontpage():
