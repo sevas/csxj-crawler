@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-import locale
 from datetime import datetime
 from BeautifulSoup import BeautifulStoneSoup, Tag
 import urlparse
 import codecs
-from csxj.common.tagging import classify_and_tag, make_tagged_url, TaggedURL, update_tagged_urls
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content, fetch_rss_content, make_soup_from_html_content
 from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, remove_text_formatting_and_links_from_fragments
@@ -315,10 +313,6 @@ def extract_main_content_links(source):
         html_content = fetch_html_content(source)
 
     soup = make_soup_from_html_content(html_content)
-
-    # get maincontent div
-    story = soup.find('div', {'id': 'story'})
-
     all_links = soup.findAll('a', recursive=True)
 
     def extract_url_and_title(item):
