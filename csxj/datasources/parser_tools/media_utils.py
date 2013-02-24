@@ -18,6 +18,23 @@ def extract_url_from_iframe(iframe):
     return url, title
 
 
+IGNORED_JS_SNIPPETS = [
+    """
+            // default textHighlight call
+            textHighlight();
+     """.translate(None, ' \n\t').lower(),
+]
+
+
+def ignore_snippet(snippet):
+    print type(snippet)
+    for s in IGNORED_JS_SNIPPETS:
+        if snippet.translate(None, ' \n\t').lower() == s:
+            return True
+    return False
+
+
+
 def extract_tagged_url_from_embedded_script(script, site_netloc, site_internal_sites):
     if script.get('src'):
         script_url = script.get('src')

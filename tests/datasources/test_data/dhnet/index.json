@@ -3,50 +3,54 @@
     [
       "http://www.dhnet.be/infos/faits-divers/article/381082/le-fondateur-des-protheses-pip-admet-la-tromperie-devant-la-police.html", 
       "single_bottom_link.html"
-    ],
+    ], 
     [
-      "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html",
+      "http://www.dhnet.be/sports/formule-1/article/377150/ecclestone-bientot-l-europe-n-aura-plus-que-cinq-grands-prix.html", 
       "removed_article.html"
-    ],
+    ], 
     [
-      "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html",
+      "http://www.dhnet.be/infos/belgique/article/378150/la-n-va-menera-l-opposition-a-un-gouvernement-francophone-et-taxateur.html", 
       "same_sidebox_and_bottom_links.html"
-    ],
+    ], 
     [
-      "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html",
+      "http://www.dhnet.be/infos/belgique/article/386721/budget-l-effort-de-2-milliards-confirme.html", 
       "no_links.html"
-    ],
+    ], 
     [
-      "http://www.dhnet.be/cine-tele/divers/article/378363/sois-belge-et-poile-toi.html",
+      "http://www.dhnet.be/cine-tele/divers/article/378363/sois-belge-et-poile-toi.html", 
       "embedded_video_and_in_text_link.html"
-    ],
+    ], 
     [
-      "http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html",
+      "http://www.dhnet.be/infos/societe/article/379508/contribuez-au-journal-des-bonnes-nouvelles.html", 
       "embedded_poll_script.html"
-    ],
+    ], 
     [
-      "http://www.dhnet.be/infos/monde/article/413062/sandy-paralyse-le-nord-est-des-etats-unis.html",
+      "http://www.dhnet.be/infos/monde/article/413062/sandy-paralyse-le-nord-est-des-etats-unis.html", 
       "storify_gallery_videos.html"
-    ],
+    ], 
     [
-      "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html",
+      "http://www.dhnet.be/infos/economie/article/387149/belfius-fait-deja-le-buzz.html", 
       "media_overload.html"
-    ],
+    ], 
     [
-      "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html",
+      "http://www.dhnet.be/infos/faits-divers/article/388710/tragedie-de-sierre-toutes-nos-videos-reactions-temoignages-condoleances.html", 
       "embedded_audio_video.html"
-    ],
+    ], 
     [
-      "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html",
+      "http://www.dhnet.be/infos/societe/article/420219/les-femmes-a-talons-sont-elles-plus-seduisantes.html", 
       "same_owner_tagging.html"
-    ],
+    ], 
     [
-      "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html",
+      "http://www.dhnet.be/infos/buzz/article/395893/rachida-dati-jette-son-venin.html", 
       "extract_embedded_tweets.html"
-    ],
+    ], 
     [
       "http://www.dhnet.be/infos/belgique/article/417360/neige-preparez-vous-au-chaos-ce-matin.html", 
       "plaintext_links.html"
+    ], 
+    [
+      "http://www.dhnet.be/cine-tele/cinema/article/413216/dany-boon-mon-coach-me-tapait.html", 
+      "kplayer.html"
     ]
   ]
 }

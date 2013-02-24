@@ -301,6 +301,21 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_kplayer(self):
+        """ dhnet parser correctly extracts and tags embedded kplayer """
+        with open(os.path.join(DATA_ROOT, "kplayer.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Regardez la bande-annonce d'Un Plan Parfait""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.cinebel.be/fr/film/1008711/Un%20Plan%20Parfait", u"""Tout savoir sur Un Plan Parfait sur Cinebel""", set(['sidebar box', 'external', 'same owner'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&playerKey=25e1a69bf7eb&configKey=3162af563b91&suffix=&sig=1034e8b6d47s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://www.cinebel.be/fr/film/1008711/Un%20Plan%20Parfait", u"""Tout savoir sur Un Plan Parfait sur Cinebel""", set(['bottom box', 'external', 'same owner'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
     def test_extract_embedded_tweets(self):
         """ dhnet parser can extract rendered embedded tweets"""
         with open(os.path.join(DATA_ROOT, "extract_embedded_tweets.html")) as f:

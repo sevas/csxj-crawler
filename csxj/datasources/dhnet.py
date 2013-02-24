@@ -18,6 +18,8 @@ from parser_tools import ipm_utils
 from parser_tools import twitter_utils
 
 from helpers.unittest_generator import generate_unittest
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
+
 
 setup_locales()
 
@@ -313,8 +315,8 @@ def extract_article_data(source):
 
         fetched_datetime = datetime.today()
 
-        # print generate_test_func('plaintext_links', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_content, source, 'plaintext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # print generate_test_func('kplayer', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_content, source, 'kplayer', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
 
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -410,17 +412,26 @@ if __name__ == "__main__":
         # "http://www.dhnet.be/people/sports/article/393650/tom-boonen-sans-les-mains.html",
 
         #plaintext links:
-        "http://www.dhnet.be/infos/belgique/article/417360/neige-preparez-vous-au-chaos-ce-matin.html"
+        "http://www.dhnet.be/infos/belgique/article/417360/neige-preparez-vous-au-chaos-ce-matin.html",
+
+        # errors:
+        "http://www.dhnet.be/cine-tele/cinema/article/413216/dany-boon-mon-coach-me-tapait.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
 
     article, html = extract_article_data(urls[-1])
-    print article.title
-    print article.url
+    # print article.title
+    # print article.url
+    # print "°°°°°°°°°°°°°°°°°°°°"
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "°°°°°°°°°°°°°°°°°°°°"
 
-    from pprint import pprint
-    print_taggedURLs(article.links)
+    # from pprint import pprint
+    # print_taggedURLs(article.links)
 
 
 
