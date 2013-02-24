@@ -62,6 +62,24 @@ class TestLavenirLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_external_links(self):
+        """ lavenir parser correctly extracts external, in-text links"""
+        with open(os.path.join(DATA_ROOT, "external_links.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.couleurcafe.be/en/couleur_cafe/tickets/presale-274.html", u"""Les préventes pour le festival sont désormais en vente""", set(['external', 'in text'])),
+                make_tagged_url("http://www.couleurcafe.be/en/couleur_cafe/home-270.html", u"""Couleur Café""", set(['external', 'in text'])),
+                make_tagged_url("/channel/index.aspx?channelid=72", u"""Festivals de l'été""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/channel/index.aspx?channelid=293", u"""Tout sur la culture à Bruxelles""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/channel/index.aspx?channelid=369", u"""Tout sur le festival Couleur Café""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/channel/index.aspx?channelid=72", u"""Festivals de l'été""", set(['bottom box', 'internal'])),
+                make_tagged_url("/channel/index.aspx?channelid=293", u"""Tout sur la culture à Bruxelles""", set(['bottom box', 'internal'])),
+                make_tagged_url("/channel/index.aspx?channelid=369", u"""Tout sur le festival Couleur Café""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestLavenirContentExtraction(object):
 

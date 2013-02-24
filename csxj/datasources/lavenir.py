@@ -224,8 +224,8 @@ def extract_article_data(source):
 
     updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
-    # print generate_test_func('embedded_scribblelive', 'lavenir', dict(tagged_urls=updated_tagged_urls))
-    # save_sample_data_file(html_content, source, 'embedded_scribblelive', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
+    # print generate_test_func('external_links', 'lavenir', dict(tagged_urls=updated_tagged_urls))
+    # save_sample_data_file(html_content, source, 'external_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
 
     # wrapping up
     article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -319,16 +319,16 @@ def show_sample_articles():
     #         print tagged_link.URL, tagged_link.title, tagged_link.tags
 
     article, html = extract_article_data(urls[1])
-    print article.title
-    print article.intro
-    print article.url
-    print article.content
-    print "LINKS:"
-    for link in article.links:
-        print link.title
-        print link.URL
-        print link.tags
-        print "___________"
+    # print article.title
+    # print article.intro
+    # print article.url
+    # print article.content
+    # print "LINKS:"
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "___________"
 
 
 def show_frontpage():
