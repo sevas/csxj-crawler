@@ -301,6 +301,42 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_kplayer(self):
+        """ dhnet parser correctly extracts and tags embedded kplayer """
+        with open(os.path.join(DATA_ROOT, "kplayer.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Regardez la bande-annonce d'Un Plan Parfait""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.cinebel.be/fr/film/1008711/Un%20Plan%20Parfait", u"""Tout savoir sur Un Plan Parfait sur Cinebel""", set(['sidebar box', 'external', 'same owner'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&playerKey=25e1a69bf7eb&configKey=3162af563b91&suffix=&sig=1034e8b6d47s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("http://www.cinebel.be/fr/film/1008711/Un%20Plan%20Parfait", u"""Tout savoir sur Un Plan Parfait sur Cinebel""", set(['bottom box', 'external', 'same owner'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_hungarian_video(self):
+        """ dhnet parser correctly extracts embedded hungarian videos """
+        with open(os.path.join(DATA_ROOT, "embedded_hungarian_video.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Deuxième but de Benteke à la 50e""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos2", u"""But de Benteke à la 29e""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/sports/football/article/418325/le-coup-de-boule-de-fellaini.html", u"""Le "coup de boule" de Fellaini""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://videa.hu/videok/sport/liverpool-vs-aston-villa-03-benteke-SqNSxnB4M6HXc25h", u"""Deuxième but de Benteke à la 50e""", set(['external', 'embedded'])),
+                make_tagged_url("http://videa.hu/videok/sport/liverpool-vs-aston-villa-01-benteke-W9oE53lSeQqS0Puk", u"""But de Benteke à la 29e""", set(['external', 'embedded'])),
+                make_tagged_url("/sports/football/article/418325/le-coup-de-boule-de-fellaini.html", u"""Le "coup de boule" de Fellaini""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/football/article/418302/ronaldo-gagne-son-combat-contre-le-surpoids.html", u"""Ronaldo gagne son combat contre le surpoids""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/football/article/418317/des-red-devils-et-des-citizens-victorieux.html", u"""Des Red Devils et des Citizens victorieux""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/football/article/418339/hazard-et-chelsea-battus-en-finale-de-la-coupe-du-monde-des-clubs-1-0.html", u"""Hazard et Chelsea battus en finale de la Coupe du monde des clubs (1-0)""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/football/article/418482/les-medias-anglais-chantent-a-la-gloire-de-benteke.html", u"""Les médias anglais chantent à la gloire de Benteke""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/football/article/418959/lambert-on-n-a-pas-achete-benteke-pour-le-revendre.html", u'''Lambert : "On n'a pas acheté Benteke pour le revendre !"''', set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
     def test_extract_embedded_tweets(self):
         """ dhnet parser can extract rendered embedded tweets"""
         with open(os.path.join(DATA_ROOT, "extract_embedded_tweets.html")) as f:

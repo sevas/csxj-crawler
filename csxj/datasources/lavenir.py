@@ -1,18 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+import locale
 from datetime import datetime
 import codecs
 from itertools import izip, chain
 from urlparse import urlparse
 from scrapy.selector import HtmlXPathSelector
 
-from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
 from parser_tools.utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments
-
+from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
 setup_locales()
 
@@ -100,8 +102,8 @@ def extract_publication_date(raw_date):
 def extract_links_from_article_body(article_body_hxs):
     links = list()
     # intext urls
-    urls = article_body_hxs.select(".//p/a/@href").extract()
-    titles = [t.strip() for t in article_body_hxs.select(".//p/a//text()").extract()]
+    urls = article_body_hxs.select(".//p//a/@href").extract()
+    titles = [t.strip() for t in article_body_hxs.select(".//p//a//text()").extract()]
 
     for title, url in izip(titles, urls):
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
@@ -112,11 +114,12 @@ def extract_links_from_article_body(article_body_hxs):
     raw_content = article_body_hxs.select(".//p/text()").extract()
 
     if raw_content:
-        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(raw_content))
-        for url in plaintext_urls:
-            tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-            tags.update(['plaintext', 'in text'])
-            links.append(make_tagged_url(url, url, tags))
+        for paragraph in raw_content:
+            plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(paragraph))
+            for url in plaintext_urls:
+                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                tags.update(['plaintext', 'in text'])
+                links.append(make_tagged_url(url, url, tags))
 
     #embedded objects
     iframe_sources = article_body_hxs.select(".//iframe/@src").extract()
@@ -207,7 +210,9 @@ def extract_article_data(source):
     article_body = article_detail_hxs.select("./div/div[@class='article-body ']")
     content = article_body.select(".//p//text()").extract()
 
+
     all_links.extend(extract_links_from_article_body(article_body))
+
 
     # associated sidebar links
     sidebar_links = article_detail_hxs.select("./div/div[@class='article-side']/div[@class='article-related']//li/a")
@@ -219,8 +224,8 @@ def extract_article_data(source):
 
     updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
-    #print generate_test_func('bottom_box_and_sidebar_and_intext_links', 'lavenir', dict(tagged_urls=updated_tagged_urls))
-    #save_sample_data_file(html_content, source, 'bottom_box_and_sidebar_and_intext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
+    # print generate_test_func('external_links', 'lavenir', dict(tagged_urls=updated_tagged_urls))
+    # save_sample_data_file(html_content, source, 'external_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
 
     # wrapping up
     article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -298,7 +303,12 @@ def show_sample_articles():
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482",
             "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002"
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_001",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_005",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_016",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130221_00271965",
+            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_00273104"
 
             ]
 
@@ -308,15 +318,35 @@ def show_sample_articles():
     #     for tagged_link in article.links:
     #         print tagged_link.URL, tagged_link.title, tagged_link.tags
 
-    article, html = extract_article_data(urls[-1])
-    for p in article.content:
-        print p
-    print "LINKS:"
-    for link in article.links:
-        print link.title
-        print link.URL
-        print link.tags
-        print "___________"
+    article, html = extract_article_data(urls[1])
+    # print article.title
+    # print article.intro
+    # print article.url
+    # print article.content
+    # print "LINKS:"
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "___________"
+
+def test_sample_data():
+    filepath = "../../tests/datasources/test_data/lavenir/"
+    filepath = "/Volumes/CALIGULA/csxj_data/json_db_0_5/lavenir/2012-02-29/10.05.12/raw_data/2.html"
+    filepath = "/Volumes/CALIGULA/csxj_data/json_db_0_5/lavenir/2012-02-29/10.05.12/raw_data/5.html"
+    with open(filepath) as f:
+        article, raw = extract_article_data(f)
+        print article.title
+        print article.intro
+        print article.url
+        print article.content
+        print "LINKS:"
+        for link in article.links:
+            print link.title
+            print link.URL
+            print link.tags
+            print "___________"
+        
 
 
 def show_frontpage():
@@ -332,16 +362,6 @@ def show_frontpage():
     print len(toc), len(blogposts)
 
 
-def test_sample_data():
-    """
-    Lorem ipsum culpa do dolor cillum amet qui exercitation in laborum aliqua Duis anim amet ex dolore ut cillum ullamco voluptate consequat occaecat laborum esse.
-    """
-    yield "Lorem ipsum ea laboris est aliquip laborum voluptate nulla in "
-    yield "ad do do consectetur voluptate irure culpa fugiat anim cupidatat "
-    yield "et aute aliqua velit ex laboris id exercitation ut aute pariatur "
-    yield "Excepteur esse. "
-
-
 def show_frontpage_articles():
     toc, posts = get_frontpage_toc()
     print len(toc), len(posts)
@@ -355,6 +375,7 @@ def show_frontpage_articles():
 
 
 if __name__ == "__main__":
-    show_sample_articles()
+    # show_sample_articles()
     #show_frontpage_articles()
     #show_frontpage()
+    test_sample_data()

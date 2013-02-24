@@ -380,15 +380,16 @@ def test_sample_data():
     filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
     filepath = "../../sample_data/sudpresse/sudpresse_true_plaintext.html"
     filepath = "../../sample_data/sudpresse/sudpresse_fake_plaintext.html"
+    filepath = "../../tests/datasources/test_data/sudpresse/intext_links_tagging.html"
     with open(filepath) as f:
         article_data, raw = extract_article_data(f)
         print article_data.content
 
-        # for link in article_data.links:
-        #     print link.URL
-        #     print link.title
-        #     print link.tags
-        #     print "**********************"
+        for link in article_data.links:
+            print link.URL
+            print link.title
+            print link.tags
+            print "**********************"
 
 
 def download_one_article():

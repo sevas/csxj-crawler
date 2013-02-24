@@ -224,12 +224,14 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
     if text_fragments:
         text = u"".join(remove_text_formatting_markup_from_fragments(text_fragments))
 
-        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
-        for url in plaintext_urls:
-            tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-            tags.update(['plaintext', 'in text'])
+        for paragraph in text_fragments:
+            plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(paragraph))
+        
+            for url in plaintext_urls:
+                tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+                tags.update(['plaintext', 'in text'])
 
-            tagged_urls.append(make_tagged_url(url, url, tags))
+                tagged_urls.append(make_tagged_url(url, url, tags))
     else:
         text = u""
 
