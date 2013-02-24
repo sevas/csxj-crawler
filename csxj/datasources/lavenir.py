@@ -1,20 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-import locale
 from datetime import datetime
 import codecs
 from itertools import izip, chain
 from urlparse import urlparse
 from scrapy.selector import HtmlXPathSelector
 
-from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls, update_tagged_urls
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
 from parser_tools.utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments
-from helpers.unittest_generator import generate_test_func, save_sample_data_file
+
 
 setup_locales()
 

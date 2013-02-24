@@ -164,6 +164,7 @@ def extract_source(author_box):
         source = None
     return source
 
+
 def extract_intro(soup):
     intro_box = soup.find(attrs = {"class" : "intro"})
     tagged_urls = []
@@ -248,6 +249,7 @@ def extract_links_from_read_more_box(soup):
     else:
         return []
 
+
 def extract_links_from_sidebar_box(soup):
     tagged_urls = list()
     sidebar_box = soup.find(attrs = {"class" : "teas_article_306 mar10 clear clearfix relatedcomponents"})
@@ -277,6 +279,7 @@ def extract_links_from_sidebar_box(soup):
 
     return tagged_urls
 
+
 def extract_title_and_url_from_bslink(link):
     base_tags = []
     if link.get('href'):
@@ -304,10 +307,12 @@ def extract_title_and_url_from_bslink(link):
 
     return title, url, base_tags
 
+
 def extract_category(soup):
     category_box = soup.find(attrs = {"class" : "actua_nav"})
     links = category_box.find_all('a')
     return [utils.remove_text_formatting_markup_from_fragments(link.contents[0]) for link in links]
+
 
 def find_embedded_media_in_multimedia_box(multimedia_box):
     tagged_urls = list()
@@ -350,7 +355,6 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                     raise ValueError("There seems to be an embedded video but we could not find a link. Please update parser.")
             else :
                 raise ValueError("There seems to be an embedded video but we could not identify it. Please update parser.")
-
 
         elif 'snippet' in section.attrs['class']:
 
@@ -422,6 +426,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
 
     return tagged_urls
 
+
 def extract_embedded_media(soup):
     tagged_urls = list()
 
@@ -458,6 +463,7 @@ IS_FRONTPAGE = 1
 IS_ARTICLE = 2
 MAYBE_ARTICLE = 3
 
+
 def detect_page_type(url):
     current_item_count = len(try_extract_frontpage_items(url)[0])
     frontpage_item_count  = len(get_frontpage_toc()[0])
@@ -482,6 +488,7 @@ SEPTSURSEPT_404_PAGE_CONTENT = """
  <body onload="goToURL()">
   <!-- MEDUSA -->
  </body>"""
+
 
 def is_404_page(html_data):
     stripped_html_data = html_data.translate(None, ' \n\t')
@@ -544,22 +551,22 @@ def extract_article_data(source):
         # save_sample_data_file(html_data, source, 'same_owner', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/septsursept')
 
         return (ArticleData(source, title, pub_date, pub_time, dt.datetime.now(),
-                        updated_tagged_urls,
-                        category, author_name,
-                        intro, text),
-            html_data)
+                updated_tagged_urls,
+                category, author_name,
+                intro, text),
+                html_data)
+
 
 # on vérifie que les urls de la frontpage ne renvoient pas vers la frontpage (en y appliquant la fonction qui extrait les urls des la frontpage!!)
 def show_frontpage():
-    frontpage_items, blogposts = get_frontpage_toc()
+    frontpage_items, blogposts, _ = get_frontpage_toc()
 
     print "NEWS ({0}):".format(len(frontpage_items))
     for title, url in frontpage_items:
-        x, y = try_extract_frontpage_items(url)
+        x, y, _ = try_extract_frontpage_items(url)
         if len(x) > 0:
             print u"{0} \t\t [{1}]".format(title, url)
             print len(x)
-
 
 
 if __name__ == '__main__':
