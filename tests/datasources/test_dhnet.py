@@ -347,7 +347,23 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
+    def test_embedded_tweet_bottom(self):
+        """ dhnet parser can extract rendered embedded tweets at the bottom of articles"""
+        with open(os.path.join(DATA_ROOT, "embedded_tweet_bottom.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://galeries.dhnet.be/album/cinema/magritte_2013/", u"""Les Magritte en photos""", set(['sidebar box', 'internal', 'image gallery', 'internal site'])),
+                make_tagged_url("http://www.cinebel.be/fr", u"""Toute l'actu cinéma sur Cinebel""", set(['sidebar box', 'external', 'same owner'])),
+                make_tagged_url("#embed_pos1", u"""Revivez la cérémonie sur le Twitter d'Alain Lorfèvre""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("https://twitter.com/ALorfevre", u"""Tweets de @ALorfevre""", set(['tweet', 'external', 'embedded'])),
+                make_tagged_url("/cine-tele/cinema/article/423464/lafosse-et-gourmet-se-mefier-du-piege-du-communautarisme-dans-le-cinema.html", u'''Lafosse et Gourmet: "Se méfier du piège du communautarisme dans le cinéma"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/people/cinema/article/423544/jamel-un-president-anormal.html", u"""Jamel, un président anormal""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://www.cinebel.be/fr", u"""Toute l'actu cinéma sur Cinebel""", set(['bottom box', 'external', 'same owner'])),
+                make_tagged_url("http://galeries.dhnet.be/album/cinema/magritte_2013/", u"""Les Magritte en photos""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_extract_embedded_tweets(self):
         """ dhnet parser can extract rendered embedded tweets"""

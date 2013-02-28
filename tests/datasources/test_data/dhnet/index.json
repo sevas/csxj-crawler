@@ -59,6 +59,10 @@
     [
       "http://www.dhnet.be/sports/basket/article/420383/podcast-basket-retour-sur-la-11e-journee.html", 
       "embedded_audio.html"
+    ], 
+    [
+      "http://www.dhnet.be/cine-tele/cinema/article/423342/joachim-lafosse-olivier-gourmet-et-emilie-dequenne-triomphent-aux-magritte.html", 
+      "embedded_tweet_bottom.html"
     ]
   ]
 }

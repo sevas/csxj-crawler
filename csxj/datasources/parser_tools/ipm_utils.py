@@ -56,6 +56,15 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             kplayer_flash = item_div.find('div', {'class': 'flash_kplayer'})
             return extract_kplayer_infos(kplayer_flash, "__NO_TITLE__", site_netloc, site_internal_sites)
 
+        #it's a tweet
+        elif item_div.find('a', {'class': 'twitter-timeline'}):
+            url = item_div.find('a', {'class': 'twitter-timeline'}).get('href')
+            title = item_div.find('a', {'class': 'twitter-timeline'}).contents[0]
+            all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+            tagged_url = make_tagged_url(url, title, all_tags | set(['embedded', 'tweet']))
+            return tagged_url
+
+
         # it might be a hungarian video
         elif item_div.object:
             container = item_div.object
