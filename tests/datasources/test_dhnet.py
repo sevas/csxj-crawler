@@ -336,6 +336,18 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_embedded_audio(self):
+        """ dhnet parser can extract embedded audio"""
+        with open(os.path.join(DATA_ROOT, "embedded_audio.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://vocaroo.com/player.swf?playMediaID=s17mkpGCh0Qr&autoplay=0", u"""http://vocaroo.com/player.swf?playMediaID=s17mkpGCh0Qr&autoplay=0""", set(['audio', 'external', 'embedded'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
 
     def test_extract_embedded_tweets(self):
         """ dhnet parser can extract rendered embedded tweets"""

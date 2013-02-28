@@ -315,8 +315,8 @@ def extract_article_data(source):
 
         fetched_datetime = datetime.today()
 
-        # print generate_test_func('embedded_hungarian_video', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_content, source, 'embedded_hungarian_video', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # print generate_test_func('embedded_audio', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_content, source, 'embedded_audio', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
 
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -417,7 +417,12 @@ if __name__ == "__main__":
         # errors:
         "http://www.dhnet.be/cine-tele/cinema/article/413216/dany-boon-mon-coach-me-tapait.html",
         "http://www.dhnet.be/cine-tele/cinema/article/417899/peter-jackson-on-vit-une-periode-de-reve-pour-les-cineastes.html",
-        "http://www.dhnet.be/sports/football/article/418323/benteke-s-offre-un-double-avec-aston-villa.html"
+        "http://www.dhnet.be/sports/football/article/418323/benteke-s-offre-un-double-avec-aston-villa.html",
+        "http://www.dhnet.be/infos/monde/article/421061/un-anti-mariage-gay-compare-hollande-a-hitler.html",
+        "http://www.dhnet.be/people/show-biz/article/416554/lorie-sexy-a-souhait-dans-son-nouveau-clip.html",
+        "http://www.dhnet.be/cine-tele/television/article/378062/ppda-deja-vire-de-france-3.html",
+        "http://www.dhnet.be/infos/buzz/article/377700/nicolas-bedos-sort-avec-l-etudiante-qui-l-avait-interpellee.html",
+        "http://www.dhnet.be/sports/basket/article/420383/podcast-basket-retour-sur-la-11e-journee.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs

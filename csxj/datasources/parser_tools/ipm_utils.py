@@ -69,24 +69,39 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
 
                     if container.findNextSibling('div').contents[0]:
-                        tagged_url = make_tagged_url(url, indigenous_title, all_tags | set(['embedded']))
-                    
+                        tagged_url = make_tagged_url(url, indigenous_title, all_tags | set(['embedded', 'video']))
+                        return tagged_url
+
                     elif container.findNextSibling('a').get('title'):
-                        tagged_url = make_tagged_url(url, original_title, all_tags | set(['embedded']))
-                    
+                        tagged_url = make_tagged_url(url, original_title, all_tags | set(['embedded', 'video']))
+                        return tagged_url
+
                     elif container.findNextSibling('a').contents[0]:
-                        tagged_url = make_tagged_url(url, alternative_title, all_tags | set(['embedded']))
-                    
+                        tagged_url = make_tagged_url(url, alternative_title, all_tags | set(['embedded', 'video']))
+                        return tagged_url
+
                     else:
-                        tagged_url = make_tagged_url(url, "__NO_TITLE__", all_tags | set(['embedded']))               
+                        tagged_url = make_tagged_url(url, "__NO_TITLE__", all_tags | set(['embedded', 'video']))
+                        return tagged_url
                 else:
                     raise ValueError("It looks like a Hungarian video but it did not match known patterns")
-            else:
-                raise ValueError("There seems to be a hunhgarian video or something but it didn't match known patterns")
             
-            return tagged_url
+            if value.startswith("http://www.pixule.com"):
+                if container.find("embed"):
+                    url = container.find("embed").get("src")
+                    all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'poll']))
+                    return tagged_url
 
+            if value.startswith("http://vocaroo.com"):
+                if container.find("embed"):
+                    url = container.find("embed").get("src")
+                    all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'audio']))
+                    return tagged_url
 
+            else:
+                raise ValueError("There seems to be a hungarian video or something but it didn't match known patterns")
 
         elif item_div.find('script'):
             # try to detect a <script>
