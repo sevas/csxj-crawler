@@ -347,6 +347,18 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_other_embedded_video_type(self):
+        """ dhnet parser can extract embedded wat.tv video"""
+        with open(os.path.join(DATA_ROOT, "other_embedded_video_type.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Voir l'intégralité de la vidéo""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.wat.tv/video/videosurveillance-dsk-sofitel-4lh5t_2exyv_.html", u"""Vidéo VIDEOSURVEILLANCE DSK SOFITEL sur wat.tv""", set(['video', 'external', 'embedded'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
     def test_embedded_tweet_bottom(self):
         """ dhnet parser can extract rendered embedded tweets at the bottom of articles"""
         with open(os.path.join(DATA_ROOT, "embedded_tweet_bottom.html")) as f:

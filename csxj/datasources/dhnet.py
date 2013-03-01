@@ -315,8 +315,8 @@ def extract_article_data(source):
 
         fetched_datetime = datetime.today()
 
-        # print generate_test_func('embedded_tweet_bottom', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_content, source, 'embedded_tweet_bottom', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # print generate_test_func('other_embedded_video_type', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_content, source, 'other_embedded_video_type', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
 
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -423,7 +423,8 @@ if __name__ == "__main__":
         "http://www.dhnet.be/cine-tele/television/article/378062/ppda-deja-vire-de-france-3.html",
         "http://www.dhnet.be/infos/buzz/article/377700/nicolas-bedos-sort-avec-l-etudiante-qui-l-avait-interpellee.html",
         "http://www.dhnet.be/sports/basket/article/420383/podcast-basket-retour-sur-la-11e-journee.html",
-        "http://www.dhnet.be/cine-tele/cinema/article/423342/joachim-lafosse-olivier-gourmet-et-emilie-dequenne-triomphent-aux-magritte.html"
+        "http://www.dhnet.be/cine-tele/cinema/article/423342/joachim-lafosse-olivier-gourmet-et-emilie-dequenne-triomphent-aux-magritte.html",
+        "http://www.dhnet.be/infos/monde/article/378171/la-video-de-surveillance-de-dsk-quittant-le-sofitel-devoilee.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs

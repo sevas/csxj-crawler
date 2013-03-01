@@ -63,6 +63,10 @@
     [
       "http://www.dhnet.be/cine-tele/cinema/article/423342/joachim-lafosse-olivier-gourmet-et-emilie-dequenne-triomphent-aux-magritte.html", 
       "embedded_tweet_bottom.html"
+    ], 
+    [
+      "http://www.dhnet.be/infos/monde/article/378171/la-video-de-surveillance-de-dsk-quittant-le-sofitel-devoilee.html", 
+      "other_embedded_video_type.html"
     ]
   ]
 }

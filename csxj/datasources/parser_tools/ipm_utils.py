@@ -101,6 +101,8 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
                     tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'poll']))
                     return tagged_url
+                else:
+                    raise ValueError("It looks like a Pixule poll  but it did not match known patterns")
 
             if value.startswith("http://vocaroo.com"):
                 if container.find("embed"):
@@ -108,6 +110,20 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
                     tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'audio']))
                     return tagged_url
+                else:
+                    raise ValueError("It looks like a Voocaroo video but it did not match known patterns")
+
+            if value.startswith("http://www.wat.tv"):
+                if item_div.find("div", {'class': 'watlinks'}):
+                    watlinks = item_div.find("div", {'class': "watlinks"})
+                    url = watlinks.find('a').get('href')
+                    title = watlinks.find('a').get('title')
+                    all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = make_tagged_url(url, title, all_tags | set(['embedded', 'video']))
+                    return tagged_url
+
+                else:
+                    raise ValueError("It looks like a wat.tv video but it did not match known patterns")
 
             else:
                 raise ValueError("There seems to be a hungarian video or something but it didn't match known patterns")
