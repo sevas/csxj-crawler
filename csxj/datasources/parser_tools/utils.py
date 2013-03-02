@@ -113,7 +113,7 @@ def extract_plaintext_urls_from_text(some_text):
     return urls + netloc_urls
 
 
-TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1', 'h2', 'h3', 'h4', 'h5', 'span', 'sub', 'sup', 'p', 'img']
+TEXT_MARKUP_TAGS = ['a', 'b', 'i', 'u', 'em', 'strong', 'tt', 'h1', 'h2', 'h3', 'h4', 'h5', 'span', 'sub', 'sup', 'p', 'img', 'ccix:command']
 
 
 def remove_text_formatting_markup(formatted_text_fragment, strip_chars, remove_links):

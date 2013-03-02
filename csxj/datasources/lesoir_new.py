@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import urllib
 import codecs
-from datetime import datetime, time
+from datetime import datetime
 import urlparse
 import bs4
 import itertools
 from scrapy.selector import HtmlXPathSelector
-from parser_tools import utils
-from parser_tools import twitter_utils
 from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, remove_text_formatting_and_links_from_fragments
 from csxj.common import tagging
 from csxj.db.article import ArticleData
@@ -139,8 +136,16 @@ def extract_date_and_time(soup):
 
 def extract_intro(soup):
     intro_box = soup.find(attrs={"class": "article-content"})
-    intro = intro_box.find("h3").contents[0]
-    return intro
+    if len(intro_box.find("h3").contents) > 0:
+        fragment = intro_box.find("h3").contents[0]
+        intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n').rstrip()
+        return intro
+
+    if intro_box.find("h3").find_next_sibling("p"):
+        fragment = intro_box.find("h3").find_next_sibling("p")
+        intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n')
+        return intro
+
 
 
 def extract_title_and_url_from_bslink(link):
@@ -314,9 +319,9 @@ def extract_embedded_media_in_article(soup):
     tagged_urls = list()
     story = soup.find(attrs = {'class': 'article-body'})
     scripts = story.findAll('script', recursive=True)
-    for script in scripts :
+    for script in scripts:
         url = script.get('src')
-        if url :
+        if url:
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(url)
             if netloc == "storify.com":
                 url = url.rstrip(".js")
@@ -350,8 +355,8 @@ def extract_article_data(source):
 
     updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
-    #print generate_test_func('in_text_and_sidebar', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
-    #save_sample_data_file(html_data, source, 'in_text_and_sidebar', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+    # print generate_test_func('intro_type2', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
+    # save_sample_data_file(html_data, source, 'intro_type2', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
 
     return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                 updated_tagged_urls,
@@ -369,14 +374,18 @@ def test_sample_data():
 
 
 if __name__ == '__main__':
-    _, _, paywalled = get_frontpage_toc()
-    for p in paywalled:
-        print p
+    # _, _, paywalled = get_frontpage_toc()
+    # for p in paywalled:
+    #     print p
     
-    article, html = extract_article_data(urls[-1])
 
-    print article.title
-    print article.content
+    urls = ["http://www.lesoir.be/191397/article/culture/cinema/2013-02-16/l%E2%80%99ours-d%E2%80%99or-d%C3%A9cern%C3%A9-au-drame-roumain-%C2%ABchild%E2%80%99s-pose%C2%BB",
+    "http://www.lesoir.be/200886/article/actualite/belgique/2013-03-02/didier-reynders-veut-mettre-imams-sous-contr%C3%B4le"]
+    article, html = extract_article_data(urls[0])
+
+    # print article.title
+    # print article.intro
+    # print article.content
 
     # for link in article.links:
     #     print link.title

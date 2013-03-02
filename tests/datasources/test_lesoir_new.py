@@ -13,6 +13,33 @@ from csxj_test_tools import assert_taggedURLs_equals
 
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', lesoir_new.SOURCE_NAME)
 
+class TestLeSoirNewContentExtraction(object):
+    def test_intro_type1(self):
+        """ lesoir_new can extract intro"""
+        with open(os.path.join(DATA_ROOT, "intro_type1.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.lacapitale.be/674531/article/actualite/politique/2013-03-01/didier-reynders-veut-mettre-nos-imams-sous-controle", u"""dans un entretien donné aux journaux SudPresse""", set(['same owner', 'external', 'in text'])),
+                make_tagged_url("http://www.lacapitale.be/674531/article/actualite/politique/2013-03-01/didier-reynders-veut-mettre-nos-imams-sous-controle", u"""Didier Reynders veut mettre nos imams sous contrôle (SudPresse)""", set(['sidebar box', 'external', 'same owner'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_intro_type2(self):
+        """ lesoir_new can extract other type of intro"""
+        with open(os.path.join(DATA_ROOT, "intro_type2.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.lesoir.be/191377/article/culture/cinema/2013-02-16/berlinale-%C2%ABthe-broken-circle-breakdown%C2%BB-remporte-prix-du-public", u"""Berlinale: «The Broken Circle Breakdown» remporte le prix du Public""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.youtube.com/watch?v=ZtoCo9pJ2yU", u"""http://www.youtube.com/watch?v=ZtoCo9pJ2yU""", set(['video', 'external', 'embedded', 'top box'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+
 
 class TestLaSoirNewLinkExtraction(object):
     def test_same_owner_tagging(self):
