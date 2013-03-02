@@ -273,23 +273,23 @@ def get_frontpage_toc():
     all_items = [extract_title_and_url(link_hxs) for link_hxs in all_links]
     news_items, blogpost_items = separate_blogposts(all_items)
 
-    return  [(title, expand_full_url(url)) for (title, url) in news_items if url not in BLACKLIST], list(blogpost_items), []
+    return [(title, expand_full_url(url)) for (title, url) in news_items if url not in BLACKLIST], list(blogpost_items), []
 
 
-def show_sample_articles():
+# def show_sample_articles():
 
-    normal_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120221_00121183"
-    photoset_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120224_00122366"
-    intro_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_002"
-    photoset_with_links = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120222_00121489"
+#     normal_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120221_00121183"
+#     photoset_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120224_00122366"
+#     intro_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_002"
+#     photoset_with_links = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120222_00121489"
 
-    norma_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582"
-    for url in [normal_url, photoset_url, intro_url, photoset_with_links]:
-    #for url in [normal_url]:
-        article, raw_html = extract_article_data(url)
-        article.print_summary()
-        for tagged_link in article.links:
-            print tagged_link.URL, tagged_link.title, tagged_link.tags
+#     normal_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582"
+#     for url in [normal_url, photoset_url, intro_url, photoset_with_links]:
+#     for url in [normal_url]:
+#         article, raw_html = extract_article_data(url)
+#         article.print_summary()
+#         for tagged_link in article.links:
+#             print tagged_link.URL, tagged_link.title, tagged_link.tags
 
 
 def show_sample_articles():
@@ -330,6 +330,7 @@ def show_sample_articles():
     #     print link.tags
     #     print "___________"
 
+
 def test_sample_data():
     filepath = "../../tests/datasources/test_data/lavenir/"
     filepath = "/Volumes/CALIGULA/csxj_data/json_db_0_5/lavenir/2012-02-29/10.05.12/raw_data/2.html"
@@ -346,7 +347,6 @@ def test_sample_data():
             print link.URL
             print link.tags
             print "___________"
-        
 
 
 def show_frontpage():

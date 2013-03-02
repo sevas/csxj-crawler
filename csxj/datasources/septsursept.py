@@ -199,7 +199,7 @@ def extract_text_content_and_links(soup) :
     plaintext_urls = []
 
     content_box = soup.find(attrs = {"id" : "detail_content"})
-    text = content_box.find_all(attrs = {"class":"clear"})
+    text = content_box.find_all(attrs = {"class": "clear"})
 
     for fragment in text :
         paragraphs = fragment.find_all("p", recursive=False)
@@ -375,7 +375,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
             # it might be an embedded javascript object that shows a twitter account or query
             twitter_widget = section.find_all(attrs = {"class" : "tweet_widget"})
             if twitter_widget:
-                if len(twitter_widget) ==1:
+                if len(twitter_widget) == 1:
                     if twitter_widget[0].find('script'):
                         script_url = twitter_widget[0].find('script').get('src')
                         if twitter_utils.is_twitter_widget_url(script_url):
@@ -433,7 +433,7 @@ def extract_embedded_media(soup):
 
     # extract embedded media from any iframe in the article body
     content_box = soup.find(attrs = {"id" : "detail_content"})
-    text = content_box.find_all(attrs = {"class":"clear"})
+    text = content_box.find_all(attrs = {"class": "clear"})
     for fragment in text :
         for p in fragment.find_all("p", recursive=False):
             embedded_container = p.findAll("iframe")
@@ -442,7 +442,7 @@ def extract_embedded_media(soup):
                 tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
                 tags.add('embedded')
                 tags.add('iframe')
-                tags.add ('in text')
+                tags.add('in text')
                 tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
     # some embedded media are not in the artucle body, but embedded in the art_aside container
@@ -468,7 +468,7 @@ MAYBE_ARTICLE = 3
 
 def detect_page_type(url):
     current_item_count = len(try_extract_frontpage_items(url)[0])
-    frontpage_item_count  = len(get_frontpage_toc()[0])
+    frontpage_item_count = len(get_frontpage_toc()[0])
     if current_item_count == 0 :
         return IS_ARTICLE
     elif float(current_item_count) / frontpage_item_count < 0.8:
@@ -518,11 +518,11 @@ def extract_article_data(source):
         return (None, html_data)
 
     # pour tous les autres vrais articles
-    soup  = bs4.BeautifulSoup(html_data)
+    soup = bs4.BeautifulSoup(html_data)
 
 
     if soup.find("head").find("title").contents[0] == "301 Moved Permanently":
-          return (None, html_data)
+        return (None, html_data)
 
     else:
         title = extract_title(soup)
@@ -632,7 +632,7 @@ if __name__ == '__main__':
     from pprint import pprint
     article_data, html = extract_article_data(url)
     if article_data:
-        pprint (article_data.content)
+        pprint(article_data.content)
 
         # for link in article_data.links:
         #     print link.title

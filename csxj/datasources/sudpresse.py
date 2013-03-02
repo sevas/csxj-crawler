@@ -159,7 +159,7 @@ def extract_associated_links(article):
             tags.update(classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES))
 
             link_type = item.get('class')
-            if  link_type in LINK_TYPE_TO_TAG:
+            if link_type in LINK_TYPE_TO_TAG:
                 tags.update(LINK_TYPE_TO_TAG[link_type])
 
             tags.add("sidebar box")
@@ -169,6 +169,7 @@ def extract_associated_links(article):
         return all_tagged_urls
     else:
         return []
+
 
 def extract_embedded_media(article):
     tagged_urls = list()
@@ -183,6 +184,7 @@ def extract_embedded_media(article):
         tagged_urls.append(tagged_url)
 
     return tagged_urls
+
 
 def is_page_error_404(soup):
 
@@ -401,7 +403,7 @@ def download_one_article():
     url = "http://sudpresse.be/regions/tournai/2012-02-13/jean-dujardin-sera-ce-soir-a-lille-938309.shtml"
     article_data, raw_html = extract_article_data(url)
 
-    for link in article.links:
+    for link in article_data.links:
         print link
 
 if __name__ == '__main__':

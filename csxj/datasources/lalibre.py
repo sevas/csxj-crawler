@@ -199,7 +199,7 @@ def extract_intro(main_content):
     hat = main_content.find('div', {'id': 'articleHat'})
 
     if hat:
-        return  remove_text_formatting_markup_from_fragments(hat.contents, strip_chars=' \t\r\n')
+        return remove_text_formatting_markup_from_fragments(hat.contents, strip_chars=' \t\r\n')
     else:
         return u''
 

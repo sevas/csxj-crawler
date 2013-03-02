@@ -126,7 +126,7 @@ def extract_text_content(story):
 
 
 def extract_to_read_links_from_sidebar(sidebar):
-    to_read_links_container = sidebar.find('div', {'id':'lire_aussi'})
+    to_read_links_container = sidebar.find('div', {'id': 'lire_aussi'})
     #sometimes, it does not exist at all
     if to_read_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))

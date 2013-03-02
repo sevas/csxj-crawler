@@ -25,10 +25,9 @@ LESOIR_NETLOC = "www.lesoir.be"
 LESOIR_INTERNAL_SITES = {
 
     'archives.lesoir.be': ['archives', 'internal'],
-   
-    'belandroid.lesoir.be':['internal', 'jblog'],
-    'geeko.lesoir.be':['internal', 'jblog'],
-    'blog.lesoir.be':['internal', 'jblog'],
+    'belandroid.lesoir.be': ['internal', 'jblog'],
+    'geeko.lesoir.be': ['internal', 'jblog'],
+    'blog.lesoir.be': ['internal', 'jblog'],
 
     'belandroid.lesoir.be': ['internal', 'jblog'],
     'geeko.lesoir.be': ['internal', 'jblog'],
@@ -189,10 +188,10 @@ def extract_text_content_and_links(soup) :
 
         plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
         for url in plaintext_urls:
-            tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+            tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
             tags.update(['plaintext', 'in text'])
 
-            tagged_urls.append(make_tagged_url(url, url, tags))
+            tagged_urls.append(tagging.make_tagged_url(url, url, tags))
     else:
         text = u""
 
@@ -208,8 +207,8 @@ def extract_text_content_and_links(soup) :
         tags.add('in text')
         tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
-
     return text, tagged_urls
+
 
 def extract_article_tags(soup):
     tagged_urls = list()
@@ -329,6 +328,7 @@ def extract_embedded_media_in_article(soup):
                 tagged_urls.append(tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'storify'])))
     return tagged_urls
 
+
 def extract_article_data(source):
 
     if hasattr(source, 'read'):
@@ -337,7 +337,7 @@ def extract_article_data(source):
         html_data = fetch_html_content(source)
 
 
-    soup  = bs4.BeautifulSoup(html_data)
+    soup = bs4.BeautifulSoup(html_data)
     title = extract_title(soup)
     author_name = extract_author_name(soup)
     intro = extract_intro(soup)
@@ -377,7 +377,6 @@ if __name__ == '__main__':
     # _, _, paywalled = get_frontpage_toc()
     # for p in paywalled:
     #     print p
-    
 
     urls = ["http://www.lesoir.be/191397/article/culture/cinema/2013-02-16/l%E2%80%99ours-d%E2%80%99or-d%C3%A9cern%C3%A9-au-drame-roumain-%C2%ABchild%E2%80%99s-pose%C2%BB",
     "http://www.lesoir.be/200886/article/actualite/belgique/2013-03-02/didier-reynders-veut-mettre-imams-sous-contr%C3%B4le"]

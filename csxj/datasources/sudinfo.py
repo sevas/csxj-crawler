@@ -224,7 +224,7 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
 
         for paragraph in text_fragments:
             plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(paragraph))
-        
+
             for url in plaintext_urls:
                 tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
                 tags.update(['plaintext', 'in text'])
@@ -277,7 +277,7 @@ def extract_links_from_media_items(media_items):
         else:
             title = "__NO_TITLE__"
 
-        if  media_type == 'video':
+        if media_type == 'video':
             if item.select(".//div [contains(@class, 'emvideo-kewego')]"):
                 url = item.select(".//div [contains(@class, 'emvideo-kewego')]//video/@poster").extract()
                 if url:
