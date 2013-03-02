@@ -267,13 +267,13 @@ def extract_embedded_media_from_top_box(soup):
             if kplayer.next_sibling.name == "figcaption":
                 if len(kplayer.next_sibling) > 0:
                     title = kplayer.next_sibling.contents[0]
-                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box'])))
+                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
                 else:
                     title = "__NO_TITLE__"
-                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box'])))
+                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
             else:
                 title = "__NO_TITLE__"
-                tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box'])))
+                tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
         else:
             raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
 
@@ -285,6 +285,7 @@ def extract_embedded_media_from_top_box(soup):
             tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
             tags.add('embedded')
             tags.add('top box')
+            tags.add('video')
             tagged_urls.append(tagging.make_tagged_url(url, url, tags))
         else:
             raise ValueError("There seems to be a Youtube player but we couldn't find an URL. Update the parser.")
@@ -301,6 +302,7 @@ def extract_embedded_media_from_bottom(soup):
             url = embedded_media.get("src")
             tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
             tags.add('embedded')
+            tags.add('iframe')
             tagged_urls.append(tagging.make_tagged_url(url, url, tags))
         else:
             raise ValueError("There seems to be an embedded media at the bottom of the article but we could not identify it. Update the parser")
@@ -319,7 +321,7 @@ def extract_embedded_media_in_article(soup):
             if netloc == "storify.com":
                 url = url.rstrip(".js")
                 all_tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-                tagged_urls.append(tagging.make_tagged_url(url, url, all_tags | set(['embedded'])))
+                tagged_urls.append(tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'storify'])))
     return tagged_urls
 
 def extract_article_data(source):

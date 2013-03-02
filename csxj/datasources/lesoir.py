@@ -50,7 +50,7 @@ def sanitize_paragraph(paragraph):
     """
     Removes image links, removes paragraphs, formatting
     """
-    return  remove_text_formatting_markup_from_fragments(paragraph)
+    return remove_text_formatting_markup_from_fragments(paragraph)
     #return ''.join([remove_text_formatting_markup(fragment) for fragment in paragraph.contents])
 
 
@@ -239,7 +239,7 @@ def extract_links_from_embedded_content(story):
     for iframe in iframe_items:
         url = iframe.get('src')
         all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
-        tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
+        tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded', 'iframe'])))
 
     # extract embedded storify
     scripts = story.findAll('script', recursive=True)
@@ -250,7 +250,7 @@ def extract_links_from_embedded_content(story):
             if netloc == "storify.com":
                 url = url.rstrip(".js")
                 all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
-                tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
+                tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded', 'storify'])))
 
     # TO DO NEXT : reconstruc kplayer URL
     kplayer = story.find('div', {'class': 'containerKplayer'})
@@ -261,7 +261,7 @@ def extract_links_from_embedded_content(story):
         if url_part1 is not None and url_part2 is not None:
             url = "%s?%s" % (url_part1, url_part2)
             all_tags = classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_BLOGS)
-            tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded'])))
+            tagged_urls.append(make_tagged_url(url, url, all_tags | set(['embedded', 'kplayer'])))
         else:
             raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
 

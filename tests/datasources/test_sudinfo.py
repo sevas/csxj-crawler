@@ -56,7 +56,7 @@ class TestSudinfoLinkExtraction(object):
             article, raw_html = sudinfo.extract_article_data(f)
             extracted_links = article.links
             tagged_urls = [
-                make_tagged_url(u"http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=5a5a3d9f57ds", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=5a5a3d9f57ds""", set(['embedded video', 'bottom video', 'external', 'embedded'])),
+                make_tagged_url(u"http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=5a5a3d9f57ds", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=5a5a3d9f57ds""", set(['video', 'external', 'embedded', 'bottom'])),
                 make_tagged_url(u"/338194/article/regions/tournai/2012-02-29/prostitution-“dodo-la-saumure”-va-demander-l’acquittement-sur-tout-jeudi-devant", u"""Prostitution: “Dodo la Saumure” va demander l’acquittement sur tout jeudi devant la justice""", set(['internal', 'sidebar box'])),
             ]
             expected_links = tagged_urls
@@ -80,8 +80,8 @@ class TestSudinfoLinkExtraction(object):
             extracted_links = article.links
             tagged_urls = [
                 make_tagged_url("http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=82d305926f/height=850/width=600", u"""__EMBEDDED_IFRAME__""", set(['iframe', 'external', 'embedded'])),
-                make_tagged_url("http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=9bb12b4294es", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=9bb12b4294es""", set(['embedded video', 'bottom video', 'external', 'embedded'])),
-                make_tagged_url("http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=ab7055b944bs", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=ab7055b944bs""", set(['embedded video', 'bottom video', 'external', 'embedded'])),
+                make_tagged_url("http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=9bb12b4294es", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=9bb12b4294es""", set(['video', 'external', 'embedded', 'bottom'])),
+                make_tagged_url("http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=ab7055b944bs", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=ab7055b944bs""", set(['video', 'external', 'embedded', 'bottom'])),
                 make_tagged_url("http://portfolio.sudpresse.be/main.php?g2_itemId=1033320", u"""Nos photos de la conférence de presse""", set(['internal', 'sidebar box', 'gallery', 'external'])),
                 make_tagged_url("/425052/article/sports/foot-belge/standard/2012-05-29/ron-jans-au-standard-les-supporters-partages-entre-c-est-n-importe-quoi-et-", u'''Ron Jans au Standard: les supporters partagés entre "C'est n'importe quoi" et "Laissons-lui sa chance"''', set(['internal', 'sidebar box'])),
             ]

@@ -177,7 +177,8 @@ def extract_embedded_media(article):
     for media in iframes:
         url = media.get('src')
         tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
-        tags.add("embedded")
+        tags.add('embedded')
+        tags.add('iframe')
         tagged_url = make_tagged_url(url, url, tags)
         tagged_urls.append(tagged_url)
 

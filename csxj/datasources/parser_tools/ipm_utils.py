@@ -111,7 +111,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'audio']))
                     return tagged_url
                 else:
-                    raise ValueError("It looks like a Voocaroo video but it did not match known patterns")
+                    raise ValueError("It looks like a Voocaroo audio clip but it did not match known patterns")
 
             if value.startswith("http://www.wat.tv"):
                 if item_div.find("div", {'class': 'watlinks'}):

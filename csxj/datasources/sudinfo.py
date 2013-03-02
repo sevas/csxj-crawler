@@ -283,7 +283,7 @@ def extract_links_from_media_items(media_items):
                 if url:
                     url = url[0]
                     tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-                    tags.update(['bottom video', 'embedded video', 'embedded', 'kewego'])
+                    tags.update(['bottom', 'video', 'embedded', 'kplayer'])
                     tagged_urls.append(make_tagged_url(url, title, tags))
                 else:
                     raise ValueError("There is a kewego video here somewhere, but we could not find the link.")
@@ -292,7 +292,7 @@ def extract_links_from_media_items(media_items):
                 if url:
                     url = url[0]
                     tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-                    tags.update(['bottom video', 'embedded video', 'embedded', 'youtube'])
+                    tags.update(['bottom', 'video', 'embedded', 'youtube'])
                     tagged_urls.append(make_tagged_url(url, title, tags))
                 else:
                     raise ValueError("There is a youtube video here somewhere, but we could not find the link.")
@@ -340,7 +340,7 @@ def extract_content_and_links(hxs):
         urls = div.select("./div [contains(@class, 'emvideo-kewego')]//video/@poster").extract()
         for url in urls:
             tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
-            tags.update(['bottom video', 'embedded video', 'embedded'])
+            tags.update(['bottom', 'video', 'embedded'])
 
             all_tagged_urls.append(make_tagged_url(url, url, tags))
 

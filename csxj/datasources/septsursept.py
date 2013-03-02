@@ -340,6 +340,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                 if url :
                     tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
                     tags.add('embedded')
+                    tags.add('iframe')
                     tagged_urls.append(tagging.make_tagged_url(url, url, tags))
                 else:
                     raise ValueError("There seems to be an iframe but we could not find a link. Please update parser.")
@@ -440,6 +441,7 @@ def extract_embedded_media(soup):
                 url = x.get("src")
                 tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
                 tags.add('embedded')
+                tags.add('iframe')
                 tags.add ('in text')
                 tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 

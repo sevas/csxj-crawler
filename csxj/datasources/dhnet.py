@@ -424,20 +424,27 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/buzz/article/377700/nicolas-bedos-sort-avec-l-etudiante-qui-l-avait-interpellee.html",
         "http://www.dhnet.be/sports/basket/article/420383/podcast-basket-retour-sur-la-11e-journee.html",
         "http://www.dhnet.be/cine-tele/cinema/article/423342/joachim-lafosse-olivier-gourmet-et-emilie-dequenne-triomphent-aux-magritte.html",
-        "http://www.dhnet.be/infos/monde/article/378171/la-video-de-surveillance-de-dsk-quittant-le-sofitel-devoilee.html"
+        "http://www.dhnet.be/infos/monde/article/378171/la-video-de-surveillance-de-dsk-quittant-le-sofitel-devoilee.html",
+        "http://www.dhnet.be/cine-tele/television/article/383998/flop-de-la-nouvelle-emission-de-tf1.html",
+        "http://www.dhnet.be/sports/diables-rouges/article/387159/leekens-le-probleme-sur-les-flancs-de-la-defense-est-resolu.html",
+        "http://www.dhnet.be/sports/football/article/395788/pari-ose-de-nike-avec-le-nouveau-maillot-du-barca.html",
+        "http://www.dhnet.be/sports/omnisports/article/409542/colsaerts-ecrase-tiger-woods.html",
+        "http://www.dhnet.be/infos/belgique/article/388466/les-cigarette-plus-cheres-de-dix-centimes-la-solution-de-facilite.html",
+        "http://www.dhnet.be/infos/faits-divers/article/388821/le-rapatriement-des-enfants-et-des-familles-a-commence.html",
+        "http://www.dhnet.be/people/show-biz/article/417202/alizee-revienten-soutif.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
 
     article, html = extract_article_data(urls[-1])
-    # print article.title
-    # print article.url
-    # print "°°°°°°°°°°°°°°°°°°°°"
-    # for link in article.links:
-    #     print link.title
-    #     print link.URL
-    #     print link.tags
-    #     print "°°°°°°°°°°°°°°°°°°°°"
+    print article.title
+    print article.url
+    print "°°°°°°°°°°°°°°°°°°°°"
+    for link in article.links:
+        print link.title
+        print link.URL
+        print link.tags
+        print "°°°°°°°°°°°°°°°°°°°°"
 
     # from pprint import pprint
     # print_taggedURLs(article.links)
