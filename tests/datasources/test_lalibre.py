@@ -280,6 +280,46 @@ class TestLalibreLinkExtraction(object):
             expected_links = updated_tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_links_overload(self):
+        with open(os.path.join(DATA_ROOT, "links_overload.html")) as f:
+            article, raw_html = lalibre.extract_article_data(f)
+            extracted_links = article.links
+            updated_tagged_urls = [
+                make_tagged_url("http://www.lalibre.be/economie/actualite/article/800148/caterpillar-un-plan-industriel-qui-vise-a-assurer-la-viabilite-du-site-de-gosselies.html", u"""suppression de 1.400 emplois à Gosselies""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/belgique/article/799466/geert-bourgeois-refuse-de-nommer-les-3-bourgmestres.html", u"""non-nomination des bourgmestres de la périphérie bruxelloise""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/belgique/article/798203/le-drole-de-marche-de-la-presidente-du-cpas-d-anvers.html", u"""xénophobie au CPAS d'Anvers""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/bruxelles/article/795824/le-molenbeek-de-schepmans-polit-deja-son-image.html", u"""Françoise Schepmans""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/bruxelles/article/795824/le-molenbeek-de-schepmans-polit-deja-son-image.html", u"""une interview à LaLibre""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/belgique/article/799929/destexhe-veut-barrer-la-route-aux-extremistes-musulmans.html", u"""comme l'a soutenu cette semaine Alain Destexhe""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/politique-belge/article/799742/cerexhe-j-ai-parfois-eu-l-impression-de-coller-des-rustines.html", u"""vanté de ses neuf ans au ministère de l'Emploi""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/belgique/article/799203/picque-encore-et-toujours-picque.html", u"""cote de popularité grimpe""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/politique-belge/article/790019/didier-reynders-dirigera-le-mr-a-bruxelles.html", u"""à la tête de la Régionale bruxelloise du MR""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/belgique/article/799203/picque-encore-et-toujours-picque.html", u"""notre Baromètre politique""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/politique-belge/article/798988/magnette-ce-che-guevara-du-pauvre.html", u"""pas tardé à réagir""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/belgique/article/799750/pourquoi-magnette-a-t-il-sorti-l-artillerie-lourde.html", u"""vivement critiqué le MR""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/politique-belge/article/799747/ps-et-mr-larrons-en-foire-ou-alliance-contre-nature.html", u"""l'alliance PS-MR""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lalibre.be/actu/politique-belge/article/798882/barometre-la-n-va-persiste-et-signe.html", u"""N-VA""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("lalibre.be", u"""lalibre.be""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("/actu/politique-belge/article/800666/schepmans-philippe-moureaux-a-pourtant-le-temps-pour-une-serieuse-psychanalyse.html", u'''Schepmans: Philippe Moureaux "a pourtant le temps pour une sérieuse psychanalyse"''', set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/politique-belge/article/799747/ps-et-mr-larrons-en-foire-ou-alliance-contre-nature.html", u"""PS et MR : larrons en foire ou alliance contre-nature?""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/belgique/article/799929/destexhe-veut-barrer-la-route-aux-extremistes-musulmans.html", u"""Destexhe veut barrer la route aux extrémistes musulmans""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/belgique/article/799750/pourquoi-magnette-a-t-il-sorti-l-artillerie-lourde.html", u"""Pourquoi Magnette a-t-il sorti lartillerie lourde ?""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/belgique/article/799203/picque-encore-et-toujours-picque.html", u"""Picqué, encore et toujours Picqué""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/politique-belge/article/798988/magnette-ce-che-guevara-du-pauvre.html", u'''Magnette, "ce Che Guevara du pauvre"''', set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/belgique/article/799466/geert-bourgeois-refuse-de-nommer-les-3-bourgmestres.html", u"""Geert Bourgeois refuse de nommer les 3 bourgmestres""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/actu/politique-belge/article/800666/schepmans-philippe-moureaux-a-pourtant-le-temps-pour-une-serieuse-psychanalyse.html", u'''Schepmans: Philippe Moureaux "a pourtant le temps pour une sérieuse psychanalyse"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/politique-belge/article/799747/ps-et-mr-larrons-en-foire-ou-alliance-contre-nature.html", u"""PS et MR : larrons en foire ou alliance contre-nature?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/belgique/article/799929/destexhe-veut-barrer-la-route-aux-extremistes-musulmans.html", u"""Destexhe veut barrer la route aux extrémistes musulmans""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/belgique/article/799750/pourquoi-magnette-a-t-il-sorti-l-artillerie-lourde.html", u"""Pourquoi Magnette a-t-il sorti lartillerie lourde ?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/belgique/article/799203/picque-encore-et-toujours-picque.html", u"""Picqué, encore et toujours Picqué""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/politique-belge/article/798988/magnette-ce-che-guevara-du-pauvre.html", u'''Magnette, "ce Che Guevara du pauvre"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/politique-belge/article/799742/cerexhe-j-ai-parfois-eu-l-impression-de-coller-des-rustines.html", u'''Cerexhe: "Jai parfois eu limpression de coller des rustines"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/belgique/article/799466/geert-bourgeois-refuse-de-nommer-les-3-bourgmestres.html", u"""Geert Bourgeois refuse de nommer les 3 bourgmestres""", set(['bottom box', 'internal'])),
+                make_tagged_url("/actu/politique-belge/article/800672/bourgmestre-un-metier-a-risques.html", u"""Bourgmestre, un métier à risques""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = updated_tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestLalibreContentExtraction(object):
     def test_clean_paragraph_extraction(self):

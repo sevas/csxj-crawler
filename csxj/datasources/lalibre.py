@@ -248,7 +248,7 @@ def extract_article_data_from_html(html_content, source_url):
 
     updated_tagged_urls = update_tagged_urls(all_links, ipm_utils.LALIBRE_SAME_OWNER)
 
-    # generate_unittest("links_intext_overload", 'lalibre', dict(updated_tagged_urls=updated_tagged_urls),
+    # generate_unittest("links_overload", 'lalibre', dict(updated_tagged_urls=updated_tagged_urls),
     #                   html_content, source_url,
     #                   os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lalibre"),
     #                   save_file=True)
@@ -306,19 +306,20 @@ def test_sample_data():
             "http://www.lalibre.be/societe/insolite/article/786611/le-tweet-sarcastique-de-johnny-a-gege.html",
             "http://www.lalibre.be/economie/actualite/article/755845/les-bourses-avancent-timidement-vers-le-web.html",
             'http://www.lalibre.be/culture/mediastele/article/748553/veronique-genest-mon-coeur-est-en-berne.html',
-            'http://www.lalibre.be/actu/usa-2012/article/773294/obama-raille-les-chevaux-et-baionnettes-de-romney.html']
+            'http://www.lalibre.be/actu/usa-2012/article/773294/obama-raille-les-chevaux-et-baionnettes-de-romney.html',
+            'http://www.lalibre.be/actu/politique-belge/article/800170/moureaux-schepmans-n-a-que-mepris-pour-les-personnes-d-origine-etrangere.html']
 
     from pprint import pprint
     import os
 
     article, html = extract_article_data(urls[-1])
-    print article.title
-    print [article.content]
-    for link in article.links:
-        print link.title
-        print link.URL
-        print link.tags
-        print "____________"
+    # print article.title
+    # print [article.content]
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "____________"
 
 
 if __name__ == '__main__':

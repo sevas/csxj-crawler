@@ -84,3 +84,16 @@ class TestLaSoirNewLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_embedded_scribble_live(self):
+        """ lesoir_new parser correctly extracts and tags an embedded scribble live """
+        with open(os.path.join(DATA_ROOT, "embedded_scribble_live.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://football.lesoir.be/jupiler-pro-league/resultats", u"""Tous les résultats et classements""", set(['internal', 'sidebar box', 'internal site'])),
+                make_tagged_url("http://embed.scribblelive.com/Embed/v5.aspx?Id=86477&ThemeId=7346", u"""http://embed.scribblelive.com/Embed/v5.aspx?Id=86477&ThemeId=7346""", set(['iframe', 'external', 'embedded'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
