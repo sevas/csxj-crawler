@@ -434,3 +434,44 @@ class TestDHNetLinkExtraction(object):
             ]
             expected_links = bottom_links + audio_content_links + sidebox_links + embedded_content_links + in_text_links
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_stuff_frenzy(self):
+        """ dhnet parser can extract many different embedded things"""
+        with open(os.path.join(DATA_ROOT, "embedded_stuff_frenzy.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("/infos/monde/article/389533/toulouse-un-groupe-lie-a-al-qaida-revendique-la-tuerie.html", u"""Toulouse: un groupe lié à Al-Qaïda revendique la tuerie""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/infos/monde/article/389441/merah-avait-sejourne-dans-un-hopital-psychiatrique.html", u"""Merah avait séjourné dans un hôpital psychiatrique""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/infos/monde/article/389527/toulouse-une-fan-page-a-la-gloire-de-merah-sur-facebook.html", u"""Toulouse: une fan page à la gloire de Merah sur Facebook""", set(['internal', 'sidebar box'])),
+                make_tagged_url("#embed_pos1", u"""Revivez l'assaut minute par minute""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos4", u"""Merah: le film de la nuit""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos2", u"""Vidéo: les images de Mohamed Merah, sur France 2""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=7d2559d5e8/height=850/width=470", u"""http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=7d2559d5e8/height=850/width=470""", set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("http://www.twitvid.com/embed.php?guid=IWICN&autoplay=0", u"""http://www.twitvid.com/embed.php?guid=IWICN&autoplay=0""", set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("http://link.brightcove.com/services/player/bcpid1027556707001?bckey=AQ~~,AAAAzBCG-1E~,ZmNCmEZClj4eQ1WsLf_mGl_Pmb90_E4h&bctid=1521783409001&linkBaseURL=http%3A%2F%2Fwww.bfmtv.com%2Fexclu-bfmv-interview-de-l-avocat-du-suspect-actu25091.html", u"""http://link.brightcove.com/services/player/bcpid1027556707001?bckey=AQ~~,AAAAzBCG-1E~,ZmNCmEZClj4eQ1WsLf_mGl_Pmb90_E4h&bctid=1521783409001&linkBaseURL=http%3A%2F%2Fwww.bfmtv.com%2Fexclu-bfmv-interview-de-l-avocat-du-suspect-actu25091.html""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://api.dmcloud.net/player/embed/4e7343f894a6f677b10006b4/4f6acb3af325e148e900004a/c63cc0d05ba3464890178207f4f2d9a7?wmode=transparent", u"""http://api.dmcloud.net/player/embed/4e7343f894a6f677b10006b4/4f6acb3af325e148e900004a/c63cc0d05ba3464890178207f4f2d9a7?wmode=transparent""", set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=47584d06414s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("/infos/monde/article/389281/toulouse-l-enquete-avance-a-grands-pas.html", u'''Toulouse : "L'enquête avance à grands pas"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389276/toulouse-la-piste-des-militaires-neo-nazis-n-est-plus-privilegiee.html", u'''Toulouse : la piste des militaires néo-nazis n'est "plus privilégiée"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389272/tuerie-les-candidats-doivent-ils-suspendre-leur-campagne.html", u"""Tuerie, les candidats doivent-ils suspendre leur campagne ?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389381/toulouse-tous-les-secrets-de-l-enquete.html", u"""Toulouse : tous les secrets de l'enquête""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389382/toulouse-le-suspect-avait-deja-ete-arrete-en-afghanistan.html", u"""Toulouse : le suspect avait déjà été arrêté, en Afghanistan""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389385/les-parents-d-eleves-de-l-ecole-d-ozar-hatorah-attendent-la-delivrance.html", u'''Les parents d'élèves de l'école d'Ozar Hatorah attendent "la délivrance"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389393/israel-enterre-ses-victimes-de-toulouse.html", u"""Israël enterre ses victimes de Toulouse""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389408/qui-sont-les-jihadistes-francais.html", u"""Qui sont les jihadistes français?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389441/merah-avait-sejourne-dans-un-hopital-psychiatrique.html", u"""Merah avait séjourné dans un hôpital psychiatrique""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389507/sarkozy-veut-des-mesures-penales-pour-lutter-contre-les-extremismes.html", u"""Sarkozy veut des mesures pénales pour lutter contre les extrémismes""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389527/toulouse-une-fan-page-a-la-gloire-de-merah-sur-facebook.html", u"""Toulouse: une fan page à la gloire de Merah sur Facebook""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389533/toulouse-un-groupe-lie-a-al-qaida-revendique-la-tuerie.html", u"""Toulouse: un groupe lié à Al-Qaïda revendique la tuerie""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389539/la-video-de-l-assaut-contre-mohammed-merah.html", u"""La vidéo de  l'assaut contre Mohammed Merah""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389554/al-qaida-l-appelait-youssef-le-francais.html", u"""Al-Qaida l'appelait Youssef le Français""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389603/qui-est-vraiment-mohamed-merah.html", u"""Qui est vraiment  Mohamed Merah ?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389629/toulouse-pouvoir-et-police-presentent-leur-defense-face-aux-critiques.html", u"""Toulouse : pouvoir et police présentent leur défense face aux critiques""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/394230/affaire-merah-le-pere-d-un-soldat-tue-porte-plainte-contre-sarkozy.html", u"""Affaire Merah: le père d'un soldat tué porte plainte contre Sarkozy""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/raidtoulouse/", u"""L'opération en images""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_389327_1332310479.mp3", u"""Ecoutez Claude Guéant, ministre français de l'Intérieur (Europe 1 et Twizz Radio)""", set(['internal', 'sidebar box', 'internal site', 'embedded', 'audio'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_389327_1332327971.mp3", u"""Ecoutez la journalsite (Ebba Kalondo) qui a reçu un appel du suspect (micro de Twizz et Europe 1)""", set(['internal', 'sidebar box', 'internal site', 'embedded', 'audio'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
