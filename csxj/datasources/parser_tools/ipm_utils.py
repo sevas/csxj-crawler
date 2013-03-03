@@ -86,8 +86,15 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
         # it might be a hungarian video, or any other type of player
         elif item_div.object:
             container = item_div.object
-            value = container.contents[0].get('value')
-            if value.startswith("http://videa.hu/"):
+            value = container.find("param", {"name": "movie"}).get('value')
+
+            if value.startswith("http://www.youtube.com"):
+                url = value
+                all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
+                return tagged_url
+
+            elif value.startswith("http://videa.hu/"):
                 if container.findNextSibling('a'):
                     url = container.findNextSibling('a').get('href')
                     indigenous_title = container.findNextSibling('div').contents[0]
@@ -148,13 +155,26 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 if item_div.find("param", {"name": "flashVars"}):
                     flashvars = item_div.find("param", {"name": "flashVars"})
                     all_parts = flashvars.get("value")
-                    part3 = all_parts.split("videoId=")[1].split("&playerID=")[0]
-                    part1 = all_parts.split("videoId=")[1].split("&playerID=")[1].split("&playerKey=")[0]
-                    part2 = all_parts.split("videoId=")[1].split("&playerID=")[1].split("&playerKey=")[1].split("&domain=embed")[0]
-                    url = "http://link.brightcove.com/services/player/bcpid{0}?bckey={1}&bctid={2}" .format(part1, part2, part3)
-                    all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
-                    tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
-                    return tagged_url
+                    parsed_flashvars = all_parts.split('&')
+                    
+                    d = dict()
+                    for var in parsed_flashvars:
+                        splitted = var.split('=')
+                        if len(splitted) == 2:
+                            name, value = splitted
+                        elif len(splitted) > 2:
+                            name, value = splitted[0], '='.join(splitted[1:])
+                        else:
+                            raise ValueError()
+                        d[name] = value
+
+                    if 'playerID' in d and 'videoId' in d:
+                        url = "http://link.brightcove.com/services/player/bcpid{0}?bctid={1}" .format(d['playerID'],d['videoId'])
+                        all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                        tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
+                        return tagged_url
+                    else:
+                        raise ValueError()
                 else:
                     raise ValueError("It looks like a Brightcove video but it did not match known patterns")
 
@@ -176,14 +196,20 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 raise ValueError("There seems to be a hungarian video or something but it didn't match known patterns")
 
         elif item_div.find('script'):
-            if item_div.find('script').get('src').startswith("http://player.ooyala.com"):
-                url_js = item_div.find('script').get('src')
-                url = url_js.replace("iframe.js", "iframe.html")
-                all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
-                tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
-                return tagged_url
-
-            else:    
+            if len(item_div.find('script').contents) > 0 :
+                if "vmmaplayer" in item_div.find('script').contents[0]:
+                    url = item_div.find('script').contents[0].split("videoUrl:'")[1].split("',width")[0]
+                    all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
+                    return tagged_url
+            elif item_div.find('script').get('src').startswith("http://player.ooyala.com"):
+                if item_div.find('script').get('src').startswith("http://player.ooyala.com"):
+                    url_js = item_div.find('script').get('src')
+                    url = url_js.replace("iframe.js", "iframe.html")
+                    all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
+                    return tagged_url
+            else:
                 return media_utils.extract_tagged_url_from_embedded_script(item_div.find('script'), site_netloc, site_internal_sites)
         
         else:

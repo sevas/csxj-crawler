@@ -369,7 +369,7 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("#embed_pos2", u"""Xavier Bongibault présente ses excuses @bfmtv""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("/infos/monde/article/421044/des-centaines-de-milliers-de-manifestants-contre-le-mariage-gay.html", u"""Des centaines de milliers de manifestants contre le mariage gay""", set(['internal', 'sidebar box'])),
                 make_tagged_url("http://galeries.dhnet.be/album/actumonde/manifantimariagegay/01.jpg/", u"""Les manifs contre le mariage gay""", set(['sidebar box', 'internal', 'image gallery', 'internal site'])),
-                make_tagged_url("http://link.brightcove.com/services/player/bcpid1027556707001?bckey=AQ~~,AAAAzBCG-1E~,ZmNCmEZClj4eQ1WsLf_mGl_Pmb90_E4h&bctid=2090284983001", u"""http://link.brightcove.com/services/player/bcpid1027556707001?bckey=AQ~~,AAAAzBCG-1E~,ZmNCmEZClj4eQ1WsLf_mGl_Pmb90_E4h&bctid=2090284983001""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://link.brightcove.com/services/player/bcpid1027556707001?bctid=2090284983001", u"""http://link.brightcove.com/services/player/bcpid1027556707001?bctid=2090284983001""", set(['video', 'external', 'embedded'])),
                 make_tagged_url("http://www.dailymotion.com/embed/video/xwq838", u"""http://www.dailymotion.com/embed/video/xwq838""", set(['embedded', 'external', 'iframe'])),
                 make_tagged_url("/infos/monde/article/421044/des-centaines-de-milliers-de-manifestants-contre-le-mariage-gay.html", u"""Des centaines de milliers de manifestants contre le mariage gay""", set(['bottom box', 'internal'])),
                 make_tagged_url("/infos/monde/article/421154/mariage-gay-di-rupo-est-fier-de-la-modernite-de-la-belgique.html", u"""Mariage gay: Di Rupo est "fier de la modernité" de la Belgique""", set(['bottom box', 'internal'])),
@@ -448,6 +448,33 @@ class TestDHNetLinkExtraction(object):
             expected_links = bottom_links + audio_content_links + sidebox_links + embedded_content_links + in_text_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_youtube_video(self):
+        """ dhnet parser can extract an embedded youtube video"""
+        with open(os.path.join(DATA_ROOT, "youtube_video.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("www.police.be", u"""www.police.be""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("#embed_pos1", u"""La vidéo de l'agression à Anderlecht""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.youtube.com/v/ZI_dpfd6LMw?version=3&feature=player_detailpage", u"""http://www.youtube.com/v/ZI_dpfd6LMw?version=3&feature=player_detailpage""", set(['video', 'external', 'embedded'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_vtm_video(self):
+        """ dhnet parser can extract an embedded VTM video"""
+        with open(os.path.join(DATA_ROOT, "vtm_video.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos2", u"""Le lancer de chatons de Jan Fabre""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos1", u"""La réaction de Jan Fabre""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://flvpd.vtm.be/videocms/nieuws/2012/10/26/201210261923056010032016057005056B763420000007108B00000D0F002641.mp4", u"""http://flvpd.vtm.be/videocms/nieuws/2012/10/26/201210261923056010032016057005056B763420000007108B00000D0F002641.mp4""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=b4968b239e7s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("/infos/belgique/article/413486/jan-fabre-le-lanceur-de-chats-n-a-pas-depose-plainte.html", u"""Jan Fabre, le lanceur de chats, n'a pas déposé plainte""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
 
     def test_embedded_stuff_frenzy(self):
@@ -464,7 +491,7 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("#embed_pos2", u"""Vidéo: les images de Mohamed Merah, sur France 2""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=7d2559d5e8/height=850/width=470", u"""http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=7d2559d5e8/height=850/width=470""", set(['embedded', 'external', 'iframe'])),
                 make_tagged_url("http://www.twitvid.com/embed.php?guid=IWICN&autoplay=0", u"""http://www.twitvid.com/embed.php?guid=IWICN&autoplay=0""", set(['embedded', 'external', 'iframe'])),
-                make_tagged_url("http://link.brightcove.com/services/player/bcpid1027556707001?bckey=AQ~~,AAAAzBCG-1E~,ZmNCmEZClj4eQ1WsLf_mGl_Pmb90_E4h&bctid=1521783409001&linkBaseURL=http%3A%2F%2Fwww.bfmtv.com%2Fexclu-bfmv-interview-de-l-avocat-du-suspect-actu25091.html", u"""http://link.brightcove.com/services/player/bcpid1027556707001?bckey=AQ~~,AAAAzBCG-1E~,ZmNCmEZClj4eQ1WsLf_mGl_Pmb90_E4h&bctid=1521783409001&linkBaseURL=http%3A%2F%2Fwww.bfmtv.com%2Fexclu-bfmv-interview-de-l-avocat-du-suspect-actu25091.html""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://link.brightcove.com/services/player/bcpid1027556707001?bctid=1521783409001", u"""http://link.brightcove.com/services/player/bcpid1027556707001?bctid=1521783409001""", set(['video', 'external', 'embedded'])),
                 make_tagged_url("http://api.dmcloud.net/player/embed/4e7343f894a6f677b10006b4/4f6acb3af325e148e900004a/c63cc0d05ba3464890178207f4f2d9a7?wmode=transparent", u"""http://api.dmcloud.net/player/embed/4e7343f894a6f677b10006b4/4f6acb3af325e148e900004a/c63cc0d05ba3464890178207f4f2d9a7?wmode=transparent""", set(['embedded', 'external', 'iframe'])),
                 make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=47584d06414s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
                 make_tagged_url("/infos/monde/article/389281/toulouse-l-enquete-avance-a-grands-pas.html", u'''Toulouse : "L'enquête avance à grands pas"''', set(['bottom box', 'internal'])),

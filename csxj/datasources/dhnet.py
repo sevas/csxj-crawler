@@ -324,8 +324,8 @@ def extract_article_data(source):
 
         fetched_datetime = datetime.today()
 
-        # print generate_test_func('embedded_dataviz', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_content, source, 'embedded_dataviz', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # print generate_test_func('vtm_video', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_content, source, 'vtm_video', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
         # import os
         # generate_unittest("links_embedded_canalplus", "dhnet", dict(urls=updated_tagged_urls), html_content, source, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/dhnet"), True)
 
@@ -450,25 +450,16 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/belgique/article/388466/les-cigarette-plus-cheres-de-dix-centimes-la-solution-de-facilite.html",
         "http://www.dhnet.be/infos/monde/article/389327/toulouse-la-police-cerne-un-homme-se-reclamant-d-al-qaida.html",
         "http://www.dhnet.be/people/buzz/article/422740/jennifer-lawrence-laisse-tomber-le-bas.html",
-        "http://www.dhnet.be/cine-tele/cinema/article/415028/la-sexualite-debridee-de-james-bond-en-detail.html"
+        "http://www.dhnet.be/cine-tele/cinema/article/415028/la-sexualite-debridee-de-james-bond-en-detail.html",
+        "http://www.dhnet.be/sports/football/article/393211/guardiola-est-remplace-par-son-t2.html",
+        "http://www.dhnet.be/infos/faits-divers/article/397637/chauffeur-de-la-stib-la-video-de-l-agression.html",
+        "http://www.dhnet.be/infos/belgique/article/413443/jan-fabre-agresse-apres-son-lancer-de-chats.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
 
 
     urls_from_errors = [
-    "http://www.dhnet.be/cine-tele/cinema/article/415028/la-sexualite-debridee-de-james-bond-en-detail.html",
-    "http://www.dhnet.be/cine-tele/cinema/article/414719/twilight-les-adieux-des-saigneurs.html",
-    "http://www.dhnet.be/sports/charleroi/article/414581/ferrera-pouvait-il-faire-mieux.html",
-    "http://www.dhnet.be/infos/monde/article/415324/cope-le-convainquant-fillon-le-fidele-et-pecresse-la-seductrice.html",
-    "http://www.dhnet.be/infos/monde/article/389327/toulouse-mohammed-merah-affirme-qu-il-se-rendra-dans-l-apres-midi.htm",
-    "http://www.dhnet.be/infos/monde/article/389327/toulouse-le-groupe-d-intervention-est-dans-l-appartement-du-suspect.html",
-    "http://www.dhnet.be/infos/monde/article/389608/un-pit-bull-envoie-trois-policiers-a-l-hopital.html",
-    "http://www.dhnet.be/cine-tele/cinema/article/392952/a-hurler-de-rire.html",
-    "http://www.dhnet.be/sports/football/article/393211/guardiola-est-remplace-par-son-t2.html",
-    "http://www.dhnet.be/people/show-biz/article/393131/sofia-vergara-plus-jeune-que-jamais.html",
-    "http://www.dhnet.be/cine-tele/cinema/article/394393/tim-burton-experimentateur-pathologique.html",
-    "http://www.dhnet.be/infos/faits-divers/article/397637/chauffeur-de-la-stib-la-video-de-l-agression.html",
     "http://www.dhnet.be/cine-tele/cinema/article/404337/batman-s-envole-au-box-office.html",
     "http://www.dhnet.be/cine-tele/cinema/article/393596/american-pie-ils-sont-de-retour.html",
     "http://www.dhnet.be/cine-tele/cinema/article/413977/ben-affleck-je-couche-avec-le-realisateur.html",
@@ -516,15 +507,15 @@ if __name__ == "__main__":
     "http://www.dhnet.be/cine-tele/cinema/article/425492/la-france-est-une-passoire.html",
     "http://www.dhnet.be/sports/basket/article/425682/podcast-basket-retour-sur-le-transfert-de-walsh.html"]
 
-    for url in urls_from_errors:
-        print url
-        article, html = extract_article_data(url)
-        if article:
-            print "this one works just fine"
-        else:
-            print "404"
+    # for url in urls_from_errors:
+    #     print url
+    #     article, html = extract_article_data(url)
+    #     if article:
+    #         print "this one works just fine"
+    #     else:
+    #         print "404"
     
-    # article, html = extract_article_data(urls[-1])
+    article, html = extract_article_data(urls[-1])
     # print article.title
     # print article.url
     # print "°°°°°°°°°°°°°°°°°°°°"
