@@ -317,6 +317,9 @@ def extract_article_data(source):
 
         # print generate_test_func('embedded_stuff_frenzy', 'dhnet', dict(tagged_urls=updated_tagged_urls))
         # save_sample_data_file(html_content, source, 'embedded_stuff_frenzy', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # import os
+        # generate_unittest("links_embedded_canalplus", "dhnet", dict(urls=updated_tagged_urls), html_content, source, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/dhnet"), True)
+
 
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -433,6 +436,7 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/faits-divers/article/388821/le-rapatriement-des-enfants-et-des-familles-a-commence.html",
         "http://www.dhnet.be/people/show-biz/article/417202/alizee-revienten-soutif.html",
         "http://www.dhnet.be/infos/monde/article/421061/un-anti-mariage-gay-compare-hollande-a-hitler.html",
+        "http://www.dhnet.be/infos/monde/article/415459/la-soeur-de-mohammed-merah-condamne-ses-actes.html",
         "http://www.dhnet.be/infos/monde/article/378171/la-video-de-surveillance-de-dsk-quittant-le-sofitel-devoilee.html",
         "http://www.dhnet.be/infos/belgique/article/388466/les-cigarette-plus-cheres-de-dix-centimes-la-solution-de-facilite.html",
         "http://www.dhnet.be/infos/monde/article/389327/toulouse-la-police-cerne-un-homme-se-reclamant-d-al-qaida.html"

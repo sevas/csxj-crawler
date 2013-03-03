@@ -435,6 +435,8 @@ class TestDHNetLinkExtraction(object):
             expected_links = bottom_links + audio_content_links + sidebox_links + embedded_content_links + in_text_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+
+
     def test_embedded_stuff_frenzy(self):
         """ dhnet parser can extract many different embedded things"""
         with open(os.path.join(DATA_ROOT, "embedded_stuff_frenzy.html")) as f:
@@ -474,4 +476,16 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_389327_1332327971.mp3", u"""Ecoutez la journalsite (Ebba Kalondo) qui a reçu un appel du suspect (micro de Twizz et Europe 1)""", set(['internal', 'sidebar box', 'internal site', 'embedded', 'audio'])),
             ]
             expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+   
+    def test_links_embedded_canalplus(self):
+        """ dhnet parser can extract link to embedded canalplus.fr/itele.fr videos"""
+        with open(os.path.join(DATA_ROOT, "links_embedded_canalplus.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("#embed_pos1", u"""Voir l'interview de Souad Merah""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.itele.fr/redirect?vid=767341&sc_cmpid=SharePlayerEmbed", u"""Témoignage exclusif de Souad Merah - 20/11/12 à 11:16""", set(['video', 'external', 'embedded'])),
+            ]
+            expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
