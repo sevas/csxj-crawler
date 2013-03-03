@@ -379,6 +379,19 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_ooyala_embedded_video(self):
+        """ dhnet parser can extract embedded ooyala video"""
+        with open(os.path.join(DATA_ROOT, "ooyala_embedded_video.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Jennifer Lawrence perd sa robe !""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://player.ooyala.com/iframe.html#ec=t4YWF0ODq-F_xnDy9kb41w3bZnN8kN4Y&pbid=NDcyOWI0M2YyMDdkN2YwODU5Mzc5MDUz", u"""http://player.ooyala.com/iframe.html#ec=t4YWF0ODq-F_xnDy9kb41w3bZnN8kN4Y&pbid=NDcyOWI0M2YyMDdkN2YwODU5Mzc5MDUz""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://galeries.dhnet.be/album/people/jenniferlawrence/8.jpg/", u"""Les photos de l'incident !""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
     def test_embedded_plaintext_links(self):
         """ dhnet parser can extract embedded plaintext links (yeah, wtf, exactly)"""
         with open(os.path.join(DATA_ROOT, "embedded_plaintext_links.html")) as f:

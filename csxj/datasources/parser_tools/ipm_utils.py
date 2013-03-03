@@ -168,8 +168,16 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 raise ValueError("There seems to be a hungarian video or something but it didn't match known patterns")
 
         elif item_div.find('script'):
-            # try to detect a <script>
-            return media_utils.extract_tagged_url_from_embedded_script(item_div.find('script'), site_netloc, site_internal_sites)
+            if item_div.find('script').get('src').startswith("http://player.ooyala.com"):
+                url_js = item_div.find('script').get('src')
+                url = url_js.replace("iframe.js", "iframe.html")
+                all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
+                return tagged_url
+
+            else:    
+                return media_utils.extract_tagged_url_from_embedded_script(item_div.find('script'), site_netloc, site_internal_sites)
+        
         else:
             def test_for_plaintext_url(embed_contents):
                 fragment = remove_text_formatting_and_links_from_fragments(embed_contents)

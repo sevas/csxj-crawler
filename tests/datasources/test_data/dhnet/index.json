@@ -79,10 +79,14 @@
     [
       "http://www.dhnet.be/infos/monde/article/389327/toulouse-la-police-cerne-un-homme-se-reclamant-d-al-qaida.html", 
       "embedded_stuff_frenzy.html"
-    ],
+    ], 
     [
       "http://www.dhnet.be/infos/monde/article/415459/la-soeur-de-mohammed-merah-condamne-ses-actes.html", 
       "links_embedded_canalplus.html"
+    ], 
+    [
+      "http://www.dhnet.be/people/buzz/article/422740/jennifer-lawrence-laisse-tomber-le-bas.html", 
+      "ooyala_embedded_video.html"
     ]
   ]
 }
