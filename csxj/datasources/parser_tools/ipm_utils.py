@@ -4,6 +4,7 @@
 from csxj.common.tagging import classify_and_tag, make_tagged_url
 from utils import remove_text_formatting_markup_from_fragments
 import media_utils
+import constants
 
 IPM_SAME_OWNER = [
     'essentielle.be',
@@ -32,6 +33,15 @@ def extract_kplayer_infos(kplayer_flash, title, site_netloc, site_internal_sites
         return make_tagged_url(url, title, all_tags | set(['video', 'embedded', 'kplayer']))
     else:
         raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
+
+
+def extract_url_and_title(bslink):
+    url = bslink.get('href')
+    if bslink.contents:
+        title = remove_text_formatting_markup_from_fragments(bslink.contents)
+    else:
+        title = constants.NO_TITLE
+    return url, title
 
 
 def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_sites):
@@ -94,8 +104,8 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                         return tagged_url
                 else:
                     raise ValueError("It looks like a Hungarian video but it did not match known patterns")
-            
-            if value.startswith("http://www.pixule.com"):
+
+            elif value.startswith("http://www.pixule.com"):
                 if container.find("embed"):
                     url = container.find("embed").get("src")
                     all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
@@ -104,7 +114,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 else:
                     raise ValueError("It looks like a Pixule poll  but it did not match known patterns")
 
-            if value.startswith("http://vocaroo.com"):
+            elif value.startswith("http://vocaroo.com"):
                 if container.find("embed"):
                     url = container.find("embed").get("src")
                     all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
@@ -113,7 +123,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 else:
                     raise ValueError("It looks like a Voocaroo audio clip but it did not match known patterns")
 
-            if value.startswith("http://www.wat.tv"):
+            elif value.startswith("http://www.wat.tv"):
                 if item_div.find("div", {'class': 'watlinks'}):
                     watlinks = item_div.find("div", {'class': "watlinks"})
                     url = watlinks.find('a').get('href')
@@ -124,6 +134,20 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
 
                 else:
                     raise ValueError("It looks like a wat.tv video but it did not match known patterns")
+
+            elif value.startswith("http://player.canalplus.fr"):
+                param = container.find('param', {'name':'flashvars'})
+                if param:
+                    itele_div = container.parent.findNextSibling('div')
+                    if itele_div:
+                        url, title = extract_url_and_title(itele_div.a)
+                        tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                        tags |= set(['embedded', 'video'])
+                        return make_tagged_url(url, title, tags)
+                    else:
+                        raise ValueError('Could not find the itele.fr video link from that canaplus.fr embedded video')
+                else:
+                    raise ValueError("It looks like a canalplus.fr video but it did not match known patterns")
 
             else:
                 raise ValueError("There seems to be a hungarian video or something but it didn't match known patterns")
