@@ -476,6 +476,19 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_video_melty(self):
+        """ dhnet parser can extract an embedded Meltybuzz video"""
+        with open(os.path.join(DATA_ROOT, "video_melty.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Voir Anakin, le félidé aux deux pattes avant""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.meltybuzz.fr/anakin-le-chat-a-deux-pattes-qui-se-porte-tres-bien-video-a115745.html", u"""Anakin, le chat à deux pattes qui se porte très bien (vidéo) sur meltybuzz.fr""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("/regions/societe/article/400152/sauvetage-de-chaton.html", u"""Sauvetage de chaton""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+     
     def test_video_divertissante(self):
         """ dhnet parser can extract an embedded video from 'DIVERTISSONSNOUS.COM' (how entertaining)"""
         with open(os.path.join(DATA_ROOT, "video_divertissante.html")) as f:

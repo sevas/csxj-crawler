@@ -185,8 +185,15 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 else:
                     raise ValueError("It looks like a Brightcove video but it did not match known patterns")
 
+            elif value.startswith("http://www.meltybuzz.fr/"):
+                url = item_div.span.a.get("href")
+                title = item_div.span.a.get("title")
+                all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = make_tagged_url(url, title, all_tags | set(['embedded', 'video']))
+                return tagged_url
+
             elif value.startswith("http://player.canalplus.fr"):
-                param = container.find('param', {'name':'flashvars'})
+                param = container.find('param', {'name': 'flashvars'})
                 if param:
                     itele_div = container.parent.findNextSibling('div')
                     if itele_div:
