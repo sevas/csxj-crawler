@@ -18,8 +18,10 @@ from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged
 from csxj.db.article import ArticleData
 
 from parser_tools import rossel_utils
-from helpers.unittest_generator import generate_test_func, save_sample_data_file
+from parser_tools import hxs_media_utils
+from parser_tools import constants as parser_constants
 
+from helpers.unittest_generator import generate_unittest
 from csxj.common.tagging import print_taggedURLs
 
 setup_locales()
@@ -275,7 +277,7 @@ def extract_links_from_media_items(media_items):
         if title:
             title = title[0]
         else:
-            title = "__NO_TITLE__"
+            title = parser_constants.NO_TITLE
 
         if media_type == 'video':
             if item.select(".//div [contains(@class, 'emvideo-kewego')]"):
@@ -392,14 +394,28 @@ def extract_associated_links(hxs):
 
     for i, item in enumerate(media_links):
         if item.select('./img'):
-            pass
+            pass # images are lame
+        elif item.select(".//div[starts-with(@id, 'media-youtube')]"):
+            youtube_div = item.select(".//div[starts-with(@id, 'media-youtube')]")
+            youtube_object = youtube_div.select("./object")
+            url = hxs_media_utils.extract_url_from_youtube_object(youtube_object)
+            tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+            tags |= set(['youtube', 'embedded', 'video'])
+            title = parser_constants.NO_TITLE
+            all_tagged_urls.append(make_tagged_url(url, title, tags))
+        elif item.select(".//div[contains(@class, 'emvideo-kewego')]"):
+            kplayer_div = item.select(".//div[contains(@class, 'emvideo-kewego')]")
+            kplayer_object = kplayer_div.select("./object")
+            url = hxs_media_utils.extract_url_from_kplayer_object(kplayer_object)
+            tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+            tags |= set(['kewego', 'embedded', 'video'])
+            title = parser_constants.NO_TITLE
+            all_tagged_urls.append(make_tagged_url(url, title, tags))
+        elif not item.select("./div/text()"):
+            pass # empty divs are lame
         else:
-            raise ValueError("The media box contains something other than an image. Update your parser")
-            # item_id = item.select("./@class").extract()
-            # url = item_id[0]
-            # title = u"EMBEDDED MEDIA {0}".format(i)
-            # tags = set(['media', 'embedded'])
-            # all_tagged_urls.append(make_tagged_url(url, title, tags))
+
+            raise ValueError("The media box contains something other than an image or a youtube video. Update your parser")
 
     return all_tagged_urls
 
@@ -445,8 +461,8 @@ def extract_article_data(source):
         all_links = intro_links + content_links + associated_links
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
-        #print generate_test_func('links_embedded_thumbnails', 'sudinfo', dict(tagged_urls=updated_tagged_urls))
-        #save_sample_data_file(html_content, source.name, 'in_text_same_owner', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/sudinfo')
+        # import os
+        # generate_unittest("links_embedded_kewego_gallery", "sudinfo", dict(urls=updated_tagged_urls), html_content, "csxjdb://sudinfo/2012-03-26/13.05.07/raw_data/7.html", os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/sudinfo"), True)
 
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             updated_tagged_urls,
@@ -537,11 +553,148 @@ def show_article():
         u"http://www.sudinfo.be/648601/article/regions/tournai/actualite/2013-01-23/le-papa-se-fait-operer-et-devient%E2%80%A6-maman"
     ]
 
-    article, html = extract_article_data(urls[-1])
-    print article.content
-    for link in article.links:
-        print link
+
+    fpaths = [
+        "/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-22/17.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-26/16.05.08/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-26/14.05.07/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-26/15.05.09/raw_data/4.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-26/13.05.09/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-26/11.05.06/raw_data/6.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-02/14.05.11/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-02/14.05.11/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-02/12.05.08/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-09/14.05.07/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-12-20/16.05.06/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-24/16.05.06/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-24/16.05.06/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-25/19.05.12/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-26/13.05.07/raw_data/7.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-26/01.05.07/raw_data/4.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-26/11.05.07/raw_data/7.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-01/17.05.07/raw_data/6.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-20/15.05.07/raw_data/9.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-12/10.05.08/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-23/13.05.25/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-23/15.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-23/20.05.06/raw_data/13.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-23/12.05.08/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-23/12.05.08/raw_data/4.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-23/11.05.06/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-06/04.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-06/10.05.07/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-05/22.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-08-13/13.05.07/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-08-13/06.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-03/21.05.09/raw_data/7.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-28/14.05.09/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-28/19.05.10/raw_data/32.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-28/15.05.08/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-08-02/17.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-25/20.05.06/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-06/20.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-06/13.05.10/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-27/18.05.09/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-27/17.05.07/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-27/16.05.07/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-25/13.05.07/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-25/19.05.08/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-25/20.05.10/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-25/17.05.08/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-25/18.05.07/raw_data/4.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-09-06/14.05.06/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-09-06/18.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-09-07/18.05.07/raw_data/6.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-01/10.05.07/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-09-27/17.05.13/raw_data/10.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-09-27/16.05.07/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-09-27/11.05.07/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-29/11.05.06/raw_data/44.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-09-22/14.05.07/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-21/20.05.07/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-07/20.05.06/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-07/23.05.06/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-07/13.05.08/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-04/12.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-08/19.05.06/raw_data/72.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-05/10.05.08/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-12-21/15.05.13/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-11-22/12.05.07/raw_data/7.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-11-22/18.05.05/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-02/23.05.08/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-03/19.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-08-03/18.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-11-29/19.05.06/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-11-27/16.05.06/raw_data/4.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-24/15.05.10/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-24/17.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-24/16.05.08/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-19/12.05.20/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-19/17.05.07/raw_data/10.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-19/16.05.07/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-19/16.05.07/raw_data/13.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-19/19.05.06/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-08-21/17.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-08-21/16.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-30/17.05.09/raw_data/6.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-10/11.05.06/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-13/15.05.07/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-13/17.05.09/raw_data/14.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-13/18.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-10-01/15.05.11/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-15/07.05.09/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-15/10.05.06/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-16/15.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-16/15.05.07/raw_data/10.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-16/11.05.11/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-11/16.05.07/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-13/15.05.13/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-12-13/17.05.06/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-12-13/17.05.06/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-12-13/18.05.06/raw_data/4.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-15/12.05.08/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-11-24/10.05.06/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-17/13.05.20/raw_data/7.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-04-19/19.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-08-28/22.05.12/raw_data/4.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-08-28/08.05.08/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-13/15.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-13/12.05.08/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-13/09.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-13/10.05.07/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-11/09.05.07/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-11/09.05.07/raw_data/7.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-11/15.05.06/raw_data/6.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-08-07/16.05.08/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-07-03/12.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2013-01-07/01.05.06/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2013-01-07/07.05.06/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2013-01-07/08.05.10/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2013-01-07/14.05.06/raw_data/4.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2013-01-07/10.05.06/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2013-01-07/10.05.06/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-02-28/15.05.10/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-02-28/10.05.10/raw_data/13.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-02-28/14.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-02-28/12.05.08/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-02-28/18.05.07/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-02-27/00.34.42/raw_data/54.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-02-27/11.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-08-23/10.05.06/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-05-18/11.05.08/raw_data/2.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-07-09/16.05.07/raw_data/0.html",
+    ]
+
+    # fpaths = [
+    # "/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-26/16.05.08/raw_data/2.html",
+    # "/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-26/13.05.07/raw_data/7.html",]
+
+    for i, fpath in enumerate(fpaths):
+        print "*" * 20, i, fpath
+        with open(fpath) as f:
+            article, html = extract_article_data(f)
+            print_taggedURLs(article.links, 50)
 
 
 if __name__ == '__main__':
-    pass
+    show_article()

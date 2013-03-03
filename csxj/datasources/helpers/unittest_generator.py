@@ -35,6 +35,8 @@ def save_sample_data_file(html_data, source_url, test_name, root_path):
             index['test_data'].append((source_url, test_name + ".html"))
             with open(full_index_name, 'w') as f:
                 json.dump(index, f, indent=2)
+    else:
+        print("Provided root path '{0}' does not exist".format(root_path))
 
 
 def generate_unittest(test_name, parser_name, urls_by_group, html_data, source_url, test_data_root_path, save_file=False):

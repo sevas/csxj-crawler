@@ -77,3 +77,17 @@ def extract_source_url_from_dewplayer(dewplayer_link):
         return v
     else:
         raise ValueError("A DewPlayer object was instantiated with an unhandled query. Fix your parser")
+
+
+def extract_source_url_from_bs3_youtube_object(bs3_youtube_object):
+    """ Extracts the source url from an embedded youtube object (parsed By BeautifulSoup3)"""
+    if bs3_youtube_object.a:
+        return bs3_youtube_object.a.get('href')
+    elif bs3_youtube_object.get('data'):
+        data = bs3_youtube_object.get('data')
+        if data.startswith('http'):
+            return data
+        else:
+            raise ValueError("The data attribute of that youtube object does not look like a url. Update the parser.")
+    else:
+        raise ValueError("Could not find a source url for this youtube object" )
