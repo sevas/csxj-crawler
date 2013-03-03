@@ -5,6 +5,7 @@ from datetime import datetime, time
 from itertools import chain
 import re
 import urlparse
+from urllib2 import HTTPError
 
 import BeautifulSoup as bs
 
@@ -285,7 +286,15 @@ def extract_article_data(source):
     if hasattr(source, 'read'):
         html_content = source.read()
     else:
-        html_content = fetch_html_content(source)
+        try:
+            html_content = fetch_html_content(source)
+        except HTTPError as e:
+            if e.code == 404:
+                return None, None
+            else:
+                raise
+        except Exception:
+            raise
 
     soup = make_soup_from_html_content(html_content)
 
@@ -507,12 +516,15 @@ if __name__ == "__main__":
     "http://www.dhnet.be/cine-tele/cinema/article/425492/la-france-est-une-passoire.html",
     "http://www.dhnet.be/sports/basket/article/425682/podcast-basket-retour-sur-le-transfert-de-walsh.html"]
 
-    # for url in urls_from_errors:
-    #     print url
-    #     article, html = extract_article_data(url)
-    #     print "this one works just fine"
+    for url in urls_from_errors:
+        print url
+        article, html = extract_article_data(url)
+        if article:
+            print "this one works just fine"
+        else:
+            print "404"
     
-    article, html = extract_article_data(urls[-1])
+    # article, html = extract_article_data(urls[-1])
     # print article.title
     # print article.url
     # print "°°°°°°°°°°°°°°°°°°°°"
