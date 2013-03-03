@@ -145,6 +145,16 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 else:
                     raise ValueError("It looks like a Voocaroo audio clip but it did not match known patterns")
 
+            elif value.startswith("https://player.soundcloud.com"):
+                if container.find("embed"):
+                    url = container.find("embed").get("src")
+                    all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'audio']))
+                    return tagged_url
+                else:
+                    raise ValueError("It looks like a Soundcloud audio clip but it did not match known patterns")
+
+
             elif value.startswith("http://www.wat.tv"):
                 if item_div.find("div", {'class': 'watlinks'}):
                     watlinks = item_div.find("div", {'class': "watlinks"})

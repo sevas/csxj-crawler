@@ -576,6 +576,21 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_soundcloud(self):
+        """ dhnet parser can extract embedded soundcloud"""
+        with open(os.path.join(DATA_ROOT, "soundcloud.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos2", u"""Regardez la vidéo de Véronique De Keyser""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/infos/monde/article/386553/les-usa-offrent-un-soutien-appuye-au-conseil-national-syrien.html", u"""Les USA offrent un soutien appuyé au Conseil national syrien""", set(['internal', 'sidebar box'])),
+                make_tagged_url("https://player.soundcloud.com/player.swf?url=http%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F37663533&show_comments=true&auto_play=false&color=a900ff", u"""https://player.soundcloud.com/player.swf?url=http%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F37663533&show_comments=true&auto_play=false&color=a900ff""", set(['audio', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=08f4ba2000es&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("/infos/monde/article/386553/les-usa-offrent-un-soutien-appuye-au-conseil-national-syrien.html", u"""Les USA offrent un soutien appuyé au Conseil national syrien""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
     def test_embedded_dataviz(self):
         """ dhnet parser can extract link to embedded dataviz from visual.ly"""
         with open(os.path.join(DATA_ROOT, "embedded_dataviz.html")) as f:
