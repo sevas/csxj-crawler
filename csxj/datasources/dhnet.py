@@ -288,7 +288,6 @@ def extract_article_data(source):
         html_content = fetch_html_content(source)
 
     soup = make_soup_from_html_content(html_content)
-
     main_content = soup.find('div', {'id': 'maincontent'})
 
     if main_content and main_content.h1:
@@ -318,9 +317,7 @@ def extract_article_data(source):
         # print generate_test_func('other_embedded_video_type', 'dhnet', dict(tagged_urls=updated_tagged_urls))
         # save_sample_data_file(html_content, source, 'other_embedded_video_type', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
         # import os
-        # generate_unittest("links_embedded_canalplus", "dhnet", dict(urls=updated_tagged_urls), html_content, source, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/dhnet"), True)
-
-
+        # generate_unittest("links_tweet_with_emoji", "dhnet", dict(urls=updated_tagged_urls), html_content, source, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/dhnet"), True)
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                                   updated_tagged_urls,
@@ -435,12 +432,14 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/belgique/article/388466/les-cigarette-plus-cheres-de-dix-centimes-la-solution-de-facilite.html",
         "http://www.dhnet.be/infos/faits-divers/article/388821/le-rapatriement-des-enfants-et-des-familles-a-commence.html",
         "http://www.dhnet.be/people/show-biz/article/417202/alizee-revienten-soutif.html",
-        "http://www.dhnet.be/infos/monde/article/415459/la-soeur-de-mohammed-merah-condamne-ses-actes.html"
+        "http://www.dhnet.be/infos/monde/article/415459/la-soeur-de-mohammed-merah-condamne-ses-actes.html",
+        "http://www.dhnet.be/people/show-biz/article/417202/alizee-revienten-soutif.html",
     ]
 
     from csxj.common.tagging import print_taggedURLs
 
     article, html = extract_article_data(urls[-1])
+    print article
     print article.title
     print article.url
     print "°°°°°°°°°°°°°°°°°°°°"
@@ -449,6 +448,7 @@ if __name__ == "__main__":
         print link.URL
         print link.tags
         print "°°°°°°°°°°°°°°°°°°°°"
+
 
     # from pprint import pprint
     # print_taggedURLs(article.links)
