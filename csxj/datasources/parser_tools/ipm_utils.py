@@ -74,6 +74,14 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             tagged_url = make_tagged_url(url, title, all_tags | set(['embedded', 'tweet']))
             return tagged_url
 
+        elif item_div.find('div', {'class': 'visually_embed'}):
+            if item_div.find("a", {'id': 'visually_embed_view_more'}).get('href'):
+                url = item_div.find("a", {'id': 'visually_embed_view_more'}).get('href')
+                all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = make_tagged_url(url, url, all_tags | set(['embedded']))
+                return tagged_url
+            else:
+                raise ValueError("Looks like a visual.ly splendid dataviz, but it does not match known patterns")
 
         # it might be a hungarian video, or any other type of player
         elif item_div.object:

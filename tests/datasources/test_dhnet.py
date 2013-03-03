@@ -502,3 +502,22 @@ class TestDHNetLinkExtraction(object):
             ]
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_dataviz(self):
+        """ dhnet parser can extract link to embedded dataviz from visual.ly"""
+        with open(os.path.join(DATA_ROOT, "embedded_dataviz.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("visual.ly", u"""visual.ly""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("#embed_pos1", u"""La... nymphographie de James Bond !""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/cine-tele/cinema/article/414582/le-nouveau-james-bond-regne-sur-le-box-office-nord-americain.html", u"""Le nouveau James Bond règne sur le box-office nord-américain""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://babescm.blogs.dhnet.be/archive/2012/10/25/son-nom-est-marlohe-berenice-marlohe.html", u"""Son nom est Marlohe, Bérénice Marlohe""", set(['internal', 'sidebar box', 'internal site'])),
+                make_tagged_url("http://www.cinebel.be/fr/", u"""Cinébel, notre site 100% cinéma !""", set(['sidebar box', 'external', 'same owner'])),
+                make_tagged_url("http://visual.ly/james-bond-nymphographic", u"""http://visual.ly/james-bond-nymphographic""", set(['external', 'embedded'])),
+                make_tagged_url("/cine-tele/cinema/article/414582/le-nouveau-james-bond-regne-sur-le-box-office-nord-americain.html", u"""Le nouveau James Bond règne sur le box-office nord-américain""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://www.cinebel.be/fr/", u"""Cinébel, notre site 100% cinéma !""", set(['bottom box', 'external', 'same owner'])),
+                make_tagged_url("http://babescm.blogs.dhnet.be/archive/2012/10/25/son-nom-est-marlohe-berenice-marlohe.html", u"""Son nom est Marlohe, Bérénice Marlohe""", set(['bottom box', 'internal', 'internal site'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
