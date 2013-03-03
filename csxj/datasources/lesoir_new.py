@@ -12,6 +12,7 @@ from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import setup_locales
 from parser_tools import rossel_utils
+from parser_tools.utils import convert_utf8_url_to_ascii
 
 from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
@@ -334,6 +335,7 @@ def extract_article_data(source):
     if hasattr(source, 'read'):
         html_data = source.read()
     else:
+        source = convert_utf8_url_to_ascii(source)
         html_data = fetch_html_content(source)
 
 
@@ -374,16 +376,13 @@ def test_sample_data():
 
 
 if __name__ == '__main__':
-    # _, _, paywalled = get_frontpage_toc()
-    # for p in paywalled:
-    #     print p
-
     urls = ["http://www.lesoir.be/191397/article/culture/cinema/2013-02-16/l%E2%80%99ours-d%E2%80%99or-d%C3%A9cern%C3%A9-au-drame-roumain-%C2%ABchild%E2%80%99s-pose%C2%BB",
     "http://www.lesoir.be/200886/article/actualite/belgique/2013-03-02/didier-reynders-veut-mettre-imams-sous-contr%C3%B4le",
     "http://www.lesoir.be/200800/article/sports/football/2013-03-02/coupe-genk-anderlecht-1-0-apr%C3%A8s-prolongations-direct",
     "http://www.lesoir.be/200395/article/actualite/quiz/2013-03-01/quiz-actu-chiffr%C3%A9-semaine",
     "http://www.lesoir.be/200851/article/actualite/belgique/2013-03-02/budget-pour-andr%C3%A9-antoine-%C2%AB-bons-comptes-font-bons-amis-%C2%BB",
-    "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB"
+    "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB",
+    u'http://www.lesoir.be/94315/article/styles/bien-etre/2012-10-05/des-pommes-100-belges-chez-mcdonald\u2019s'
     ]
     article, html = extract_article_data(urls[-1])
 
@@ -400,20 +399,4 @@ if __name__ == '__main__':
 
     # from csxj.common.tagging import print_taggedURLs
     # print_taggedURLs(article.links)
-
-
-    # toc, blogposts = get_frontpage_toc()
-    # for t, u in toc:
-    #     url = codecs.encode(u, 'utf-8')
-    #     print url
-    #     try:
-    #         extract_article_data(url)
-    #     except Exception as e:
-    #         print "Something went wrong with: ", url
-    #         import traceback
-    #         print traceback.format_exc()
-
-    #     print "************************"
-
-
 
