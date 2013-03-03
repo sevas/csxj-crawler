@@ -69,9 +69,13 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             tagged_url = make_tagged_url(url, title, all_tags | set(['embedded', 'video']))
             return tagged_url
 
+        elif item_div.find('embed') and item_div.find('embed').get('src').startswith("http://www.tvbrussel.be"):
+            tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
+            return tagged_url
+
         elif item_div.find('div', {'class': 'flash_kplayer'}):
             kplayer_flash = item_div.find('div', {'class': 'flash_kplayer'})
-            return extract_kplayer_infos(kplayer_flash, "__NO_TITLE__", site_netloc, site_internal_sites)
+            return extract_kplayer_infos(kplayer_flash, constants.NO_TITLE, site_netloc, site_internal_sites)
 
         #it's a tweet
         elif item_div.find('a', {'class': 'twitter-timeline'}):
@@ -132,6 +136,15 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                         return tagged_url
                 else:
                     raise ValueError("It looks like a Hungarian video but it did not match known patterns")
+
+            elif value.startswith("http://www.sovsport.ru"):
+                if item_div.find("param", {"name": "flashvars"}):
+                    flashvars = item_div.find("param", {"name": "flashvars"})
+                    all_parts = flashvars.get("value")
+                    url = flashvars.get("value").split("url")[-1].split(',')[0].strip('"').lstrip(':"')
+                    all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
+                    return tagged_url
 
             elif value.startswith("http://www.pixule.com"):
                 if container.find("embed"):
@@ -246,6 +259,10 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
                     tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
                     return tagged_url
+            elif item_div.find('script').get('src').startswith('http://cdn-akm.vmixcore.com/'):
+                tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
+                return tagged_url
+                
             else:
                 return media_utils.extract_tagged_url_from_embedded_script(item_div.find('script'), site_netloc, site_internal_sites)      
         else:

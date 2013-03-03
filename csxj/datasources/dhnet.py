@@ -459,50 +459,14 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/societe/article/400147/deux-pattes-suffisent-au-bonheur-de-ce-chat.html",
         "http://www.dhnet.be/sports/jo-2012/article/404259/mais-que-fait-il-au-fond-de-la-piscine.html",
         "http://www.dhnet.be/infos/monde/article/386567/veronique-de-keyser-bachar-el-assad-doit-partir.html",
-        "http://www.dhnet.be/sports/cyclisme/article/411974/rabobank-dans-le-peloton-l-an-prochain-sans-le-nom-de-son-sponsor.html"
+        "http://www.dhnet.be/sports/cyclisme/article/411974/rabobank-dans-le-peloton-l-an-prochain-sans-le-nom-de-son-sponsor.html",
+        "http://www.dhnet.be/infos/faits-divers/article/410926/legear-n-a-pas-minimise-l-accident-mais-ne-maitrise-pas-l-anglais.html",
+        "http://www.dhnet.be/infos/societe/article/417448/la-nasa-revele-le-cote-obscur-de-la-planete.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
 
 
-    urls_from_errors = [
-    "http://www.dhnet.be/sports/diables-rouges/article/411880/le-vlaams-belang-tacle-vincent-kompany.html",
-    "http://www.dhnet.be/infos/faits-divers/article/410926/legear-n-a-pas-minimise-l-accident-mais-ne-maitrise-pas-l-anglais.html",
-    "http://www.dhnet.be/infos/monde/article/411527/felix-baumgartner-a-cru-qu-il-allait-s-evanouir-buzz-reussi-pour-red-bull.html",
-    "http://www.dhnet.be/infos/belgique/article/411773/philippe-moureaux-entre-mepris-et-amertume.html",
-    "http://www.dhnet.be/cine-tele/twizz-radio/article/410897/les-flingueurs-de-l-info-de-twizz-radio-reviendront-sur-l-alimentation.html",
-    "http://www.dhnet.be/sports/football/article/391091/une-equipe-flamande-n-accepte-plus-de-jouer-contre-des-clubs-bruxellois.html",
-    "http://www.dhnet.be/cine-tele/television/article/390910/les-votes-des-coaches-sur-la-sellette.html",
-    "http://www.dhnet.be/sports/football/article/390872/la-ligue-des-champions-tombe-dans-l-escarcelle-de-belgacom-tv.html",
-    "http://www.dhnet.be/sports/edito/article/390759/un-arbitre-qui-en-a.html",
-    "http://www.dhnet.be/infos/faits-divers/article/399047/mactac-un-renvoi-en-correctionnelle.html",
-    "http://www.dhnet.be/people/show-biz/article/391307/ses-seins-ne-lui-servent-plus.html",
-    "http://www.dhnet.be/cine-tele/cinema/article/401289/les-kaira-meme-pas-drole.html",
-    "http://www.dhnet.be/cine-tele/television/article/401580/bref-voici-les-deux-derniers-episodes.html",
-    "http://www.dhnet.be/cine-tele/cinema/article/402072/le-belge-de-chez-pixar.html",
-    "http://www.dhnet.be/people/show-biz/article/413110/olivia-ruiz-veut-de-plus-gros-seins.html",
-    "http://www.dhnet.be/infos/societe/article/412580/le-beluga-qui-imitait-les-humains.html",
-    "http://www.dhnet.be/cine-tele/twizz-radio/article/410897/les-flingueurs-de-l-info-de-twizz-radio-reviendront-sur-les-p-v-de-la-stib.html",
-    "http://www.dhnet.be/cine-tele/twizz-radio/article/410897/quand-les-flingueurs-appellent-bart.html",
-    "http://www.dhnet.be/people/show-biz/article/398936/la-divine-idylle-est-bel-et-bien-terminee.html",
-    "http://www.dhnet.be/people/buzz/article/417129/elle-fait-un-strip-tease-en-plein-metro.html",
-    "http://www.dhnet.be/people/buzz/article/417129/elle-fait-un-strip-tease-en-plein-metro.html",
-    "http://www.dhnet.be/people/buzz/article/417337/quand-les-chiens-apprennent-a-conduire.html",
-    "http://www.dhnet.be/infos/societe/article/417448/la-nasa-revele-le-cote-obscur-de-la-planete.html",
-    "http://www.dhnet.be/cine-tele/cinema/article/402789/un-batman-d-anthologie.html",
-    "http://www.dhnet.be/sports/football/article/380235/le-boxing-day-du-pauvre.html",
-    "http://www.dhnet.be/cine-tele/cinema/article/425802/suivez-la-ceremonie-en-direct-des-21h.html",
-    "http://www.dhnet.be/cine-tele/cinema/article/425492/la-france-est-une-passoire.html",
-    "http://www.dhnet.be/sports/basket/article/425682/podcast-basket-retour-sur-le-transfert-de-walsh.html"]
-
-    for url in urls_from_errors:
-        print url
-        article, html = extract_article_data(url)
-        if article:
-            print "this one works just fine"
-        else:
-            print "404"
-    
     # article, html = extract_article_data(urls[-1])
     # print article.title
     # print article.url
