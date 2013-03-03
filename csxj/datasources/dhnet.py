@@ -324,8 +324,9 @@ def extract_article_data(source):
 
         fetched_datetime = datetime.today()
 
-        # print generate_test_func('video_melty', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_content, source, 'video_melty', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # print generate_test_func('vuvox_collage', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_content, source, 'vuvox_collage', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+       
         # import os
         # generate_unittest("links_embedded_canalplus", "dhnet", dict(urls=updated_tagged_urls), html_content, source, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/dhnet"), True)
 
@@ -455,7 +456,8 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/faits-divers/article/397637/chauffeur-de-la-stib-la-video-de-l-agression.html",
         "http://www.dhnet.be/infos/belgique/article/413443/jan-fabre-agresse-apres-son-lancer-de-chats.html",
         "http://www.dhnet.be/infos/societe/article/381608/le-doigt-glace-de-la-mort-enfin-filme.html",
-        "http://www.dhnet.be/infos/societe/article/400147/deux-pattes-suffisent-au-bonheur-de-ce-chat.html"
+        "http://www.dhnet.be/infos/societe/article/400147/deux-pattes-suffisent-au-bonheur-de-ce-chat.html",
+        "http://www.dhnet.be/sports/jo-2012/article/404259/mais-que-fait-il-au-fond-de-la-piscine.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
@@ -496,15 +498,15 @@ if __name__ == "__main__":
     "http://www.dhnet.be/cine-tele/cinema/article/425492/la-france-est-une-passoire.html",
     "http://www.dhnet.be/sports/basket/article/425682/podcast-basket-retour-sur-le-transfert-de-walsh.html"]
 
-    for url in urls_from_errors:
-        print url
-        article, html = extract_article_data(url)
-        if article:
-            print "this one works just fine"
-        else:
-            print "404"
+    # for url in urls_from_errors:
+    #     print url
+    #     article, html = extract_article_data(url)
+    #     if article:
+    #         print "this one works just fine"
+    #     else:
+    #         print "404"
     
-    # article, html = extract_article_data(urls[-1])
+    article, html = extract_article_data(urls[-1])
     # print article.title
     # print article.url
     # print "°°°°°°°°°°°°°°°°°°°°"

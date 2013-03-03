@@ -554,6 +554,28 @@ class TestDHNetLinkExtraction(object):
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_vuvox_collage(self):
+        """ dhnet parser can extract weird multimedia thingy"""
+        with open(os.path.join(DATA_ROOT, "vuvox_collage.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Vidéo : Comment prendre des photos au fond de la piscine ?""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/sports/jo-2012/article/404241/le-relais-4x400-se-fait-peur-mais-va-en-finale.html", u"""Le relais 4X400 se fait peur mais va en finale""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/jo-2012/article/404250/les-footballeuses-nippones-vont-elles-gagner-la-classe-affaires.html", u"""Les footballeuses nippones vont-elles gagner la classe affaires ?""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/jo-2012/article/404247/usa-argentine-et-espagne-russie-en-demi-finales.html", u"""USA-Argentine et Espagne-Russie en demi-finales""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/jo-2012/article/404242/notre-succes-est-du-a-nos-bikinis.html", u"""Notre succès est dû à nos bikinis""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/jo-2012/article/404188/une-beaute-haut-perchee.html", u"""Une beauté haut perchée""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.vuvox.com/collage_express/collage.swf?collageID=05bf5f41ae", u"""Vidéo : Comment prendre des photos au fond de la piscine ?""", set(['external', 'embedded'])),
+                make_tagged_url("/sports/jo-2012/article/404241/le-relais-4x400-se-fait-peur-mais-va-en-finale.html", u"""Le relais 4X400 se fait peur mais va en finale""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/jo-2012/article/404250/les-footballeuses-nippones-vont-elles-gagner-la-classe-affaires.html", u"""Les footballeuses nippones vont-elles gagner la classe affaires ?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/jo-2012/article/404247/usa-argentine-et-espagne-russie-en-demi-finales.html", u"""USA-Argentine et Espagne-Russie en demi-finales""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/jo-2012/article/404242/notre-succes-est-du-a-nos-bikinis.html", u"""Notre succès est dû à nos bikinis""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/jo-2012/article/404188/une-beaute-haut-perchee.html", u"""Une beauté haut perchée""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
     def test_embedded_dataviz(self):
         """ dhnet parser can extract link to embedded dataviz from visual.ly"""
         with open(os.path.join(DATA_ROOT, "embedded_dataviz.html")) as f:
