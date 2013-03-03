@@ -35,9 +35,9 @@ def fetch_rss_content(url):
 
 emoji_massage = [(re.compile(r'&#\d\d\d\d\d\d*;'), lambda match: "__AN_EMOJI_WAS_HERE__")]
 
-def make_soup_from_html_content(html_content, convert_entities=True):
+def make_soup_from_html_content(html_content, convert_entities=True, additional_massage_functions=[]):
     if convert_entities:
-        return BeautifulSoup(html_content, convertEntities=BeautifulSoup.ALL_ENTITIES, markupMassage=emoji_massage+BeautifulSoup.MARKUP_MASSAGE)
+        return BeautifulSoup(html_content, convertEntities=BeautifulSoup.HTML_ENTITIES, markupMassage=emoji_massage + additional_massage_functions + BeautifulSoup.MARKUP_MASSAGE)
     else:
         return BeautifulSoup(html_content)
 
