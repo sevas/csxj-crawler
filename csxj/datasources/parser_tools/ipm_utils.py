@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from csxj.common.tagging import classify_and_tag, make_tagged_url
-from utils import remove_text_formatting_markup_from_fragments
+from utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments, extract_plaintext_urls_from_text
 import media_utils
 
 IPM_SAME_OWNER = [
@@ -95,7 +95,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 else:
                     raise ValueError("It looks like a Hungarian video but it did not match known patterns")
             
-            if value.startswith("http://www.pixule.com"):
+            elif value.startswith("http://www.pixule.com"):
                 if container.find("embed"):
                     url = container.find("embed").get("src")
                     all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
@@ -104,7 +104,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 else:
                     raise ValueError("It looks like a Pixule poll  but it did not match known patterns")
 
-            if value.startswith("http://vocaroo.com"):
+            elif value.startswith("http://vocaroo.com"):
                 if container.find("embed"):
                     url = container.find("embed").get("src")
                     all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
@@ -113,7 +113,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 else:
                     raise ValueError("It looks like a Voocaroo audio clip but it did not match known patterns")
 
-            if value.startswith("http://www.wat.tv"):
+            elif value.startswith("http://www.wat.tv"):
                 if item_div.find("div", {'class': 'watlinks'}):
                     watlinks = item_div.find("div", {'class': "watlinks"})
                     url = watlinks.find('a').get('href')
@@ -125,7 +125,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     raise ValueError("It looks like a wat.tv video but it did not match known patterns")
 
 
-            if value.startswith("http://c.brightcove.com"):
+            elif value.startswith("http://c.brightcove.com"):
                 if item_div.find("param", {"name": "flashVars"}):
                     flashvars = item_div.find("param", {"name": "flashVars"})
                     all_parts = flashvars.get("value")
@@ -138,7 +138,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     return tagged_url
                 else:
                     raise ValueError("It looks like a Brightcove video but it did not match known patterns")
-            
+
             else:
                 raise ValueError("There seems to be a hungarian video or something but it didn't match known patterns")
 
@@ -146,7 +146,18 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             # try to detect a <script>
             return media_utils.extract_tagged_url_from_embedded_script(item_div.find('script'), site_netloc, site_internal_sites)
         else:
-            raise ValueError("Unknown media type with class: {0}. Update the parser.".format(item_div.get('class')))
+            def test_for_plaintext_url(embed_contents):
+                fragment = remove_text_formatting_and_links_from_fragments(embed_contents)
+                url = extract_plaintext_urls_from_text(fragment)
+                return url
+            if test_for_plaintext_url(item_div):
+                url = test_for_plaintext_url(item_div)[0]
+                all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'plaintext']))
+                return tagged_url
+
+            else:
+                raise ValueError("Unknown media type with class: {0}. Update the parser.".format(item_div.get('class')))
 
 
 def extract_tagged_url_from_associated_link(link_list_item, netloc, associated_sites, additional_tags=[]):

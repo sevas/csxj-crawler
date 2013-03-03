@@ -315,8 +315,8 @@ def extract_article_data(source):
 
         fetched_datetime = datetime.today()
 
-        # print generate_test_func('embedded_brightcove_video', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_content, source, 'embedded_brightcove_video', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # print generate_test_func('embedded_plaintext_links', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_content, source, 'embedded_plaintext_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
 
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -432,7 +432,9 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/belgique/article/388466/les-cigarette-plus-cheres-de-dix-centimes-la-solution-de-facilite.html",
         "http://www.dhnet.be/infos/faits-divers/article/388821/le-rapatriement-des-enfants-et-des-familles-a-commence.html",
         "http://www.dhnet.be/people/show-biz/article/417202/alizee-revienten-soutif.html",
-        "http://www.dhnet.be/infos/monde/article/421061/un-anti-mariage-gay-compare-hollande-a-hitler.html"
+        "http://www.dhnet.be/infos/monde/article/421061/un-anti-mariage-gay-compare-hollande-a-hitler.html",
+        "http://www.dhnet.be/infos/monde/article/378171/la-video-de-surveillance-de-dsk-quittant-le-sofitel-devoilee.html",
+        "http://www.dhnet.be/infos/belgique/article/388466/les-cigarette-plus-cheres-de-dix-centimes-la-solution-de-facilite.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs

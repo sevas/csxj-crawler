@@ -379,6 +379,22 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_embedded_plaintext_links(self):
+        """ dhnet parser can extract embedded plaintext links (yeah, wtf, exactly)"""
+        with open(os.path.join(DATA_ROOT, "embedded_plaintext_links.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""SONDAGES: votre avis sur les principales mesures prises par le gouvernement""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos2", u"""Dix centimes en plus par paquet de cigarettes !""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.dhnet.be/infos/belgique/article/388448/sondages-votre-avis-sur-les-principales-mesures-prises-par-le-gouvernement.html", u"""http://www.dhnet.be/infos/belgique/article/388448/sondages-votre-avis-sur-les-principales-mesures-prises-par-le-gouvernement.html""", set(['plaintext', 'internal', 'embedded'])),
+                make_tagged_url("http://www.dhnet.be/infos/economie/article/388380/dix-centimes-en-plus-par-paquet-de-cigarettes.html", u"""http://www.dhnet.be/infos/economie/article/388380/dix-centimes-en-plus-par-paquet-de-cigarettes.html""", set(['plaintext', 'internal', 'embedded'])),
+                make_tagged_url("/infos/belgique/article/388496/energie-60-euros-d-economie-sur-votre-facture.html", u"""Energie: 60 euros d'économie sur votre facture ?""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
 
     def test_embedded_tweet_bottom(self):
         """ dhnet parser can extract rendered embedded tweets at the bottom of articles"""
