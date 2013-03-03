@@ -94,8 +94,14 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
         elif item_div.object:
             container = item_div.object
             value = container.find("param", {"name": "movie"}).get('value')
+            
+            if item_div.find('object', {'id': 'streamplayer'}):
+                url = container.find("param", {"name": "flashvars"}).get('value').split("=")[1]
+                all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'audio']))
+                return tagged_url
 
-            if value.startswith("http://www.youtube.com"):
+            elif value.startswith("http://www.youtube.com"):
                 url = value
                 all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
                 tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))

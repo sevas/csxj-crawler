@@ -324,8 +324,8 @@ def extract_article_data(source):
 
         fetched_datetime = datetime.today()
 
-        # print generate_test_func('soundcloud', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_content, source, 'soundcloud', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # print generate_test_func('twizz_stream', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_content, source, 'twizz_stream', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
        
         # import os
         # generate_unittest("links_embedded_canalplus", "dhnet", dict(urls=updated_tagged_urls), html_content, source, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/dhnet"), True)
@@ -458,18 +458,14 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/societe/article/381608/le-doigt-glace-de-la-mort-enfin-filme.html",
         "http://www.dhnet.be/infos/societe/article/400147/deux-pattes-suffisent-au-bonheur-de-ce-chat.html",
         "http://www.dhnet.be/sports/jo-2012/article/404259/mais-que-fait-il-au-fond-de-la-piscine.html",
-        "http://www.dhnet.be/infos/monde/article/386567/veronique-de-keyser-bachar-el-assad-doit-partir.html"
+        "http://www.dhnet.be/infos/monde/article/386567/veronique-de-keyser-bachar-el-assad-doit-partir.html",
+        "http://www.dhnet.be/sports/cyclisme/article/411974/rabobank-dans-le-peloton-l-an-prochain-sans-le-nom-de-son-sponsor.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
 
 
     urls_from_errors = [
-    "http://www.dhnet.be/sports/jo-2012/article/404259/mais-que-fait-il-au-fond-de-la-piscine.html",
-    "http://www.dhnet.be/infos/monde/article/386567/veronique-de-keyser-bachar-el-assad-doit-partir.html",
-    "http://www.dhnet.be/sports/standard/article/386151/benteke-et-la-dictature-du-standard.html",
-    "http://www.dhnet.be/sports/standard/article/386151/benteke-et-la-dictature-du-standard.html",
-    "http://www.dhnet.be/sports/cyclisme/article/411974/rabobank-dans-le-peloton-l-an-prochain-sans-le-nom-de-son-sponsor.html",
     "http://www.dhnet.be/sports/diables-rouges/article/411880/le-vlaams-belang-tacle-vincent-kompany.html",
     "http://www.dhnet.be/infos/faits-divers/article/410926/legear-n-a-pas-minimise-l-accident-mais-ne-maitrise-pas-l-anglais.html",
     "http://www.dhnet.be/infos/monde/article/411527/felix-baumgartner-a-cru-qu-il-allait-s-evanouir-buzz-reussi-pour-red-bull.html",
@@ -499,15 +495,15 @@ if __name__ == "__main__":
     "http://www.dhnet.be/cine-tele/cinema/article/425492/la-france-est-une-passoire.html",
     "http://www.dhnet.be/sports/basket/article/425682/podcast-basket-retour-sur-le-transfert-de-walsh.html"]
 
-    # for url in urls_from_errors:
-    #     print url
-    #     article, html = extract_article_data(url)
-    #     if article:
-    #         print "this one works just fine"
-    #     else:
-    #         print "404"
+    for url in urls_from_errors:
+        print url
+        article, html = extract_article_data(url)
+        if article:
+            print "this one works just fine"
+        else:
+            print "404"
     
-    article, html = extract_article_data(urls[-1])
+    # article, html = extract_article_data(urls[-1])
     # print article.title
     # print article.url
     # print "°°°°°°°°°°°°°°°°°°°°"
@@ -515,7 +511,7 @@ if __name__ == "__main__":
     #     print link.title
     #     print link.URL
     #     print link.tags
-        # print "°°°°°°°°°°°°°°°°°°°°"
+    #     print "°°°°°°°°°°°°°°°°°°°°"
 
     # from pprint import pprint
     # print_taggedURLs(article.links)

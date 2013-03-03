@@ -609,3 +609,35 @@ class TestDHNetLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+    def test_twizz_stream(self):
+        """ dhnet parser can extract embedded twizz streaming and many other links"""
+        with open(os.path.join(DATA_ROOT, "twizz_stream.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u'''Chattez en direct avec les flingueurs de Twizz radio qui reviendront sur le sujet entre 17h et 18h''', set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/sports/cyclisme/article/412016/gesink-rabobank-c-est-nous-qui-payons-la-note.html", u'''Gesink (Rabobank): "c'est nous qui payons la note"''', set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/cyclisme/article/411925/rabobank-suspend-carlos-barredo.html", u'''Rabobank suspend Carlos Barredo''', set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/cyclisme/article/411910/vantomme-quitte-katusha-pour-rejoindre-landbouwkrediet-euphony.html", u'''Vantomme quitte Katusha pour rejoindre Landbouwkrediet-Euphony''', set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/cyclisme/article/411893/le-dr-ferrari-reseau-de-dopage-blanchiment-d-argent-et-evasion-fiscale.html", u'''Le Dr Ferrari: réseau de dopage, blanchiment d'argent et évasion fiscale''', set(['internal', 'sidebar box'])),
+                make_tagged_url("http://embed.scribblelive.com/Embed/v5.aspx?Id=65567&ThemeId=7116", u'''http://embed.scribblelive.com/Embed/v5.aspx?Id=65567&ThemeId=7116''', set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("http://vipicecast.yacast.net/twizz", u"""http://vipicecast.yacast.net/twizz""", set(['audio', 'external', 'embedded'])),
+                make_tagged_url("/sports/cyclisme/article/411963/cavendish-boonen-tandem-de-choc-au-tour.html", u"""Cavendish-Boonen,  tandem de choc au Tour""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411809/apres-nike-et-anheuser-busch-trek-quitte-aussi-le-navire-armstrong.html", u"""Après Nike et Anheuser-Busch, Trek quitte aussi le navire Armstrong""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411912/cavendish-rejoint-omega-pharma-quickstep.html", u"""Cavendish rejoint Omega Pharma-Quick.Step""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411929/cavendish-je-suis-content-de-rouler-pour-omega-pharma-quickstep.html", u'''Cavendish: "Je suis content de rouler pour Omega Pharma-Quick.Step"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411928/guercilena-succede-a-bruyneel-chez-radioshack.html", u"""Guercilena succède à Bruyneel chez RadioShack""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411865/hein-verbruggen-continue-a-soutenir-lance-armstrong.html", u"""Hein Verbruggen continue à soutenir Lance Armstrong""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411893/le-dr-ferrari-reseau-de-dopage-blanchiment-d-argent-et-evasion-fiscale.html", u"""Le Dr Ferrari: réseau de dopage, blanchiment d'argent et évasion fiscale""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411925/rabobank-suspend-carlos-barredo.html", u"""Rabobank suspend Carlos Barredo""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411910/vantomme-quitte-katusha-pour-rejoindre-landbouwkrediet-euphony.html", u"""Vantomme quitte Katusha pour rejoindre Landbouwkrediet-Euphony""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/412016/gesink-rabobank-c-est-nous-qui-payons-la-note.html", u'''Gesink (Rabobank): "c'est nous qui payons la note"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/412040/l-uci-se-prononcera-lundi-sur-le-dossier-armstrong.html", u"""L'UCI se prononcera lundi sur le dossier Armstrong""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/412044/la-loterie-nationale-poursuit-son-partenariat-dans-le-cyclisme.html", u"""La Loterie nationale poursuit son partenariat dans le cyclisme""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/412045/decouverte-de-preuves-reliant-ferrari-a-menchov-et-scarponi.html", u"""Découverte de preuves reliant Ferrari à Menchov et Scarponi""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/412132/jamais-le-test-d-armstrong-de-2001-ne-serait-positif.html", u""""Jamais" le test d'Armstrong de 2001 ne serait positif""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
