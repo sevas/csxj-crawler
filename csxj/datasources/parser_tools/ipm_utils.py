@@ -62,6 +62,13 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             kplayer_flash = kplayer.find('div', {'class': 'flash_kplayer'})
             return extract_kplayer_infos(kplayer_flash, title, site_netloc, site_internal_sites)
 
+        elif item_div.find('embed') and item_div.find('embed').get('src').startswith("http://www.divertissonsnous.com"):
+            url = item_div.div.find('a').get('href')
+            title = item_div.div.find('a').contents[0]
+            all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+            tagged_url = make_tagged_url(url, title, all_tags | set(['embedded', 'video']))
+            return tagged_url
+
         elif item_div.find('div', {'class': 'flash_kplayer'}):
             kplayer_flash = item_div.find('div', {'class': 'flash_kplayer'})
             return extract_kplayer_infos(kplayer_flash, "__NO_TITLE__", site_netloc, site_internal_sites)
@@ -210,8 +217,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
                     return tagged_url
             else:
-                return media_utils.extract_tagged_url_from_embedded_script(item_div.find('script'), site_netloc, site_internal_sites)
-        
+                return media_utils.extract_tagged_url_from_embedded_script(item_div.find('script'), site_netloc, site_internal_sites)      
         else:
             def test_for_plaintext_url(embed_contents):
                 fragment = remove_text_formatting_and_links_from_fragments(embed_contents)
