@@ -315,8 +315,8 @@ def extract_article_data(source):
 
         fetched_datetime = datetime.today()
 
-        # print generate_test_func('other_embedded_video_type', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_content, source, 'other_embedded_video_type', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # print generate_test_func('embedded_brightcove_video', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_content, source, 'embedded_brightcove_video', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
 
 
         new_article = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
@@ -431,20 +431,21 @@ if __name__ == "__main__":
         "http://www.dhnet.be/sports/omnisports/article/409542/colsaerts-ecrase-tiger-woods.html",
         "http://www.dhnet.be/infos/belgique/article/388466/les-cigarette-plus-cheres-de-dix-centimes-la-solution-de-facilite.html",
         "http://www.dhnet.be/infos/faits-divers/article/388821/le-rapatriement-des-enfants-et-des-familles-a-commence.html",
-        "http://www.dhnet.be/people/show-biz/article/417202/alizee-revienten-soutif.html"
+        "http://www.dhnet.be/people/show-biz/article/417202/alizee-revienten-soutif.html",
+        "http://www.dhnet.be/infos/monde/article/421061/un-anti-mariage-gay-compare-hollande-a-hitler.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
 
     article, html = extract_article_data(urls[-1])
-    print article.title
-    print article.url
-    print "°°°°°°°°°°°°°°°°°°°°"
-    for link in article.links:
-        print link.title
-        print link.URL
-        print link.tags
-        print "°°°°°°°°°°°°°°°°°°°°"
+    # print article.title
+    # print article.url
+    # print "°°°°°°°°°°°°°°°°°°°°"
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "°°°°°°°°°°°°°°°°°°°°"
 
     # from pprint import pprint
     # print_taggedURLs(article.links)

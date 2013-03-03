@@ -65,7 +65,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             return tagged_url
 
 
-        # it might be a hungarian video
+        # it might be a hungarian video, or any other type of player
         elif item_div.object:
             container = item_div.object
             value = container.contents[0].get('value')
@@ -121,10 +121,24 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
                     tagged_url = make_tagged_url(url, title, all_tags | set(['embedded', 'video']))
                     return tagged_url
-
                 else:
                     raise ValueError("It looks like a wat.tv video but it did not match known patterns")
 
+
+            if value.startswith("http://c.brightcove.com"):
+                if item_div.find("param", {"name": "flashVars"}):
+                    flashvars = item_div.find("param", {"name": "flashVars"})
+                    all_parts = flashvars.get("value")
+                    part3 = all_parts.split("videoId=")[1].split("&playerID=")[0]
+                    part1 = all_parts.split("videoId=")[1].split("&playerID=")[1].split("&playerKey=")[0]
+                    part2 = all_parts.split("videoId=")[1].split("&playerID=")[1].split("&playerKey=")[1].split("&domain=embed")[0]
+                    url = "http://link.brightcove.com/services/player/bcpid{0}?bckey={1}&bctid={2}" .format(part1, part2, part3)
+                    all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
+                    return tagged_url
+                else:
+                    raise ValueError("It looks like a Brightcove video but it did not match known patterns")
+            
             else:
                 raise ValueError("There seems to be a hungarian video or something but it didn't match known patterns")
 
@@ -199,7 +213,7 @@ def extract_embedded_audio_links(main_content, netloc, associated_sites):
                 source_url = media_utils.extract_source_url_from_dewplayer(data_url)
                 title = item.text
                 tags = classify_and_tag(source_url, netloc, associated_sites)
-                tags |= set(['sidebar box', 'audio', 'embedded',])
+                tags |= set(['sidebar box', 'audio', 'embedded'])
                 tagged_url = make_tagged_url(source_url, title, tags)
                 tagged_urls.append(tagged_url)
             else:

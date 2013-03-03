@@ -359,6 +359,27 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_embedded_brightcove_video(self):
+        """ dhnet parser can extract embedded brightcove video"""
+        with open(os.path.join(DATA_ROOT, "embedded_brightcove_video.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Regardez la boulette de  Xavier Bongibault.""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos2", u"""Xavier Bongibault présente ses excuses @bfmtv""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/infos/monde/article/421044/des-centaines-de-milliers-de-manifestants-contre-le-mariage-gay.html", u"""Des centaines de milliers de manifestants contre le mariage gay""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/manifantimariagegay/01.jpg/", u"""Les manifs contre le mariage gay""", set(['sidebar box', 'internal', 'image gallery', 'internal site'])),
+                make_tagged_url("http://link.brightcove.com/services/player/bcpid1027556707001?bckey=AQ~~,AAAAzBCG-1E~,ZmNCmEZClj4eQ1WsLf_mGl_Pmb90_E4h&bctid=2090284983001", u"""http://link.brightcove.com/services/player/bcpid1027556707001?bckey=AQ~~,AAAAzBCG-1E~,ZmNCmEZClj4eQ1WsLf_mGl_Pmb90_E4h&bctid=2090284983001""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://www.dailymotion.com/embed/video/xwq838", u"""http://www.dailymotion.com/embed/video/xwq838""", set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("/infos/monde/article/421044/des-centaines-de-milliers-de-manifestants-contre-le-mariage-gay.html", u"""Des centaines de milliers de manifestants contre le mariage gay""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/421154/mariage-gay-di-rupo-est-fier-de-la-modernite-de-la-belgique.html", u"""Mariage gay: Di Rupo est "fier de la modernité" de la Belgique""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/421973/francois-hollande-va-recevoir-les-opposants-au-mariage-homo.html", u"""François Hollande va recevoir les opposants au mariage homo""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/manifantimariagegay/01.jpg/", u"""Les manifs contre le mariage gay""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
     def test_embedded_tweet_bottom(self):
         """ dhnet parser can extract rendered embedded tweets at the bottom of articles"""
         with open(os.path.join(DATA_ROOT, "embedded_tweet_bottom.html")) as f:
