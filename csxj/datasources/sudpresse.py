@@ -1,14 +1,15 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 
 from datetime import datetime, date, time
 from itertools import chain
 import urllib
-from BeautifulSoup import Tag, NavigableString
+import re
+import BeautifulSoup as bs
 from parser_tools.utils import make_soup_from_html_content, fetch_content_from_url, fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text
 from parser_tools.utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments
 from parser_tools.utils import setup_locales
-from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls, print_taggedURLs
 from csxj.db.article import ArticleData
 
 from parser_tools import rossel_utils
@@ -70,7 +71,7 @@ def extract_author_name(article):
 
 def extract_text_and_links_from_paragraph(paragraph):
     def extract_url_and_title(link):
-        if isinstance(link.contents[0], Tag):
+        if isinstance(link.contents[0], bs.Tag):
             if link.contents[0].name == 'img':
                 img_target = link.contents[0].get('src')
                 return link.get('href'), '(img){0}'.format(img_target)
@@ -91,7 +92,6 @@ def extract_text_and_links_from_paragraph(paragraph):
         tags = classify_and_tag(url, SUDPRESSE_OWN_NETLOC, SUDPRESSE_INTERNAL_SITES)
         tags.update(['in text'])
         tagged_urls.append(make_tagged_url(url, title, tags))
-
 
     text_fragments = paragraph.contents
 
@@ -191,6 +191,14 @@ def is_page_error_404(soup):
     return soup.head.title.contents[0] == '404'
 
 
+coveritlive_title_massage_functions = [
+    (re.compile(r'd&#233cembre'), lambda match: "d&#233;cembre"),
+    (re.compile(r'l&#39Euro'), lambda match: "l&#39;Euro"),
+    (re.compile(r'journ&#233e'), lambda match: "journ&#233;e"),
+    (re.compile(r'S&#233bastien'), lambda match: "S&#233;bastien"),
+]
+
+
 def extract_article_data(source):
     """
     """
@@ -199,7 +207,7 @@ def extract_article_data(source):
     else:
         html_content = fetch_html_content(source)
 
-    soup = make_soup_from_html_content(html_content)
+    soup = make_soup_from_html_content(html_content, additional_massage_functions=coveritlive_title_massage_functions)
 
     if is_page_error_404(soup):
         return None, html_content
@@ -371,28 +379,42 @@ def show_frontpage_articles():
 
 
 def test_sample_data():
-    filepath = '../../sample_data/sudpresse_some_error.html'
-    filepath = '../../sample_data/sudpresse_associated_link_error.html'
-    filepath = "/Volumes/Curst/json_db_0_5/sudpresse/2012-01-09/11.05.13/raw_data/0.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_noTitle.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_noTitle2.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_same_owner.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_associated_link_error.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_live_article.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_erreur1.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_true_plaintext.html"
-    filepath = "../../sample_data/sudpresse/sudpresse_fake_plaintext.html"
-    filepath = "../../tests/datasources/test_data/sudpresse/intext_links_tagging.html"
-    with open(filepath) as f:
-        article_data, raw = extract_article_data(f)
-        print article_data.content
+    fpaths = [
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2012-01-08/17.06.41/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2012-01-09/14.05.14/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2012-01-09/16.05.13/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2012-01-09/11.05.13/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2012-01-09/15.05.14/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-15/17.05.26/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-15/22.05.29/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-15/20.05.26/raw_data/9.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-15/19.05.26/raw_data/9.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-15/23.05.27/raw_data/4.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-15/21.05.27/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-02/19.05.32/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-02/15.05.28/raw_data/8.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-16/12.05.33/raw_data/10.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-16/13.05.42/raw_data/0.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-16/01.05.31/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-16/16.05.10/raw_data/16.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-21/13.05.07/raw_data/8.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-21/08.05.06/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-21/07.05.07/raw_data/17.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-21/15.05.06/raw_data/11.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-23/09.05.09/raw_data/3.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-22/08.05.06/raw_data/5.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-22/07.05.06/raw_data/7.html",
+"/Volumes/Curst/csxj/json_db_wtf_sudpresse/sudpresse/2011-12-22/07.05.06/raw_data/7.html",
+"/Volumes/Curst/csxj/json_db_wtf_sudpresse/sudpresse/2011-12-21/07.05.07/raw_data/17.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-22/12.05.07/raw_data/1.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-22/16.05.13/raw_data/15.html",
+"/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2011-12-22/10.05.14/raw_data/1.html",
+    ]
 
-        for link in article_data.links:
-            print link.URL
-            print link.title
-            print link.tags
-            print "**********************"
+    for fpath in fpaths:
+        with open(fpath, 'r') as f:
+            article_data, raw = extract_article_data(f)
+            print_taggedURLs(article_data.links)
 
 
 def download_one_article():
