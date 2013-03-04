@@ -1,10 +1,23 @@
 import itertools as it
 import json
-from pprint import pprint
 
 from csxj.db import Provider, get_all_provider_names
 from csxj.db import ErrorLogEntry, ErrorLogEntry2
-from csxj.datasources import lesoir, lalibre, dhnet, sudinfo, rtlinfo, lavenir, rtbfinfo, levif, septsursept, sudpresse
+from csxj.datasources import lesoir, lalibre, dhnet, sudinfo, rtlinfo, lavenir, rtbfinfo, levif, septsursept, sudpresse, lesoir_new
+
+NAME_TO_SOURCE_MODULE_MAPPING = {
+    'lesoir': lesoir,
+    'lalibre': lalibre,
+    'dhnet': dhnet,
+    'sudinfo': sudinfo,
+    'rtlinfo': rtlinfo,
+    'lavenir': lavenir,
+    'rtbfinfo': rtbfinfo,
+    'levif': levif,
+    'septsursept': septsursept,
+    'sudpresse': sudpresse,
+    'lesoir_new': lesoir_new
+}
 
 
 def filter_identical_ErrorLogEntries(entries):
@@ -63,9 +76,6 @@ def list_errors(db_root, outfile, source_list):
                         print u"+++ [{0}] {1}   ({2})".format(new_item[0], new_item[1][1], new_item[1][0])
                         all_errors[source_name].append(new_item)
                         source_parser = NAME_TO_SOURCE_MODULE_MAPPING[source_name]
-                        print "*** Reprocessing: {0})".format(e.url)
-                        article_data, html = source_parser.extract_article_data(e.url)
-                        article_data.print_summary()
 
         res[source_name] = error_count
 
@@ -75,7 +85,7 @@ def list_errors(db_root, outfile, source_list):
         print "{0}: Had {1} errors".format(name, len(all_errors[name]))
 
     with open(outfile, 'w') as f:
-            json.dump(all_errors, f, indent=2)
+        json.dump(all_errors, f, indent=2)
 
 
 def main(db_root, outfile, source_list):
