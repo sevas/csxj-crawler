@@ -106,7 +106,13 @@ def get_frontpage_toc():
 def extract_title(soup):
     # trouver le titre
     main_content = soup.find(attrs={"id": "main-content"})
-    title = main_content.find("h1").contents[0]
+    # print soup.find(attrs={"id": "main-content"}).find("h2")
+    # print soup.find("div", {"class": "article-content"}).find("h2")
+    # print soup.find(attrs={"class": "meta"}).previous_sibling.previous_sibling
+    if main_content.find("h1"):
+        title = main_content.find("h1").contents[0]
+    else :
+        title = main_content.find("h2").contents[0]
     return title
 
 
@@ -358,8 +364,8 @@ def extract_article_data(source):
 
     updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
-    # print generate_test_func('kplayer_without_title', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
-    # save_sample_data_file(html_data, source, 'kplayer_without_title', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+    # print generate_test_func('title_extraction', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
+    # save_sample_data_file(html_data, source, 'title_extraction', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
 
     return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                 updated_tagged_urls,
@@ -392,13 +398,15 @@ if __name__ == '__main__':
     urls_from_errors = [
     "http://www.lesoir.be/91986/article/actualite/regions/namur-luxembourg/2012-10-02/saucisson-d\u2019ardenne-une-victoire-face-\u00e0-flandre",
     "http://www.lesoir.be/79210/article/actualite/belgique/2012-08-30/naissance-d-un-panda-roux-\u00e0-planckendael",
-    "http://www.lesoir.be/91398/article/actualite/petite-gazette/2012-10-01/jean-paul-belmondo-fin-d\u2019une-dr\u00f4le-love-story"]
+    "http://www.lesoir.be/91398/article/actualite/petite-gazette/2012-10-01/jean-paul-belmondo-fin-d\u2019une-dr\u00f4le-love-story",
+    "http://www.lesoir.be/91671/article/actualite/belgique/2012-10-02/technologies-haut-vol-voitures",
+    "http://www.lesoir.be/202046/article/actualite/monde/2013-03-04/berlusconi-%C2%ABau-c%C5%93ur-d%E2%80%99un-syst%C3%A8me-prostitution%C2%BB"]
 
     article, html = extract_article_data(urls_from_errors[-1])
 
-    # print article.title
-    # print article.intro
-    # print article.content
+    print [article.title]
+    print article.intro
+    print article.content
 
     # for link in article.links:
     #     print link.title

@@ -38,7 +38,11 @@ class TestLeSoirNewContentExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
+    def test_title_extraction(self):
+        with open(os.path.join(DATA_ROOT, "title_extraction.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            expected_title = u'Technologies de haut vol (de voitures)'
+            eq_(article.title, expected_title)
 
 
 class TestLaSoirNewLinkExtraction(object):

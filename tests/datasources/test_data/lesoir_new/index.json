@@ -23,6 +23,10 @@
     [
       "http://www.lesoir.be/91398/article/actualite/petite-gazette/2012-10-01/jean-paul-belmondo-fin-d\\u2019une-dr\\u00f4le-love-story", 
       "kplayer_without_title.html"
+    ], 
+    [
+      "http://www.lesoir.be/91671/article/actualite/belgique/2012-10-02/technologies-haut-vol-voitures", 
+      "title_extraction.html"
     ]
   ]
 }
