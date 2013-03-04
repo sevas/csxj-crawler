@@ -266,6 +266,7 @@ class ArticleQueueDownloader(object):
         for i, error in enumerate(errors):
             url, _, _ = error
             try:
+                url = convert_utf8_url_to_ascii(url)
                 html_content = fetch_html_content(url)
                 raw_data.append((url, html_content))
             except:
