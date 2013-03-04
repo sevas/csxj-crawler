@@ -46,7 +46,8 @@ def extract_url_and_title(bslink):
 BLACKLIST = ["http://www.tvbrussel.be",
             "http://video.belga.be",
             "http://s0.videopress.com",
-            "http://c.brightcove.com"]
+            "http://c.brightcove.com",
+            "http://francoishollande.fr"]
 
 def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_sites):
     if item_div.iframe:
@@ -88,6 +89,11 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 return tagged_url
             else:
                 raise ValueError("Unknowned <embed> item")
+
+        elif item_div.find("embed") and item_div.find("embed").get("src").startswith("http://francoishollande.fr"):
+            #example: http://www.lalibre.be/actu/international/article/730160/tous-les-outils-sont-bons-pour-les-candidats.html
+            tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
+            return tagged_url
 
         elif item_div.object:
             container = item_div.object
@@ -188,7 +194,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     flashvars = item_div.find("param", {"name": "flashVars"})
                     all_parts = flashvars.get("value")
                     parsed_flashvars = all_parts.split('&')
-                    
+
                     d = dict()
                     for var in parsed_flashvars:
                         splitted = var.split('=')
@@ -219,7 +225,10 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
 
             elif value.startswith("http://www.vuvox.com"):
                 url = value
-                title = item_div.div.contents[0]
+                if item_div.div:
+                    title = item_div.div.contents[0]
+                else:
+                    title = url
                 all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
                 tagged_url = make_tagged_url(url, title, all_tags | set(['embedded']))
                 return tagged_url
@@ -246,7 +255,20 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
                 return tagged_url
 
+            elif value.startswith("http://www.cea.fr"):
+                #example : http://www.lalibre.be/actu/international/article/731592/indonesie-seisme-de-87-et-alerte-au-tsunami.html
+                tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
+                return tagged_url
 
+            elif value.startswith("http://i.cdn.turner.com"):
+                # example : http://www.lalibre.be/sports/golf/article/765908/colsaerts-de-plus-en-plus-present-sur-le-circuit-americain.html
+                tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
+                return tagged_url
+            
+            elif value.startswith("http://embed.5min.com/"):
+                # example : http://www.lalibre.be/actu/international/article/752119/romney-l-homme-de-nulle-part-s-egare-avec-sa-gaffe-sur-les-jeux.html
+                tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
+                return tagged_url
             else:
                 raise ValueError("There seems to be a hungarian video or something but it didn't match known patterns")
 
@@ -305,7 +327,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
 
             elif item_div.img:
                 return None
-            
+
             else:
                 raise ValueError("Unknown media type with class: {0}. Update the parser.".format(item_div.get('class')))
 

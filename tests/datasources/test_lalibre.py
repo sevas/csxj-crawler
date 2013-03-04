@@ -321,6 +321,26 @@ class TestLalibreLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
 
+    def test_vuvox_without_title(self):
+        """ lalibre parser extracts embedded vuvox objects without title"""
+        with open(os.path.join(DATA_ROOT, "vuvox_without_title.html")) as f:
+            article, raw_html = lalibre.extract_article_data(f)
+            extracted_links = article.links
+            updated_tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Vidéo : Comment prendre des photos au fond de la piscine ?""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/sports/omnisports/article/753960/les-belges-aux-jeux-pas-de-podium-pour-van-alphen-qui-finit-4e.html", u"""Les Belges aux Jeux: pas de podium pour Van Alphen qui finit 4e""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://galeries.lalibre.be/album/omnisports/JO2012/insolites/34.jpg/", u"""Toutes les photos insolites des JO""", set(['internal', 'sidebar box', 'internal site'])),
+                make_tagged_url("http://ask.blogs.lalibre.be/", u"""Ask LaLibre, le blog qui vous permet de tout savoir""", set(['internal', 'sidebar box', 'internal site', 'jblog'])),
+                make_tagged_url("/sports/omnisports/article/753960/les-belges-aux-jeux-pas-de-podium-pour-van-alphen-qui-finit-4e.html", u"""Les Belges aux Jeux: pas de podium pour Van Alphen qui finit 4e""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/omnisports/article/754784/water-polo-coups-de-boule-et-coups-de-maillots-sous-l-eau.html", u"""Water polo: coups de boule et coups de maillots sous l'eau""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://ask.blogs.lalibre.be/", u"""Ask LaLibre, le blog qui vous permet de tout savoir""", set(['bottom box', 'internal', 'internal site', 'jblog'])),
+                make_tagged_url("http://galeries.lalibre.be/album/omnisports/JO2012/insolites/34.jpg/", u"""Toutes les photos insolites des JO""", set(['bottom box', 'internal', 'internal site'])),
+                make_tagged_url("http://www.vuvox.com/collage_express/collage.swf?collageID=05bf5f41ae", u"""http://www.vuvox.com/collage_express/collage.swf?collageID=05bf5f41ae""", set(['external', 'embedded'])),
+            ]
+            expected_links = updated_tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
 class TestLalibreContentExtraction(object):
     def test_clean_paragraph_extraction(self):
         """ lalibre parser extracts the paragraphs as a list of strings without bullshit characters (e.g. \\t, \\r, \\n)"""
