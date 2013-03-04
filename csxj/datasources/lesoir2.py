@@ -6,11 +6,9 @@ import itertools
 from urllib2 import urlparse
 
 from scrapy.selector import HtmlXPathSelector
-from csxj.common.tagging import tag_URL, classify_and_tag, make_tagged_url, TaggedURL
-from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import setup_locales
-
+from parser_tools import constants
 
 setup_locales()
 
@@ -24,7 +22,7 @@ def extract_title_and_url(link_hxs):
     title = u"".join(link_hxs.select("text()").extract())
     url = link_hxs.select('@href').extract()[0]
     if not title:
-        title = u"__NO_TITLE__"
+        title = constants.NO_TITLE
     return title, url
 
 

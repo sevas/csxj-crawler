@@ -8,3 +8,6 @@ NO_DATE = date(1970, 01, 01)
 NO_TIME = time(0, 0)
 NO_URL = u"__NO_URL__"
 UNFINISHED_TAG = u"unfinished"
+GHOST_LINK_TAG = u"ghost link"
+GHOST_LINK_TITLE = u"__GHOST_LINK__"
+GHOST_LINK_URL = u"__GHOST_LINK__"

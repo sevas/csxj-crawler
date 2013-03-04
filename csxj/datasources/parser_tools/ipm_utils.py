@@ -53,18 +53,18 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
         url, title = media_utils.extract_url_from_iframe(item_div.iframe)
         all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
         return (make_tagged_url(url, title, all_tags | set(['embedded', 'iframe'])))
-    
+
     elif item_div.find('div', {'id': 'we7widget'}):
         tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
         return tagged_url
-    
+
     else:
         if item_div.find('div', {'class': 'containerKplayer'}):
             if len(item_div.findAll('div', recursive=False)) == 2:
                 title_div = item_div.findAll('div', recursive=False)[1]
                 title = remove_text_formatting_markup_from_fragments(title_div.contents)
             else:
-                title = u"__NO_TITLE__"
+                title = constants.NO_TITLE
 
             kplayer = item_div.find('div', {'class': 'containerKplayer'})
 
@@ -188,7 +188,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     flashvars = item_div.find("param", {"name": "flashVars"})
                     all_parts = flashvars.get("value")
                     parsed_flashvars = all_parts.split('&')
-                    
+
                     d = dict()
                     for var in parsed_flashvars:
                         splitted = var.split('=')
@@ -268,7 +268,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 raise ValueError("Looks like a visual.ly splendid dataviz, but it does not match known patterns")
 
         # it might be a hungarian video, or any other type of player
-        
+
 
         elif item_div.find('script'):
             if len(item_div.find('script').contents) > 0 :
@@ -291,7 +291,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'tweet', constants.UNFINISHED_TAG]))
 
             else:
-                return media_utils.extract_tagged_url_from_embedded_script(item_div.find('script'), site_netloc, site_internal_sites)      
+                return media_utils.extract_tagged_url_from_embedded_script(item_div.find('script'), site_netloc, site_internal_sites)
         else:
             def test_for_plaintext_url(embed_contents):
                 fragment = remove_text_formatting_and_links_from_fragments(embed_contents)
@@ -305,7 +305,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
 
             elif item_div.img:
                 return None
-            
+
             else:
                 raise ValueError("Unknown media type with class: {0}. Update the parser.".format(item_div.get('class')))
 

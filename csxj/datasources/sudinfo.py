@@ -14,6 +14,7 @@ from parser_tools.utils import extract_plaintext_urls_from_text, remove_text_for
 from parser_tools.utils import remove_text_formatting_and_links_from_fragments
 from parser_tools.utils import convert_utf8_url_to_ascii
 from parser_tools.utils import setup_locales
+from parser_tools import constants
 from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
 from csxj.db.article import ArticleData
 
@@ -150,10 +151,7 @@ SUDINFO_OWN_DOMAIN = 'sudinfo.be'
 SOURCE_TITLE = u"Sud Info"
 SOURCE_NAME = u"sudinfo"
 
-
 def extract_date(hxs):
-    today = datetime.today()
-
     date_string = u"".join(hxs.select("//p[@class='publiele']//text()").extract())
     date_bytestring = codecs.encode(date_string, 'utf-8')
 
@@ -176,9 +174,9 @@ def extract_title_and_url(link_hxs):
         title = link_hxs.select(".//text()").extract()[0].strip()
         # maybe it was a space only string, which is not really interesting either
         if not title:
-            title = "__GHOST_LINK__"
+            title = constants.GHOST_LINK_TITLE
     else:
-        title = "__GHOST_LINK__"
+        title = constants.GHOST_LINK_TITLE
     return title, url
 
 
@@ -210,8 +208,8 @@ def extract_text_and_links_from_paragraph(paragraph_hxs):
     for title, url in titles_and_urls:
         tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
         tags.update(['in text'])
-        if title == "__GHOST_LINK__":
-            tags.update(['ghost link'])
+        if title == constants.GHOST_LINK_TITLE:
+            tags.update([constants.GHOST_LINK_TAG])
         tagged_urls.append(make_tagged_url(url, title, tags))
 
     for img_target, url in img_targets_and_urls:
@@ -372,7 +370,7 @@ def extract_associated_links(hxs):
             tags = set()
             if not title:
                 title = u'No Title'
-                tags.add('ghost link')
+                tags.add(constants.GHOST_LINK_TAG)
             if not url:
                 url = u''
                 tags.add('no target')

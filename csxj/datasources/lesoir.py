@@ -74,14 +74,14 @@ def extract_title_and_url_from_bslink(link):
         url = link.get('href')
 
     else:
-        url = "__GHOST_LINK__"
-        base_tags.append("ghost link")
+        url = constants.GHOST_LINK_URL
+        base_tags.append(constants.GHOST_LINK_TAG)
 
     if link.contents:
         title = remove_text_formatting_markup_from_fragments(link.contents)
     else:
-        title = "__GHOST_LINK__"
-        base_tags.append("ghost link")
+        title = constants.GHOST_LINK_TITLE
+        base_tags.append(constants.GHOST_LINK_TAG)
 
     return title, url, base_tags
 
@@ -101,7 +101,7 @@ def extract_text_content(story):
     plaintext_urls = list()
     text = list()
 
-    if paragraphs :
+    if paragraphs:
         for paragraph in paragraphs:
             text.append(u"".join(remove_text_formatting_markup_from_fragments(paragraph)))
             links = paragraph.findAll('a', recursive=True)
@@ -118,11 +118,10 @@ def extract_text_content(story):
             tags.add('in text')
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
-    else :
+    else:
         text = u""
 
     return text, tagged_urls
-
 
 
 def extract_to_read_links_from_sidebar(sidebar):
@@ -130,7 +129,7 @@ def extract_to_read_links_from_sidebar(sidebar):
     #sometimes, it does not exist at all
     if to_read_links_container:
         urls_and_titles = [(link.get('href'), link.get('title'))
-                            for link in to_read_links_container.findAll('a')]
+                           for link in to_read_links_container.findAll('a')]
         return classify_and_make_tagged_url(urls_and_titles, additional_tags=set(['sidebar box', 'to read']))
     else:
         return []
@@ -187,7 +186,7 @@ def extract_title(story):
     if title:
         return unicode(title)
     else:
-        return u'No title found'
+        return constants.NO_TITLE
 
 
 def extract_author_name(story):

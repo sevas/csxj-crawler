@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import codecs
-from datetime import datetime
 import urlparse
-import bs4
 import itertools
+from datetime import datetime
+
+import bs4
 from scrapy.selector import HtmlXPathSelector
-from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, remove_text_formatting_and_links_from_fragments
+
 from csxj.common import tagging
 from csxj.db.article import ArticleData
+from parser_tools.utils import remove_text_formatting_markup_from_fragments, extract_plaintext_urls_from_text, remove_text_formatting_and_links_from_fragments
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import setup_locales
 from parser_tools import rossel_utils
 from parser_tools.utils import convert_utf8_url_to_ascii
+from parser_tools import constants
 
 from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
@@ -42,7 +45,7 @@ def extract_title_and_url(link_hxs):
     title = u"".join(link_hxs.select("text()").extract())
     url = link_hxs.select('@href').extract()[0]
     if not title:
-        title = u"__NO_TITLE__"
+        title = constants.NO_TITLE
     return title, url
 
 
@@ -63,7 +66,6 @@ def reconstruct_full_url(url):
     return urlparse.urljoin("http://{0}".format(LESOIR_NETLOC), url)
 
 
-
 def separate_paywalled_articles(all_link_hxs):
     regular, paywalled = list(), list()
     for link_hxs in all_link_hxs:
@@ -72,7 +74,6 @@ def separate_paywalled_articles(all_link_hxs):
         else:
             regular.append(link_hxs)
     return regular, paywalled
-
 
 
 def get_frontpage_toc():
@@ -92,7 +93,6 @@ def get_frontpage_toc():
 
     # bottom sections
     bottom_news_links = hxs.select("//div [@class='bottom-content']//div [@class='block-articles']//a")
-
 
     all_links_hxs = itertools.chain(headlines_links, blog_block, sports_links, bottom_news_links)
     regular_articles_hxs, all_paywalled_hxs = separate_paywalled_articles(all_links_hxs)
@@ -147,14 +147,13 @@ def extract_intro(soup):
         return intro
 
 
-
 def extract_title_and_url_from_bslink(link):
     base_tags = []
     if link.get('href'):
         url = link.get('href')
     else:
-        url = "__GHOST_LINK__"
-        base_tags.append("ghost link")
+        url = constants.GHOST_LINK_URL
+        base_tags.append(constants.GHOST_LINK_TAG)
 
     if link.find('h3'):
         title = link.find('h3').contents[0].strip()
@@ -164,14 +163,14 @@ def extract_title_and_url_from_bslink(link):
                 if type(link.contents[0]) is bs4.element.NavigableString:
                     title = link.contents[0].strip()
                 else:
-                    title = "__GHOST_LINK__"
-                    base_tags.append("ghost link")
+                    title = constants.GHOST_LINK_TITLE
+                    base_tags.append(constants.GHOST_LINK_TAG)
             else:
-                title = "__GHOST_LINK__"
-                base_tags.append("ghost link")
+                title = constants.GHOST_LINK_TITLE
+                base_tags.append(constants.GHOST_LINK_TAG)
         else:
-            title = "__GHOST_LINK__"
-            base_tags.append("ghost link")
+            title = constants.GHOST_LINK_TITLE
+            base_tags.append(constants.GHOST_LINK_TAG)
     return title, url, base_tags
 
 
@@ -274,10 +273,10 @@ def extract_embedded_media_from_top_box(soup):
                     title = kplayer.next_sibling.contents[0]
                     tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
                 else:
-                    title = "__NO_TITLE__"
+                    title = constants.GHOST_LINK_TITLE
                     tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
             else:
-                title = "__NO_TITLE__"
+                title = constants.GHOST_LINK_TITLE
                 tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
         else:
             raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
@@ -361,10 +360,10 @@ def extract_article_data(source):
     # save_sample_data_file(html_data, source, 'embedded_scribble_live', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
 
     return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                updated_tagged_urls,
-                category, author_name,
-                intro, text),
-    html_data)
+            updated_tagged_urls,
+            category, author_name,
+            intro, text),
+            html_data)
 
 
 def test_sample_data():

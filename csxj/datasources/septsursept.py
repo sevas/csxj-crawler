@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import urllib
 import datetime as dt
-import time
 from itertools import chain
 
 from scrapy.selector import HtmlXPathSelector
@@ -11,6 +10,8 @@ import bs4
 from parser_tools import utils
 from parser_tools.utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments
 from parser_tools import twitter_utils
+from parser_tools import constants
+
 from csxj.common import tagging
 from csxj.db.article import ArticleData
 
@@ -106,7 +107,7 @@ def get_frontpage_toc():
 def extract_title(soup):
     # trouver le titre
     # la méthode avec "articleDetailTitle" ne marche pas tout le temps
-    #title_box = soup.find(attrs = {"id" : "articleDetailTitle"})
+    #title_box = soup.find(attrs={"id": "articleDetailTitle"})
     title_box = soup.find(attrs={"class": "k1 mrg"})
     title = title_box.contents[0]
 
@@ -141,7 +142,7 @@ def extract_date_and_time(author_box):
     date_string = author_box.contents[-1]
 
     # parfois, la source est mentionnée
-    if "Source" in date_string :
+    if "Source" in date_string:
         date_string = date_string.split("Source")[0]
 
     date_and_time = date_string.split("-")
@@ -166,7 +167,7 @@ def extract_source(author_box):
 
 
 def extract_intro(soup):
-    intro_box = soup.find(attrs = {"class" : "intro"})
+    intro_box = soup.find(attrs={"class": "intro"})
     tagged_urls = []
 
     if intro_box:
@@ -193,18 +194,18 @@ def extract_intro(soup):
     return intro, tagged_urls
 
 
-def extract_text_content_and_links(soup) :
+def extract_text_content_and_links(soup):
     article_text = []
     inline_links = []
     plaintext_urls = []
 
-    content_box = soup.find(attrs = {"id" : "detail_content"})
-    text = content_box.find_all(attrs = {"class": "clear"})
+    content_box = soup.find(attrs={"id": "detail_content"})
+    text = content_box.find_all(attrs={"class": "clear"})
 
-    for fragment in text :
+    for fragment in text:
         paragraphs = fragment.find_all("p", recursive=False)
         for p in paragraphs:
-            clean_text = remove_text_formatting_markup_from_fragments(p, strip_chars = "\n")
+            clean_text = remove_text_formatting_markup_from_fragments(p, strip_chars="\n")
             if clean_text:
                 article_text.append(clean_text)
 
@@ -232,8 +233,8 @@ def extract_text_content_and_links(soup) :
 
 
 def extract_links_from_read_more_box(soup):
-    if soup.find(attrs = {"class" : "read_more"}) :
-        read_more_box = soup.find(attrs = {"class" : "read_more"})
+    if soup.find(attrs={"class": "read_more"}):
+        read_more_box = soup.find(attrs={"class": "read_more"})
         if read_more_box.find('h4'):
             links = read_more_box.find_all("a")
             titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links if not link.find("img")]
@@ -252,11 +253,11 @@ def extract_links_from_read_more_box(soup):
 
 def extract_links_from_sidebar_box(soup):
     tagged_urls = list()
-    sidebar_box = soup.find(attrs = {"class" : "teas_article_306 mar10 clear clearfix relatedcomponents"})
+    sidebar_box = soup.find(attrs={"class": "teas_article_306 mar10 clear clearfix relatedcomponents"})
     # there are links to articles
-    if sidebar_box :
-        sidebar_box.find_all(attrs = {"class" : "clearfix"})
-        articles = sidebar_box.find_all(attrs = {"class" : "clearfix"})
+    if sidebar_box:
+        sidebar_box.find_all(attrs={"class": "clearfix"})
+        articles = sidebar_box.find_all(attrs={"class": "clearfix"})
         links = articles[0].find_all("a")
         titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
         for title, url, base_tags in titles_and_urls:
@@ -266,7 +267,7 @@ def extract_links_from_sidebar_box(soup):
             tagged_urls.append(tagging.make_tagged_url(url, title, tags))
 
         # and also links to thematic tags
-        tags = sidebar_box.find_all(attrs = {"class" : "bt_meer_over clearfix"})
+        tags = sidebar_box.find_all(attrs={"class": "bt_meer_over clearfix"})
         for tag in tags:
             links = tag.find_all("a")
             titles_and_urls = [extract_title_and_url_from_bslink(link) for link in links]
@@ -284,9 +285,9 @@ def extract_title_and_url_from_bslink(link):
     base_tags = []
     if link.get('href'):
         url = link.get('href')
-    else :
-        url = "__GHOST_LINK__"
-        base_tags.append("ghost link")
+    else:
+        url = constants.GHOST_LINK_URL
+        base_tags.append(constants.GHOST_LINK_TAG)
 
     if link.find('h3'):
         title = link.find('h3').contents[0].strip()
@@ -297,19 +298,19 @@ def extract_title_and_url_from_bslink(link):
         if link.contents:
             if type(link.contents[0]) is bs4.element.NavigableString:
                 title = link.contents[0].strip()
-            elif type(link.contents[-1]) is bs4.element.NavigableString :
+            elif type(link.contents[-1]) is bs4.element.NavigableString:
                 title = link.contents[-1].strip()
-            else :
-                title = "__GHOST_LINK__"
+            else:
+                title = constants.GHOST_LINK_TITLE
         else:
-            title = "__GHOST_LINK__"
-            base_tags.append("ghost link")
+            title = constants.GHOST_LINK_TITLE
+            base_tags.append(constants.GHOST_LINK_TAG)
 
     return title, url, base_tags
 
 
 def extract_category(soup):
-    category_box = soup.find(attrs = {"class" : "actua_nav"})
+    category_box = soup.find(attrs={"class": "actua_nav"})
     links = category_box.find_all('a')
     return [utils.remove_text_formatting_markup_from_fragments(link.contents[0]) for link in links]
 
@@ -337,7 +338,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
             if section.find("iframe"):
                 iframe = section.find("iframe")
                 url = iframe.get("src")
-                if url :
+                if url:
                     tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
                     tags.add('embedded')
                     tags.add('iframe')
@@ -348,23 +349,23 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
             elif section.find("embed"):
                 embedded_stuff = section.find("embed")
                 url = embedded_stuff.get("src")
-                if url :
+                if url:
                     tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
                     tags.add('embedded')
                     tagged_urls.append(tagging.make_tagged_url(url, url, tags))
                 else:
                     raise ValueError("There seems to be an embedded video but we could not find a link. Please update parser.")
-            else :
+            else:
                 raise ValueError("There seems to be an embedded video but we could not identify it. Please update parser.")
 
         elif 'snippet' in section.attrs['class']:
 
             # it might be a tweet
-            tweets = section.find_all(attrs = {"class" : "twitter-tweet"})
+            tweets = section.find_all(attrs={"class": "twitter-tweet"})
             if tweets:
                 for tweet in tweets:
                     links = tweet.find_all("a")
-                    for link in links :
+                    for link in links:
                         if link.get("data-datetime"):
                             url = link.get("href")
                             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
@@ -373,7 +374,7 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
                             tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
             # it might be an embedded javascript object that shows a twitter account or query
-            twitter_widget = section.find_all(attrs = {"class" : "tweet_widget"})
+            twitter_widget = section.find_all(attrs={"class": "tweet_widget"})
             if twitter_widget:
                 if len(twitter_widget) == 1:
                     if twitter_widget[0].find('script'):
@@ -408,18 +409,18 @@ def find_embedded_media_in_multimedia_box(multimedia_box):
 
                     else:
                         raise ValueError("Could not extract fallback noscript url for this embedded javascript object. Update the parser.")
-                else :
+                else:
                     raise ValueError("There seems to be more than one embedded twitter wdget in the SNIPPET, check this")
 
             # it might be a spotify container
-            spotify_widget = section.find(attrs = {"class" : "spotify"})
+            spotify_widget = section.find(attrs={"class": "spotify"})
             if spotify_widget:
                 if spotify_widget.find("iframe").get("src"):
                     url = spotify_widget.find("iframe").get("src")
                     all_tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)
                     all_tags |= set(['spotify', 'embedded'])
                     tagged_urls.append(tagging.make_tagged_url(url, url, all_tags))
-                else :
+                else:
                     raise ValueError("There seems to be a spotify widget but we could not find a link")
 
         else:
@@ -432,9 +433,9 @@ def extract_embedded_media(soup):
     tagged_urls = list()
 
     # extract embedded media from any iframe in the article body
-    content_box = soup.find(attrs = {"id" : "detail_content"})
-    text = content_box.find_all(attrs = {"class": "clear"})
-    for fragment in text :
+    content_box = soup.find(attrs={"id": "detail_content"})
+    text = content_box.find_all(attrs={"class": "clear"})
+    for fragment in text:
         for p in fragment.find_all("p", recursive=False):
             embedded_container = p.findAll("iframe")
             for x in embedded_container:
@@ -446,13 +447,13 @@ def extract_embedded_media(soup):
                 tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
     # some embedded media are not in the artucle body, but embedded in the art_aside container
-    art_aside = soup.find_all(attrs = {"class" : "art_aside"})
+    art_aside = soup.find_all(attrs={"class": "art_aside"})
     if art_aside:
         for section in art_aside:
             tagged_urls.extend(find_embedded_media_in_multimedia_box(section))
 
     # same, but in the art_bottom container
-    art_bottom = soup.find_all(attrs = {"class" : "art_bottom"})
+    art_bottom = soup.find_all(attrs={"class": "art_bottom"})
     if art_bottom:
         for section in art_bottom:
             tagged_urls.extend(find_embedded_media_in_multimedia_box(section))
@@ -469,11 +470,11 @@ MAYBE_ARTICLE = 3
 def detect_page_type(url):
     current_item_count = len(try_extract_frontpage_items(url)[0])
     frontpage_item_count = len(get_frontpage_toc()[0])
-    if current_item_count == 0 :
+    if current_item_count == 0:
         return IS_ARTICLE
     elif float(current_item_count) / frontpage_item_count < 0.8:
         return MAYBE_ARTICLE
-    else :
+    else:
         return IS_FRONTPAGE
 
 
@@ -520,14 +521,13 @@ def extract_article_data(source):
     # pour tous les autres vrais articles
     soup = bs4.BeautifulSoup(html_data)
 
-
     if soup.find("head").find("title").contents[0] == "301 Moved Permanently":
         return (None, html_data)
 
     else:
         title = extract_title(soup)
 
-        author_box = soup.find(attrs = {"class" : "author"})
+        author_box = soup.find(attrs={"class": "author"})
         author_name = extract_author_name(author_box)
         pub_date, pub_time = extract_date_and_time(author_box)
 
@@ -584,7 +584,6 @@ if __name__ == '__main__':
     url14 = "http://www.7sur7.be/7s7/fr/1527/People/article/detail/1527428/2012/11/02/La-robe-interactive-de-Nicole-Scherzinger.dhtml"
     url15 = "http://www.7sur7.be/7s7/fr/1504/Insolite/article/detail/1501041/2012/09/14/Une-traversee-des-Etats-Unis-avec-du-bacon-comme-seule-monnaie.dhtml"
     urls = [url1, url2, url3, url6, url7, url9, url10, url11, url12, url14, url15]
-
 
     url = "http://www.7sur7.be/7s7/fr/1502/Belgique/article/detail/1500307/2012/09/13/Si-tu-me-mets-une-contravention-je-tire.dhtml"
     # url = "http://www.7sur7.be/7s7/fr/1510/Football-Etranger/article/detail/1554304/2012/12/27/Vincent-Kompany-dans-le-onze-ideal-du-journal-l-Equipe.dhtml"
