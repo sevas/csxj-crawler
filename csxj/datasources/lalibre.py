@@ -183,8 +183,9 @@ def extract_category(main_content):
 
 def extract_embedded_content_links(main_content):
     items = main_content.findAll('div', {'class': 'embedContents'})
-    return [ipm_utils.extract_tagged_url_from_embedded_item(item, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES) for item in
-            items]
+    extracted = [ipm_utils.extract_tagged_url_from_embedded_item(item, LALIBRE_NETLOC, LALIBRE_ASSOCIATED_SITES) for item in
+                 items]
+    return [_ for _ in extracted if _]
 
 
 def extract_author_name(main_content):
@@ -311,6 +312,60 @@ def test_sample_data():
 
     from pprint import pprint
     import os
+
+
+    urls_from_errors = [
+        "http://www.lalibre.be/societe/insolite/article/754351/mais-que-fait-il-au-fond-de-la-piscine.html",
+        "http://www.lalibre.be/actu/politique-belge/article/775025/de-wever-s-enlise-a-anvers.html",
+        "http://www.lalibre.be/societe/insolite/article/765616/la-plaque-truquee-de-jean-marc-ayrault.html",
+        "http://www.lalibre.be/sports/golf/article/764081/olazabal-nicolas-est-de-la-race-des-tout-grands.html",
+        "http://www.lalibre.be/sports/golf/article/763805/l-europe-et-nicolas-colsaerts-remportent-la-ryder-cup.html",
+        "http://www.lalibre.be/actu/belgique/article/731384/stib-la-banalisation-du-drame-choque-la-famille.html",
+        "http://www.lalibre.be/actu/international/article/731592/indonesie-seisme-de-87-et-alerte-au-tsunami.html",
+        "http://www.lalibre.be/culture/cinema/article/713088/david-fincher-et-son-millenium.html",
+        "http://www.lalibre.be/societe/planete/article/712198/le-doigt-glace-de-la-mort-enfin-filme.html",
+        "http://www.lalibre.be/actu/belgique/article/732764/la-nouvelle-carte-judiciaire.html",
+        "http://www.lalibre.be/actu/belgique/article/733157/les-politiques-choques-par-l-attitude-ignoble-de-laurent-louis.html",
+        "http://www.lalibre.be/actu/bruxelles/article/760233/le-metro-nord-sur-les-rails.html",
+        "http://www.lalibre.be/culture/mediastele/article/760028/la-marionnette-ratee-de-di-rupo-aux-guignols.html",
+        "http://www.lalibre.be/culture/mediastele/article/723022/the-voice-plie-mais-ne-rompt-pas.html",
+        "http://www.lalibre.be/societe/insolite/article/737862/france-les-gaffes-de-l-ancienne-majorite.html",
+        "http://www.lalibre.be/actu/international/article/722110/l-avortement-selectif-sevit-en-grande-bretagne.html",
+        "http://www.lalibre.be/societe/insolite/article/754351/mais-que-fait-il-au-fond-de-la-piscine.html",
+        "http://www.lalibre.be/culture/cinema/article/754008/total-recall-une-sensation-de-deja-vu.html",
+        "http://www.lalibre.be/actu/international/article/721253/sarah-palin-et-le-reste-du-monde.html",
+        "http://www.lalibre.be/sports/golf/article/793015/nicolas-colsaerts-franchit-de-justesse-le-cut-au-tournoi-de-la-jolla.html",
+        "http://www.lalibre.be/actu/international/article/766108/l-envolee-lyrique-de-julia-gillard-contre-la-misogynie.html",
+        "http://www.lalibre.be/sports/golf/article/765908/colsaerts-de-plus-en-plus-present-sur-le-circuit-americain.html",
+        "http://www.lalibre.be/societe/sciences-sante/article/766657/l-autrichien-baumgartner-a-atteint-124-fois-la-vitesse-du-son.html",
+        "http://www.lalibre.be/actu/international/article/772194/australie-nouvelle-definition-de-misogynie-apres-la-tirade-de-gillard.html",
+        "http://www.lalibre.be/actu/international/article/730594/mali-vers-la-fin-des-combats.html",
+        "http://www.lalibre.be/actu/international/article/730442/quel-electeur-francais-sommeille-en-vous.html",
+        "http://www.lalibre.be/actu/international/article/730160/tous-les-outils-sont-bons-pour-les-candidats.html",
+        "http://www.lalibre.be/actu/international/article/729970/lapix-en-decoud-a-nouveau-avec-le-pen.html",
+        "http://www.lalibre.be/culture/cinema/article/794478/joachim-lafosse-emilie-dequenne-et-olivier-gourmet-triomphent-aux-magritte.html",
+        "http://www.lalibre.be/actu/politique-belge/article/749257/de-wever-et-di-rupo-parlent-regime.html",
+        "http://www.lalibre.be/societe/insolite/article/749643/un-starbucks-dans-un-crematorium-americain.html",
+        "http://www.lalibre.be/culture/cinema/article/794478/joachim-lafosse-emilie-dequenne-et-olivier-gourmet-triomphent-aux-magritte.html",
+        "http://www.lalibre.be/culture/cinema/article/773353/amour-exceptionnelle-palme-d-or.html",
+        "http://www.lalibre.be/culture/cinema/article/773353/amour-exceptionnelle-palme-d-or.html",
+        "http://www.lalibre.be/sports/golf/article/773313/colsaerts-defendra-son-titre-de-champion-du-monde-en-bulgarie.html",
+        "http://www.lalibre.be/societe/planete/article/752325/etrange-rite-funeraire-de-la-part-d-un-dauphin.html",
+        "http://www.lalibre.be/societe/planete/article/752325/etrange-rite-funeraire-de-la-part-d-un-dauphin.html",
+        "http://www.lalibre.be/societe/planete/article/782646/la-nasa-revele-le-cote-obscur-de-la-planete.html",
+        "http://www.lalibre.be/societe/planete/article/782646/la-nasa-revele-le-cote-obscur-de-la-planete.html",
+        "http://www.lalibre.be/actu/international/article/752119/romney-l-homme-de-nulle-part-s-egare-avec-sa-gaffe-sur-les-jeux.html",
+        "http://www.lalibre.be/culture/mediastele/article/729427/nathalie-arthaud-anti-capitaliste-mais-apple-addict.html",
+        "http://www.lalibre.be/culture/cinema/article/798860/ceremonie-des-cesars-le-suspens-a-son-comble.html",
+        "http://www.lalibre.be/actu/international/article/798147/scandale-autour-d-une-photo-en-israel.html"]
+
+    for url in urls_from_errors:
+        print url
+        article, html = extract_article_data(url)
+        if article:
+            print "this one works just fine"
+        else:
+            print "404"
 
     article, html = extract_article_data(urls[-1])
     # print article.title

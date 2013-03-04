@@ -359,6 +359,56 @@ class TestDHNetLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_embedded_brightcove_video(self):
+        """ dhnet parser can extract embedded brightcove video"""
+        with open(os.path.join(DATA_ROOT, "embedded_brightcove_video.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Regardez la boulette de  Xavier Bongibault.""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos2", u"""Xavier Bongibault présente ses excuses @bfmtv""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/infos/monde/article/421044/des-centaines-de-milliers-de-manifestants-contre-le-mariage-gay.html", u"""Des centaines de milliers de manifestants contre le mariage gay""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/manifantimariagegay/01.jpg/", u"""Les manifs contre le mariage gay""", set(['sidebar box', 'internal', 'image gallery', 'internal site'])),
+                make_tagged_url("http://link.brightcove.com/services/player/bcpid1027556707001?bctid=2090284983001", u"""http://link.brightcove.com/services/player/bcpid1027556707001?bctid=2090284983001""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://www.dailymotion.com/embed/video/xwq838", u"""http://www.dailymotion.com/embed/video/xwq838""", set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("/infos/monde/article/421044/des-centaines-de-milliers-de-manifestants-contre-le-mariage-gay.html", u"""Des centaines de milliers de manifestants contre le mariage gay""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/421154/mariage-gay-di-rupo-est-fier-de-la-modernite-de-la-belgique.html", u"""Mariage gay: Di Rupo est "fier de la modernité" de la Belgique""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/421973/francois-hollande-va-recevoir-les-opposants-au-mariage-homo.html", u"""François Hollande va recevoir les opposants au mariage homo""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/manifantimariagegay/01.jpg/", u"""Les manifs contre le mariage gay""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_ooyala_embedded_video(self):
+        """ dhnet parser can extract embedded ooyala video"""
+        with open(os.path.join(DATA_ROOT, "ooyala_embedded_video.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Jennifer Lawrence perd sa robe !""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://player.ooyala.com/iframe.html#ec=t4YWF0ODq-F_xnDy9kb41w3bZnN8kN4Y&pbid=NDcyOWI0M2YyMDdkN2YwODU5Mzc5MDUz", u"""http://player.ooyala.com/iframe.html#ec=t4YWF0ODq-F_xnDy9kb41w3bZnN8kN4Y&pbid=NDcyOWI0M2YyMDdkN2YwODU5Mzc5MDUz""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://galeries.dhnet.be/album/people/jenniferlawrence/8.jpg/", u"""Les photos de l'incident !""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_plaintext_links(self):
+        """ dhnet parser can extract embedded plaintext links (yeah, wtf, exactly)"""
+        with open(os.path.join(DATA_ROOT, "embedded_plaintext_links.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""SONDAGES: votre avis sur les principales mesures prises par le gouvernement""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos2", u"""Dix centimes en plus par paquet de cigarettes !""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.dhnet.be/infos/belgique/article/388448/sondages-votre-avis-sur-les-principales-mesures-prises-par-le-gouvernement.html", u"""http://www.dhnet.be/infos/belgique/article/388448/sondages-votre-avis-sur-les-principales-mesures-prises-par-le-gouvernement.html""", set(['plaintext', 'internal', 'embedded'])),
+                make_tagged_url("http://www.dhnet.be/infos/economie/article/388380/dix-centimes-en-plus-par-paquet-de-cigarettes.html", u"""http://www.dhnet.be/infos/economie/article/388380/dix-centimes-en-plus-par-paquet-de-cigarettes.html""", set(['plaintext', 'internal', 'embedded'])),
+                make_tagged_url("/infos/belgique/article/388496/energie-60-euros-d-economie-sur-votre-facture.html", u"""Energie: 60 euros d'économie sur votre facture ?""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+
     def test_embedded_tweet_bottom(self):
         """ dhnet parser can extract rendered embedded tweets at the bottom of articles"""
         with open(os.path.join(DATA_ROOT, "embedded_tweet_bottom.html")) as f:
@@ -398,6 +448,100 @@ class TestDHNetLinkExtraction(object):
             expected_links = bottom_links + audio_content_links + sidebox_links + embedded_content_links + in_text_links
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_youtube_video(self):
+        """ dhnet parser can extract an embedded youtube video"""
+        with open(os.path.join(DATA_ROOT, "youtube_video.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("www.police.be", u"""www.police.be""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("#embed_pos1", u"""La vidéo de l'agression à Anderlecht""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.youtube.com/v/ZI_dpfd6LMw?version=3&feature=player_detailpage", u"""http://www.youtube.com/v/ZI_dpfd6LMw?version=3&feature=player_detailpage""", set(['video', 'external', 'embedded'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_vtm_video(self):
+        """ dhnet parser can extract an embedded VTM video"""
+        with open(os.path.join(DATA_ROOT, "vtm_video.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos2", u"""Le lancer de chatons de Jan Fabre""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos1", u"""La réaction de Jan Fabre""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://flvpd.vtm.be/videocms/nieuws/2012/10/26/201210261923056010032016057005056B763420000007108B00000D0F002641.mp4", u"""http://flvpd.vtm.be/videocms/nieuws/2012/10/26/201210261923056010032016057005056B763420000007108B00000D0F002641.mp4""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=b4968b239e7s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("/infos/belgique/article/413486/jan-fabre-le-lanceur-de-chats-n-a-pas-depose-plainte.html", u"""Jan Fabre, le lanceur de chats, n'a pas déposé plainte""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_video_melty(self):
+        """ dhnet parser can extract an embedded Meltybuzz video"""
+        with open(os.path.join(DATA_ROOT, "video_melty.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Voir Anakin, le félidé aux deux pattes avant""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.meltybuzz.fr/anakin-le-chat-a-deux-pattes-qui-se-porte-tres-bien-video-a115745.html", u"""Anakin, le chat à deux pattes qui se porte très bien (vidéo) sur meltybuzz.fr""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("/regions/societe/article/400152/sauvetage-de-chaton.html", u"""Sauvetage de chaton""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+     
+    def test_video_divertissante(self):
+        """ dhnet parser can extract an embedded video from 'DIVERTISSONSNOUS.COM' (how entertaining)"""
+        with open(os.path.join(DATA_ROOT, "video_divertissante.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Vidéo : Le brinicle ou doigt glacé de la mort, filmé pour la première fois""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.divertissonsnous.com/2011/11/26/le-brinicle-ou-doigt-glace-de-la-mort/", u"""Le brinicle ou doigt glacé de la mort""", set(['video', 'external', 'embedded'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+    
+    def test_embedded_stuff_frenzy(self):
+        """ dhnet parser can extract many different embedded things"""
+        with open(os.path.join(DATA_ROOT, "embedded_stuff_frenzy.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("/infos/monde/article/389533/toulouse-un-groupe-lie-a-al-qaida-revendique-la-tuerie.html", u"""Toulouse: un groupe lié à Al-Qaïda revendique la tuerie""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/infos/monde/article/389441/merah-avait-sejourne-dans-un-hopital-psychiatrique.html", u"""Merah avait séjourné dans un hôpital psychiatrique""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/infos/monde/article/389527/toulouse-une-fan-page-a-la-gloire-de-merah-sur-facebook.html", u"""Toulouse: une fan page à la gloire de Merah sur Facebook""", set(['internal', 'sidebar box'])),
+                make_tagged_url("#embed_pos1", u"""Revivez l'assaut minute par minute""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos4", u"""Merah: le film de la nuit""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("#embed_pos2", u"""Vidéo: les images de Mohamed Merah, sur France 2""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=7d2559d5e8/height=850/width=470", u"""http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=7d2559d5e8/height=850/width=470""", set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("http://www.twitvid.com/embed.php?guid=IWICN&autoplay=0", u"""http://www.twitvid.com/embed.php?guid=IWICN&autoplay=0""", set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("http://link.brightcove.com/services/player/bcpid1027556707001?bctid=1521783409001", u"""http://link.brightcove.com/services/player/bcpid1027556707001?bctid=1521783409001""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://api.dmcloud.net/player/embed/4e7343f894a6f677b10006b4/4f6acb3af325e148e900004a/c63cc0d05ba3464890178207f4f2d9a7?wmode=transparent", u"""http://api.dmcloud.net/player/embed/4e7343f894a6f677b10006b4/4f6acb3af325e148e900004a/c63cc0d05ba3464890178207f4f2d9a7?wmode=transparent""", set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=47584d06414s&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("/infos/monde/article/389281/toulouse-l-enquete-avance-a-grands-pas.html", u'''Toulouse : "L'enquête avance à grands pas"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389276/toulouse-la-piste-des-militaires-neo-nazis-n-est-plus-privilegiee.html", u'''Toulouse : la piste des militaires néo-nazis n'est "plus privilégiée"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389272/tuerie-les-candidats-doivent-ils-suspendre-leur-campagne.html", u"""Tuerie, les candidats doivent-ils suspendre leur campagne ?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389381/toulouse-tous-les-secrets-de-l-enquete.html", u"""Toulouse : tous les secrets de l'enquête""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389382/toulouse-le-suspect-avait-deja-ete-arrete-en-afghanistan.html", u"""Toulouse : le suspect avait déjà été arrêté, en Afghanistan""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389385/les-parents-d-eleves-de-l-ecole-d-ozar-hatorah-attendent-la-delivrance.html", u'''Les parents d'élèves de l'école d'Ozar Hatorah attendent "la délivrance"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389393/israel-enterre-ses-victimes-de-toulouse.html", u"""Israël enterre ses victimes de Toulouse""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389408/qui-sont-les-jihadistes-francais.html", u"""Qui sont les jihadistes français?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389441/merah-avait-sejourne-dans-un-hopital-psychiatrique.html", u"""Merah avait séjourné dans un hôpital psychiatrique""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389507/sarkozy-veut-des-mesures-penales-pour-lutter-contre-les-extremismes.html", u"""Sarkozy veut des mesures pénales pour lutter contre les extrémismes""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389527/toulouse-une-fan-page-a-la-gloire-de-merah-sur-facebook.html", u"""Toulouse: une fan page à la gloire de Merah sur Facebook""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389533/toulouse-un-groupe-lie-a-al-qaida-revendique-la-tuerie.html", u"""Toulouse: un groupe lié à Al-Qaïda revendique la tuerie""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389539/la-video-de-l-assaut-contre-mohammed-merah.html", u"""La vidéo de  l'assaut contre Mohammed Merah""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389554/al-qaida-l-appelait-youssef-le-francais.html", u"""Al-Qaida l'appelait Youssef le Français""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389603/qui-est-vraiment-mohamed-merah.html", u"""Qui est vraiment  Mohamed Merah ?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/389629/toulouse-pouvoir-et-police-presentent-leur-defense-face-aux-critiques.html", u"""Toulouse : pouvoir et police présentent leur défense face aux critiques""", set(['bottom box', 'internal'])),
+                make_tagged_url("/infos/monde/article/394230/affaire-merah-le-pere-d-un-soldat-tue-porte-plainte-contre-sarkozy.html", u"""Affaire Merah: le père d'un soldat tué porte plainte contre Sarkozy""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/raidtoulouse/", u"""L'opération en images""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_389327_1332310479.mp3", u"""Ecoutez Claude Guéant, ministre français de l'Intérieur (Europe 1 et Twizz Radio)""", set(['internal', 'sidebar box', 'internal site', 'embedded', 'audio'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_389327_1332327971.mp3", u"""Ecoutez la journalsite (Ebba Kalondo) qui a reçu un appel du suspect (micro de Twizz et Europe 1)""", set(['internal', 'sidebar box', 'internal site', 'embedded', 'audio'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+   
     def test_links_embedded_canalplus(self):
         """ dhnet parser can extract link to embedded canalplus.fr/itele.fr videos"""
         with open(os.path.join(DATA_ROOT, "links_embedded_canalplus.html")) as f:
@@ -408,6 +552,94 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("http://www.itele.fr/redirect?vid=767341&sc_cmpid=SharePlayerEmbed", u"""Témoignage exclusif de Souad Merah - 20/11/12 à 11:16""", set(['video', 'external', 'embedded'])),
             ]
             expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_vuvox_collage(self):
+        """ dhnet parser can extract weird multimedia thingy"""
+        with open(os.path.join(DATA_ROOT, "vuvox_collage.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u"""Vidéo : Comment prendre des photos au fond de la piscine ?""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/sports/jo-2012/article/404241/le-relais-4x400-se-fait-peur-mais-va-en-finale.html", u"""Le relais 4X400 se fait peur mais va en finale""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/jo-2012/article/404250/les-footballeuses-nippones-vont-elles-gagner-la-classe-affaires.html", u"""Les footballeuses nippones vont-elles gagner la classe affaires ?""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/jo-2012/article/404247/usa-argentine-et-espagne-russie-en-demi-finales.html", u"""USA-Argentine et Espagne-Russie en demi-finales""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/jo-2012/article/404242/notre-succes-est-du-a-nos-bikinis.html", u"""Notre succès est dû à nos bikinis""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/jo-2012/article/404188/une-beaute-haut-perchee.html", u"""Une beauté haut perchée""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.vuvox.com/collage_express/collage.swf?collageID=05bf5f41ae", u"""Vidéo : Comment prendre des photos au fond de la piscine ?""", set(['external', 'embedded'])),
+                make_tagged_url("/sports/jo-2012/article/404241/le-relais-4x400-se-fait-peur-mais-va-en-finale.html", u"""Le relais 4X400 se fait peur mais va en finale""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/jo-2012/article/404250/les-footballeuses-nippones-vont-elles-gagner-la-classe-affaires.html", u"""Les footballeuses nippones vont-elles gagner la classe affaires ?""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/jo-2012/article/404247/usa-argentine-et-espagne-russie-en-demi-finales.html", u"""USA-Argentine et Espagne-Russie en demi-finales""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/jo-2012/article/404242/notre-succes-est-du-a-nos-bikinis.html", u"""Notre succès est dû à nos bikinis""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/jo-2012/article/404188/une-beaute-haut-perchee.html", u"""Une beauté haut perchée""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_soundcloud(self):
+        """ dhnet parser can extract embedded soundcloud"""
+        with open(os.path.join(DATA_ROOT, "soundcloud.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos2", u"""Regardez la vidéo de Véronique De Keyser""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/infos/monde/article/386553/les-usa-offrent-un-soutien-appuye-au-conseil-national-syrien.html", u"""Les USA offrent un soutien appuyé au Conseil national syrien""", set(['internal', 'sidebar box'])),
+                make_tagged_url("https://player.soundcloud.com/player.swf?url=http%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F37663533&show_comments=true&auto_play=false&color=a900ff", u"""https://player.soundcloud.com/player.swf?url=http%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F37663533&show_comments=true&auto_play=false&color=a900ff""", set(['audio', 'external', 'embedded'])),
+                make_tagged_url("http://sa.kewego.com/swf/kp.swf?language_code=fr&width=510&height=383&playerKey=7f379495096e&configKey=&suffix=&sig=08f4ba2000es&autostart=false", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded'])),
+                make_tagged_url("/infos/monde/article/386553/les-usa-offrent-un-soutien-appuye-au-conseil-national-syrien.html", u"""Les USA offrent un soutien appuyé au Conseil national syrien""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_dataviz(self):
+        """ dhnet parser can extract link to embedded dataviz from visual.ly"""
+        with open(os.path.join(DATA_ROOT, "embedded_dataviz.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("visual.ly", u"""visual.ly""", set(['plaintext', 'external', 'in text'])),
+                make_tagged_url("#embed_pos1", u"""La... nymphographie de James Bond !""", set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/cine-tele/cinema/article/414582/le-nouveau-james-bond-regne-sur-le-box-office-nord-americain.html", u"""Le nouveau James Bond règne sur le box-office nord-américain""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://babescm.blogs.dhnet.be/archive/2012/10/25/son-nom-est-marlohe-berenice-marlohe.html", u"""Son nom est Marlohe, Bérénice Marlohe""", set(['internal', 'sidebar box', 'internal site'])),
+                make_tagged_url("http://www.cinebel.be/fr/", u"""Cinébel, notre site 100% cinéma !""", set(['sidebar box', 'external', 'same owner'])),
+                make_tagged_url("http://visual.ly/james-bond-nymphographic", u"""http://visual.ly/james-bond-nymphographic""", set(['external', 'embedded'])),
+                make_tagged_url("/cine-tele/cinema/article/414582/le-nouveau-james-bond-regne-sur-le-box-office-nord-americain.html", u"""Le nouveau James Bond règne sur le box-office nord-américain""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://www.cinebel.be/fr/", u"""Cinébel, notre site 100% cinéma !""", set(['bottom box', 'external', 'same owner'])),
+                make_tagged_url("http://babescm.blogs.dhnet.be/archive/2012/10/25/son-nom-est-marlohe-berenice-marlohe.html", u"""Son nom est Marlohe, Bérénice Marlohe""", set(['bottom box', 'internal', 'internal site'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+    def test_twizz_stream(self):
+        """ dhnet parser can extract embedded twizz streaming and many other links"""
+        with open(os.path.join(DATA_ROOT, "twizz_stream.html")) as f:
+            article, raw_html = dhnet.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("#embed_pos1", u'''Chattez en direct avec les flingueurs de Twizz radio qui reviendront sur le sujet entre 17h et 18h''', set(['internal', 'sidebar box', 'anchor'])),
+                make_tagged_url("/sports/cyclisme/article/412016/gesink-rabobank-c-est-nous-qui-payons-la-note.html", u'''Gesink (Rabobank): "c'est nous qui payons la note"''', set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/cyclisme/article/411925/rabobank-suspend-carlos-barredo.html", u'''Rabobank suspend Carlos Barredo''', set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/cyclisme/article/411910/vantomme-quitte-katusha-pour-rejoindre-landbouwkrediet-euphony.html", u'''Vantomme quitte Katusha pour rejoindre Landbouwkrediet-Euphony''', set(['internal', 'sidebar box'])),
+                make_tagged_url("/sports/cyclisme/article/411893/le-dr-ferrari-reseau-de-dopage-blanchiment-d-argent-et-evasion-fiscale.html", u'''Le Dr Ferrari: réseau de dopage, blanchiment d'argent et évasion fiscale''', set(['internal', 'sidebar box'])),
+                make_tagged_url("http://embed.scribblelive.com/Embed/v5.aspx?Id=65567&ThemeId=7116", u'''http://embed.scribblelive.com/Embed/v5.aspx?Id=65567&ThemeId=7116''', set(['embedded', 'external', 'iframe'])),
+                make_tagged_url("http://vipicecast.yacast.net/twizz", u"""http://vipicecast.yacast.net/twizz""", set(['audio', 'external', 'embedded'])),
+                make_tagged_url("/sports/cyclisme/article/411963/cavendish-boonen-tandem-de-choc-au-tour.html", u"""Cavendish-Boonen,  tandem de choc au Tour""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411809/apres-nike-et-anheuser-busch-trek-quitte-aussi-le-navire-armstrong.html", u"""Après Nike et Anheuser-Busch, Trek quitte aussi le navire Armstrong""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411912/cavendish-rejoint-omega-pharma-quickstep.html", u"""Cavendish rejoint Omega Pharma-Quick.Step""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411929/cavendish-je-suis-content-de-rouler-pour-omega-pharma-quickstep.html", u'''Cavendish: "Je suis content de rouler pour Omega Pharma-Quick.Step"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411928/guercilena-succede-a-bruyneel-chez-radioshack.html", u"""Guercilena succède à Bruyneel chez RadioShack""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411865/hein-verbruggen-continue-a-soutenir-lance-armstrong.html", u"""Hein Verbruggen continue à soutenir Lance Armstrong""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411893/le-dr-ferrari-reseau-de-dopage-blanchiment-d-argent-et-evasion-fiscale.html", u"""Le Dr Ferrari: réseau de dopage, blanchiment d'argent et évasion fiscale""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411925/rabobank-suspend-carlos-barredo.html", u"""Rabobank suspend Carlos Barredo""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/411910/vantomme-quitte-katusha-pour-rejoindre-landbouwkrediet-euphony.html", u"""Vantomme quitte Katusha pour rejoindre Landbouwkrediet-Euphony""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/412016/gesink-rabobank-c-est-nous-qui-payons-la-note.html", u'''Gesink (Rabobank): "c'est nous qui payons la note"''', set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/412040/l-uci-se-prononcera-lundi-sur-le-dossier-armstrong.html", u"""L'UCI se prononcera lundi sur le dossier Armstrong""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/412044/la-loterie-nationale-poursuit-son-partenariat-dans-le-cyclisme.html", u"""La Loterie nationale poursuit son partenariat dans le cyclisme""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/412045/decouverte-de-preuves-reliant-ferrari-a-menchov-et-scarponi.html", u"""Découverte de preuves reliant Ferrari à Menchov et Scarponi""", set(['bottom box', 'internal'])),
+                make_tagged_url("/sports/cyclisme/article/412132/jamais-le-test-d-armstrong-de-2001-ne-serait-positif.html", u""""Jamais" le test d'Armstrong de 2001 ne serait positif""", set(['bottom box', 'internal'])),
+            ]
+            expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_links_tweet_with_emoji(self):

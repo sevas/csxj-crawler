@@ -69,9 +69,57 @@
       "other_embedded_video_type.html"
     ], 
     [
+      "http://www.dhnet.be/infos/monde/article/421061/un-anti-mariage-gay-compare-hollande-a-hitler.html", 
+      "embedded_brightcove_video.html"
+    ], 
+    [
+      "http://www.dhnet.be/infos/belgique/article/388466/les-cigarette-plus-cheres-de-dix-centimes-la-solution-de-facilite.html", 
+      "embedded_plaintext_links.html"
+    ], 
+    [
+      "http://www.dhnet.be/infos/monde/article/389327/toulouse-la-police-cerne-un-homme-se-reclamant-d-al-qaida.html", 
+      "embedded_stuff_frenzy.html"
+    ], 
+    [
       "http://www.dhnet.be/infos/monde/article/415459/la-soeur-de-mohammed-merah-condamne-ses-actes.html", 
       "links_embedded_canalplus.html"
     ], 
+    [
+      "http://www.dhnet.be/people/buzz/article/422740/jennifer-lawrence-laisse-tomber-le-bas.html", 
+      "ooyala_embedded_video.html"
+    ], 
+    [
+      "http://www.dhnet.be/cine-tele/cinema/article/415028/la-sexualite-debridee-de-james-bond-en-detail.html", 
+      "embedded_dataviz.html"
+    ], 
+    [
+      "http://www.dhnet.be/infos/faits-divers/article/397637/chauffeur-de-la-stib-la-video-de-l-agression.html", 
+      "youtube_video.html"
+    ], 
+    [
+      "http://www.dhnet.be/infos/belgique/article/413443/jan-fabre-agresse-apres-son-lancer-de-chats.html", 
+      "vtm_video.html"
+    ], 
+    [
+      "http://www.dhnet.be/infos/societe/article/381608/le-doigt-glace-de-la-mort-enfin-filme.html", 
+      "video_divertissante.html"
+    ], 
+    [
+      "http://www.dhnet.be/infos/societe/article/400147/deux-pattes-suffisent-au-bonheur-de-ce-chat.html", 
+      "video_melty.html"
+    ], 
+    [
+      "http://www.dhnet.be/sports/jo-2012/article/404259/mais-que-fait-il-au-fond-de-la-piscine.html", 
+      "vuvox_collage.html"
+    ], 
+    [
+      "http://www.dhnet.be/infos/monde/article/386567/veronique-de-keyser-bachar-el-assad-doit-partir.html", 
+      "soundcloud.html"
+    ], 
+    [
+      "http://www.dhnet.be/sports/cyclisme/article/411974/rabobank-dans-le-peloton-l-an-prochain-sans-le-nom-de-son-sponsor.html", 
+      "twizz_stream.html"
+    ],
     [
       "http://www.dhnet.be/people/show-biz/article/417202/alizee-revienten-soutif.html", 
       "links_tweet_with_emoji.html"

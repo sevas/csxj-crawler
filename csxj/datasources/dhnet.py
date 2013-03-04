@@ -5,6 +5,7 @@ from datetime import datetime, time
 from itertools import chain
 import re
 import urlparse
+from urllib2 import HTTPError
 
 import BeautifulSoup as bs
 
@@ -285,7 +286,15 @@ def extract_article_data(source):
     if hasattr(source, 'read'):
         html_content = source.read()
     else:
-        html_content = fetch_html_content(source)
+        try:
+            html_content = fetch_html_content(source)
+        except HTTPError as e:
+            if e.code == 404:
+                return None, None
+            else:
+                raise
+        except Exception:
+            raise
 
     soup = make_soup_from_html_content(html_content)
     main_content = soup.find('div', {'id': 'maincontent'})
@@ -314,8 +323,9 @@ def extract_article_data(source):
 
         fetched_datetime = datetime.today()
 
-        # print generate_test_func('other_embedded_video_type', 'dhnet', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_content, source, 'other_embedded_video_type', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+        # print generate_test_func('twizz_stream', 'dhnet', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_content, source, 'twizz_stream', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/dhnet')
+       
         # import os
         # generate_unittest("links_tweet_with_emoji", "dhnet", dict(urls=updated_tagged_urls), html_content, source, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/dhnet"), True)
 
@@ -432,8 +442,24 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/belgique/article/388466/les-cigarette-plus-cheres-de-dix-centimes-la-solution-de-facilite.html",
         "http://www.dhnet.be/infos/faits-divers/article/388821/le-rapatriement-des-enfants-et-des-familles-a-commence.html",
         "http://www.dhnet.be/people/show-biz/article/417202/alizee-revienten-soutif.html",
+        "http://www.dhnet.be/infos/monde/article/421061/un-anti-mariage-gay-compare-hollande-a-hitler.html",
         "http://www.dhnet.be/infos/monde/article/415459/la-soeur-de-mohammed-merah-condamne-ses-actes.html",
         "http://www.dhnet.be/people/show-biz/article/417202/alizee-revienten-soutif.html",
+        "http://www.dhnet.be/infos/monde/article/378171/la-video-de-surveillance-de-dsk-quittant-le-sofitel-devoilee.html",
+        "http://www.dhnet.be/infos/belgique/article/388466/les-cigarette-plus-cheres-de-dix-centimes-la-solution-de-facilite.html",
+        "http://www.dhnet.be/infos/monde/article/389327/toulouse-la-police-cerne-un-homme-se-reclamant-d-al-qaida.html",
+        "http://www.dhnet.be/people/buzz/article/422740/jennifer-lawrence-laisse-tomber-le-bas.html",
+        "http://www.dhnet.be/cine-tele/cinema/article/415028/la-sexualite-debridee-de-james-bond-en-detail.html",
+        "http://www.dhnet.be/sports/football/article/393211/guardiola-est-remplace-par-son-t2.html",
+        "http://www.dhnet.be/infos/faits-divers/article/397637/chauffeur-de-la-stib-la-video-de-l-agression.html",
+        "http://www.dhnet.be/infos/belgique/article/413443/jan-fabre-agresse-apres-son-lancer-de-chats.html",
+        "http://www.dhnet.be/infos/societe/article/381608/le-doigt-glace-de-la-mort-enfin-filme.html",
+        "http://www.dhnet.be/infos/societe/article/400147/deux-pattes-suffisent-au-bonheur-de-ce-chat.html",
+        "http://www.dhnet.be/sports/jo-2012/article/404259/mais-que-fait-il-au-fond-de-la-piscine.html",
+        "http://www.dhnet.be/infos/monde/article/386567/veronique-de-keyser-bachar-el-assad-doit-partir.html",
+        "http://www.dhnet.be/sports/cyclisme/article/411974/rabobank-dans-le-peloton-l-an-prochain-sans-le-nom-de-son-sponsor.html",
+        "http://www.dhnet.be/infos/faits-divers/article/410926/legear-n-a-pas-minimise-l-accident-mais-ne-maitrise-pas-l-anglais.html",
+        "http://www.dhnet.be/infos/societe/article/417448/la-nasa-revele-le-cote-obscur-de-la-planete.html"
     ]
 
     from csxj.common.tagging import print_taggedURLs
@@ -449,6 +475,16 @@ if __name__ == "__main__":
         print link.tags
         print "°°°°°°°°°°°°°°°°°°°°"
 
+    
+    # article, html = extract_article_data(urls[-1])
+    # print article.title
+    # print article.url
+    # print "°°°°°°°°°°°°°°°°°°°°"
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "°°°°°°°°°°°°°°°°°°°°"
 
     # from pprint import pprint
     # print_taggedURLs(article.links)
