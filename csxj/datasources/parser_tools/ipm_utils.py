@@ -318,12 +318,16 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             def test_for_plaintext_url(embed_contents):
                 fragment = remove_text_formatting_and_links_from_fragments(embed_contents)
                 url = extract_plaintext_urls_from_text(fragment)
-                return url
-            if test_for_plaintext_url(item_div):
-                url = test_for_plaintext_url(item_div)[0]
+                return url, fragment
+
+            plaintext_links, fragment = test_for_plaintext_url(item_div)
+            if plaintext_links:
+                url = plaintext_links[0]
                 all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
                 tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'plaintext']))
                 return tagged_url
+            elif fragment:
+                return None
 
             elif item_div.img:
                 return None
