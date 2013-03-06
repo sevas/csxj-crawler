@@ -275,7 +275,7 @@ def extract_embedded_media_from_top_box(soup):
             if url_part1 is not None and url_part2 is not None:
                 url = "%s?%s" % (url_part1, url_part2)
                 tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-                if kplayer.next_sibling :
+                if kplayer.next_sibling:
                     if len(kplayer.next_sibling) > 0 and kplayer.next_sibling.name == 'figcaption':
                         title = kplayer.next_sibling.contents[0]
                         tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
@@ -287,10 +287,7 @@ def extract_embedded_media_from_top_box(soup):
                     title = constants.GHOST_LINK_TITLE
                     tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
             else:
-                title = constants.GHOST_LINK_TITLE
-                tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
-        else:
-            raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
+                raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
 
         # sometimes it's a youtube player
         youtube_player = top_box.find(attrs={'class': 'emvideo emvideo-video emvideo-youtube'})
@@ -307,6 +304,7 @@ def extract_embedded_media_from_top_box(soup):
         return tagged_urls
     else:
         return []
+
 
 def extract_embedded_media_from_bottom(soup):
     tagged_urls = list()
@@ -328,7 +326,7 @@ def extract_embedded_media_from_bottom(soup):
 
 def extract_embedded_media_in_article(soup):
     tagged_urls = list()
-    story = soup.find(attrs = {'class': 'article-body'})
+    story = soup.find(attrs={'class': 'article-body'})
     scripts = story.findAll('script', recursive=True)
     for script in scripts:
         url = script.get('src')
@@ -395,7 +393,7 @@ if __name__ == '__main__':
     "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB",
     u'http://www.lesoir.be/94315/article/styles/bien-etre/2012-10-05/des-pommes-100-belges-chez-mcdonald\u2019s'
     ]
-    
+
     urls_from_errors = [
     "http://www.lesoir.be/91986/article/actualite/regions/namur-luxembourg/2012-10-02/saucisson-d\u2019ardenne-une-victoire-face-\u00e0-flandre",
     "http://www.lesoir.be/79210/article/actualite/belgique/2012-08-30/naissance-d-un-panda-roux-\u00e0-planckendael",
