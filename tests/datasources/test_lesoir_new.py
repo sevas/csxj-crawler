@@ -38,7 +38,11 @@ class TestLeSoirNewContentExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
+    def test_title_extraction(self):
+        with open(os.path.join(DATA_ROOT, "title_extraction.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            expected_title = u'Technologies de haut vol (de voitures)'
+            eq_(article.title, expected_title)
 
 
 class TestLaSoirNewLinkExtraction(object):
@@ -95,5 +99,18 @@ class TestLaSoirNewLinkExtraction(object):
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_kplayer_without_title(self):
+        with open(os.path.join(DATA_ROOT, "kplayer_without_title.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://soirmag.lesoir.be/search/node/gandolfi", u"""Dans toutes ses interviews""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://soirmag.lesoir.be/search/node/gandolfi", u"""Les articles sur Barbara Gandolfi sur SoirMag""", set(['internal', 'sidebar box', 'internal site'])),
+                make_tagged_url("http://sll.kewego.com/swf/p3/epix.swf?language_code=fr&playerKey=5ff3260def2a&skinKey=6624e00d250s&sig=d09800d9f8as&autostart=false&advertise=true", u"""__NO_TITLE__""", set(['kplayer', 'external', 'embedded', 'top box'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 

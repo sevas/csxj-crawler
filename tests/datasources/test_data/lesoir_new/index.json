@@ -19,6 +19,14 @@
     [
       "http://www.lesoir.be/200800/article/sports/football/2013-03-02/coupe-genk-anderlecht-1-0-apr%C3%A8s-prolongations-direct", 
       "embedded_scribble_live.html"
+    ], 
+    [
+      "http://www.lesoir.be/91398/article/actualite/petite-gazette/2012-10-01/jean-paul-belmondo-fin-d\\u2019une-dr\\u00f4le-love-story", 
+      "kplayer_without_title.html"
+    ], 
+    [
+      "http://www.lesoir.be/91671/article/actualite/belgique/2012-10-02/technologies-haut-vol-voitures", 
+      "title_extraction.html"
     ]
   ]
 }

@@ -107,7 +107,13 @@ def get_frontpage_toc():
 def extract_title(soup):
     # trouver le titre
     main_content = soup.find(attrs={"id": "main-content"})
-    title = main_content.find("h1").contents[0]
+    # print soup.find(attrs={"id": "main-content"}).find("h2")
+    # print soup.find("div", {"class": "article-content"}).find("h2")
+    # print soup.find(attrs={"class": "meta"}).previous_sibling.previous_sibling
+    if main_content.find("h1"):
+        title = main_content.find("h1").contents[0]
+    else :
+        title = main_content.find("h2").contents[0]
     return title
 
 
@@ -249,29 +255,34 @@ def extract_links_from_sidebar_box(soup):
 
 def extract_embedded_media_from_top_box(soup):
     tagged_urls = list()
-    top_box = soup.find(attrs={'class': 'block-slidepic media'})
-    if top_box.find("embed"):
-        url = top_box.find("embed").get("src")
-        if url:
-            tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-            tags.add('embedded')
-            tags.add('top box')
-            tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-        else:
-            raise ValueError("There to be an embedded object but we could not find an link. Update the parser.")
+    if soup.find(attrs={'class': 'block-slidepic media'}):
+        top_box = soup.find(attrs={'class': 'block-slidepic media'})
+        if top_box.find("embed"):
+            url = top_box.find("embed").get("src")
+            if url:
+                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+                tags.add('embedded')
+                tags.add('top box')
+                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+            else:
+                raise ValueError("There to be an embedded object but we could not find an link. Update the parser.")
 
-    # sometimes it's a kewego player
-    kplayer = top_box.find(attrs={'class': 'emvideo emvideo-video emvideo-kewego'})
-    if kplayer:
-        url_part1 = kplayer.object['data']
-        url_part2 = kplayer.object.find('param', {'name': 'flashVars'})['value']
-        if url_part1 is not None and url_part2 is not None:
-            url = "%s?%s" % (url_part1, url_part2)
-            tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-            if kplayer.next_sibling.name == "figcaption":
-                if len(kplayer.next_sibling) > 0:
-                    title = kplayer.next_sibling.contents[0]
-                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
+        # sometimes it's a kewego player
+        kplayer = top_box.find(attrs={'class': 'emvideo emvideo-video emvideo-kewego'})
+        if kplayer:
+            url_part1 = kplayer.object['data']
+            url_part2 = kplayer.object.find('param', {'name': 'flashVars'})['value']
+            if url_part1 is not None and url_part2 is not None:
+                url = "%s?%s" % (url_part1, url_part2)
+                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+                if kplayer.next_sibling :
+                    if len(kplayer.next_sibling) > 0 and kplayer.next_sibling.name == 'figcaption':
+                        title = kplayer.next_sibling.contents[0]
+                        tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
+                    else:
+                        title = "__NO_TITLE__"
+                        tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
+
                 else:
                     title = constants.GHOST_LINK_TITLE
                     tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
@@ -281,20 +292,21 @@ def extract_embedded_media_from_top_box(soup):
         else:
             raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
 
-    # sometimes it's a youtube player
-    youtube_player = top_box.find(attrs={'class': 'emvideo emvideo-video emvideo-youtube'})
-    if youtube_player:
-        url = youtube_player.find("a").get("href")
-        if url:
-            tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-            tags.add('embedded')
-            tags.add('top box')
-            tags.add('video')
-            tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-        else:
-            raise ValueError("There seems to be a Youtube player but we couldn't find an URL. Update the parser.")
-    return tagged_urls
-
+        # sometimes it's a youtube player
+        youtube_player = top_box.find(attrs={'class': 'emvideo emvideo-video emvideo-youtube'})
+        if youtube_player:
+            url = youtube_player.find("a").get("href")
+            if url:
+                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+                tags.add('embedded')
+                tags.add('top box')
+                tags.add('video')
+                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+            else:
+                raise ValueError("There seems to be a Youtube player but we couldn't find an URL. Update the parser.")
+        return tagged_urls
+    else:
+        return []
 
 def extract_embedded_media_from_bottom(soup):
     tagged_urls = list()
@@ -356,8 +368,8 @@ def extract_article_data(source):
 
     updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
-    # print generate_test_func('embedded_scribble_live', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
-    # save_sample_data_file(html_data, source, 'embedded_scribble_live', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+    # print generate_test_func('title_extraction', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
+    # save_sample_data_file(html_data, source, 'title_extraction', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
 
     return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
             updated_tagged_urls,
@@ -383,17 +395,25 @@ if __name__ == '__main__':
     "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB",
     u'http://www.lesoir.be/94315/article/styles/bien-etre/2012-10-05/des-pommes-100-belges-chez-mcdonald\u2019s'
     ]
-    article, html = extract_article_data(urls[-1])
+    
+    urls_from_errors = [
+    "http://www.lesoir.be/91986/article/actualite/regions/namur-luxembourg/2012-10-02/saucisson-d\u2019ardenne-une-victoire-face-\u00e0-flandre",
+    "http://www.lesoir.be/79210/article/actualite/belgique/2012-08-30/naissance-d-un-panda-roux-\u00e0-planckendael",
+    "http://www.lesoir.be/91398/article/actualite/petite-gazette/2012-10-01/jean-paul-belmondo-fin-d\u2019une-dr\u00f4le-love-story",
+    "http://www.lesoir.be/91671/article/actualite/belgique/2012-10-02/technologies-haut-vol-voitures",
+    "http://www.lesoir.be/202046/article/actualite/monde/2013-03-04/berlusconi-%C2%ABau-c%C5%93ur-d%E2%80%99un-syst%C3%A8me-prostitution%C2%BB"]
 
-    # print article.title
-    # print article.intro
-    # print article.content
+    article, html = extract_article_data(urls_from_errors[-1])
 
-    for link in article.links:
-        print link.title
-        print link.URL
-        print link.tags
-        print "__________"
+    print [article.title]
+    print article.intro
+    print article.content
+
+    # for link in article.links:
+    #     print link.title
+    #     print link.URL
+    #     print link.tags
+    #     print "__________"
 
 
     # from csxj.common.tagging import print_taggedURLs
