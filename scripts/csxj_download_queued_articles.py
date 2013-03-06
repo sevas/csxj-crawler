@@ -4,12 +4,12 @@
 import os
 import argparse
 import csxj.crawler
-from csxj.datasources import lalibre, dhnet, sudinfo, rtlinfo, lavenir
+from csxj.datasources import lalibre, dhnet, sudinfo, rtlinfo, lavenir, septsursept, lesoir_new
 from csxj.articlequeue import ArticleQueueDownloader
 import traceback
 
 
-ALL_PARSERS = dhnet, lalibre, rtlinfo, sudinfo
+ALL_PARSERS = dhnet, lalibre, rtlinfo, sudinfo, lavenir, septsursept, lesoir_new
 
 
 def make_parser_list():
