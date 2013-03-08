@@ -319,6 +319,7 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
         else:
             raise ValueError("There seems to be a Youtube player but we couldn't find an URL. Update the parser.")
 
+    # RTL videos
     elif container.find(attrs={'class': "emvideo emvideo-video emvideo-videortl"}):
         url = container.find("iframe").get("src")
         if url:
@@ -328,8 +329,19 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
         else:
             raise ValueError("There seems to be a RTL video but it doesn't match known patterns")
 
+    elif container.find("iframe"):
+        url = container.find("iframe").get("src")
+        if url:
+            all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+            tagged_url = tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'top box', 'iframe']))
+            return tagged_url
+        else:
+            raise ValueError("There seems to be an iframe but it doesn't match known patterns")
+
+    # we want to avoid images
     elif container.find("img"):
         return None
+
 
     # if it's not a known case maybe we can still detect something:
     elif container.find("embed"):
@@ -432,8 +444,8 @@ def extract_article_data(source):
 
         updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
-        # print generate_test_func('embedded_rtl', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_data, source, 'embedded_rtl', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+        # print generate_test_func('loads_of_embedded_stuff_and_pdf_newspaper', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_data, source, 'loads_of_embedded_stuff_and_pdf_newspaper', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
 
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                     updated_tagged_urls,
@@ -468,45 +480,6 @@ if __name__ == '__main__':
     urls_from_errors = [
         # return "None" does not work
         #"http://www.lesoir.be/187412/article/debats/chats/2013-02-11/11h02-gaz-schiste-menace-pour-belgique", 
-        "http://www.lesoir.be/192039/article/actualite/belgique/2013-02-18/milquet-\u00abpas-question-supprimer-s\u00fbret\u00e9-l\u2019\u00e9tat\u00bb", 
-        "http://www.lesoir.be/192182/article/actualite/belgique/2013-02-18/tap-rejette-demande-marc-dutroux", 
-        "http://www.lesoir.be/192382/article/economie/2013-02-18/patron-novartis-empoche-58-millions-pour-son-d\u00e9part", 
-        "http://www.lesoir.be/192432/article/actualite/regions/hainaut/2013-02-18/p\u00e9ruwelz-corps-d\u2019un-b\u00e9b\u00e9-d\u00e9couvert-dans-un-camion-poubelle", 
-        "http://www.lesoir.be/192575/article/economie/2013-02-19/a\u00e9rodrome-spa-permis-provisoire", 
-        "http://www.lesoir.be/192567/article/actualite/belgique/2013-02-19/et-cr\u00e8che-des-fables-devint-un-cauchemar", 
-        "http://www.lesoir.be/192600/article/debats/chats/2013-02-19/11h02-qui-va-payer-pour-l\u2019\u00e9nergie-solaire", 
-        "http://www.lesoir.be/192567/article/actualite/belgique/2013-02-19/proc\u00e8s-kim-gelder-d\u00e9bute-aujourd-hui", 
-        "http://www.lesoir.be/192654/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-un-butin-350-millions-d\u2019euros", 
-        "http://www.lesoir.be/192674/article/actualite/belgique/2013-02-19/kim-gelder-est-arriv\u00e9-\u00e0-son-proc\u00e8s", 
-        "http://www.lesoir.be/192572/article/actualite/belgique/2013-02-19/\u00ab-wallonie-et-bruxelles-devront-collaborer-\u00bb", 
-        "http://www.lesoir.be/192600/article/debats/chats/2013-02-19/11h02-qui-va-payer-pour-l\u2019\u00e9nergie-solaire", 
-        "http://www.lesoir.be/192654/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-butin-s\u2019\u00e9l\u00e8ve-\u00e0-50-millions-dollars", 
-        "http://www.lesoir.be/192674/article/actualite/belgique/2013-02-19/proc\u00e8s-kim-gelder-officiellement-d\u00e9but\u00e9", 
-        "http://www.lesoir.be/192600/article/debats/chats/2013-02-19/11h02-\u00ab-nollet-fait-preuve-populisme-\u00bb", 
-        "http://www.lesoir.be/192654/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-malfrats-d\u00e9guis\u00e9s-en-policiers", 
-        "http://www.lesoir.be/192607/article/debats/chroniques/2013-02-19/pas-b\u0153uf-ni-cheval-sur-langue", 
-        "http://www.lesoir.be/192654/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-malfrats-\u00e9taient-d\u00e9guis\u00e9s-en-policiers", 
-        "http://www.lesoir.be/193085/article/sports/tennis/2013-02-19/une-2e-d\u00e9faite-face-\u00e0-llodra", 
-        "http://www.lesoir.be/192570/article/actualite/monde/2013-02-19/un-ol\u00e9oduc-explosif-pour-obama", 
-        "http://www.lesoir.be/193125/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-mesures-s\u00e9curit\u00e9-remises-en-cause", 
-        "http://www.lesoir.be/192674/article/actualite/belgique/2013-02-19/proc\u00e8s-kim-gelder-officiellement-d\u00e9but\u00e9", 
-        "http://www.lesoir.be/193125/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-\u00ables-mesures-s\u00e9curit\u00e9-ont-\u00e9t\u00e9-respect\u00e9es\u00bb", 
-        "http://www.lesoir.be/193363/article/actualite/vie-du-net/2013-02-19/apple-dit-avoir-\u00e9t\u00e9-victime-d\u2019une-attaque-informatique", 
-        "http://www.lesoir.be/192625/article/culture/cinema/2013-02-19/vid\u00e9o-\u00e0-demande-confirme-cartons-en-salle", 
-        "http://www.lesoir.be/193384/article/actualite/belgique/2013-02-19/auto-guerre-du-co2-aura-bien-lieu", 
-        "http://www.lesoir.be/193468/article/economie/2013-02-20/nollet-\u00ab-je-ne-veux-pas-faire-peser-charge-sur-m\u00e9nages-\u00bb", 
-        "http://www.lesoir.be/193398/article/economie/2013-02-19/antargaz-livrera-gaz-et-\u00e9lectricit\u00e9", 
-        "http://www.lesoir.be/193572/article/actualite/belgique/2013-02-20/prince-laurent-bless\u00e9-au-ski-princesse-claire-se-veut-rassurante", 
-        "http://www.lesoir.be/193572/article/actualite/belgique/2013-02-20/prince-laurent-se-blesse-sans-gravit\u00e9-en-autriche", 
-        "http://www.lesoir.be/193262/article/debats/chats/2013-02-19/11h02-encore-une-manif-est-ce-bien-s\u00e9rieux", 
-        "http://www.lesoir.be/193262/article/debats/chats/2013-02-19/11h02-\u00ab-une-manif-s\u00e9rieuse-dans-un-contexte-crise-s\u00e9rieux-\u00bb", 
-        "http://www.lesoir.be/193572/article/actualite/belgique/2013-02-20/prince-laurent-bless\u00e9-au-ski-souffre-d\u2019un-h\u00e9matome-interne", 
-        "http://www.lesoir.be/193262/article/debats/chats/2013-02-19/manif-ce-jeudi-\u00abun-rapport-forces\u00bb", 
-        "http://www.lesoir.be/193528/article/actualite/belgique/2013-02-20/diamantaires-d\u2019anvers-cibles-truands-plus-en-plus-audacieux", 
-        "http://www.lesoir.be/193532/article/debats/cartes-blanches/2013-02-20/s\u00fbret\u00e9-surveille-profs\u2026", 
-        "http://www.lesoir.be/194000/article/economie/2013-02-20/une-nouvelle-playstation-pour-voler-au-secours-sony", 
-        "http://www.lesoir.be/194063/article/economie/2013-02-20/affaire-fortis-selon-parquet-il-y-eu-faux-en-\u00e9criture-escroquerie-et-manipulatio", 
-        "http://www.lesoir.be/194000/article/economie/2013-02-20/une-nouvelle-playstation-pour-voler-au-secours-sony", 
         "http://www.lesoir.be/194330/article/actualite/belgique/2013-02-20/syndicats-ont-ils-raison-manifester", 
         "http://www.lesoir.be/194302/article/economie/2013-02-20/energie-facture-des-wallons-va-grimper-380-euros", 
         "http://www.lesoir.be/194252/article/actualite/belgique/2013-02-20/freinet-f\u00e2ch\u00e9-avec-maths", 

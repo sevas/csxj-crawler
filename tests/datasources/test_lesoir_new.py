@@ -151,5 +151,23 @@ class TestLaSoirNewLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_loads_of_embedded_stuff_and_pdf_newspaper(self):
+        with open(os.path.join(DATA_ROOT, "loads_of_embedded_stuff_and_pdf_newspaper.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://pdf.lesoir.be", u"""Notre dossier complet pp. 2 et 3 dans Le Soir en PDF""", set(['internal', 'internal site', 'pdf newspaper', 'in text'])),
+                make_tagged_url("http://www.lesoir.be/194330/article/actualite/belgique/2013-02-20/syndicats-ont-ils-raison-manifester", u"""Les syndicats ont-ils raison de manifester ? (sondage)""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/193899/article/actualite/belgique/2013-02-20/manif-jeudi-gros-points-noirs-redout%C3%A9s-partout-en-belgique", u"""Manif de jeudi: de gros points noirs redoutés partout en Belgique""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/194401/article/debats/editos/2013-02-21/crise-vaut-bien-une-manif-mais-pas-une-fuite", u"""L'édito - La crise vaut bien une manif, mais pas une fuite""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/193262/article/debats/chats/2013-02-19/manif-ce-jeudi-%C2%ABun-rapport-forces%C2%BB", u"""Manif de ce jeudi: «Un rapport de forces»""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://videos.lesoir.be/video/076717938cas.html", u'''Le 11h02 : "Un rapport de force"''', set(['internal', 'sidebar box', 'internal site'])),
+                make_tagged_url("http://sll.kewego.com/swf/p3/epix.swf?language_code=fr&playerKey=5ff3260def2a&skinKey=6624e00d250s&sig=076717938cas&autostart=false&advertise=true", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded', 'top box'])),
+                make_tagged_url("http://maps.google.be/maps/ms?msid=209311417319162309079.0004d630121a53cbdf34c&msa=0&output=embed", u"""http://maps.google.be/maps/ms?msid=209311417319162309079.0004d630121a53cbdf34c&msa=0&output=embed""", set(['embedded', 'external', 'iframe', 'top box'])),
+                make_tagged_url("http://player.qualifio.com/08/v1.cfm?id=D55B0593-5056-8040-9EBD-0632E0DED7C7&iframe=true", u"""http://player.qualifio.com/08/v1.cfm?id=D55B0593-5056-8040-9EBD-0632E0DED7C7&iframe=true""", set(['iframe', 'external', 'embedded'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 
