@@ -11,7 +11,9 @@ from csxj.common import tagging
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import setup_locales
-from parser_tools import rossel_utils
+from parser_tools import rossel_utils, constants
+
+from urllib2 import HTTPError
 
 from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
@@ -115,7 +117,6 @@ def extract_title(soup):
         title = main_content.find("h2").contents[0]
     return title
 
-
 def extract_author_name(soup):
     authors = []
     meta_box = soup.find(attrs={"class": "meta"})
@@ -140,17 +141,21 @@ def extract_date_and_time(soup):
 
 
 def extract_intro(soup):
-    intro_box = soup.find(attrs={"class": "article-content"})
-    if len(intro_box.find("h3").contents) > 0:
-        fragment = intro_box.find("h3").contents[0]
-        intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n').rstrip()
-        return intro
+    if soup.find(attrs={"class": "article-content"}).h3:
+        intro_box = soup.find(attrs={"class": "article-content"})
+        if len(intro_box.find("h3").contents) > 0:
+            fragment = intro_box.find("h3").contents[0]
+            intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n').rstrip()
+            return intro
 
-    if intro_box.find("h3").find_next_sibling("p"):
-        fragment = intro_box.find("h3").find_next_sibling("p")
-        intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n')
-        return intro
-
+        if intro_box.find("h3").find_next_sibling("p"):
+            fragment = intro_box.find("h3").find_next_sibling("p")
+            intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n')
+            return intro
+        else:
+            return []
+    else:
+        return []
 
 
 def extract_title_and_url_from_bslink(link):
@@ -253,57 +258,106 @@ def extract_links_from_sidebar_box(soup):
     return tagged_urls
 
 
-def extract_embedded_media_from_top_box(soup):
-    tagged_urls = list()
-    if soup.find(attrs={'class': 'block-slidepic media'}):
-        top_box = soup.find(attrs={'class': 'block-slidepic media'})
-        if top_box.find("embed"):
-            url = top_box.find("embed").get("src")
-            if url:
-                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-                tags.add('embedded')
-                tags.add('top box')
-                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-            else:
-                raise ValueError("There to be an embedded object but we could not find an link. Update the parser.")
-
-        # sometimes it's a kewego player
-        kplayer = top_box.find(attrs={'class': 'emvideo emvideo-video emvideo-kewego'})
-        if kplayer:
-            url_part1 = kplayer.object['data']
-            url_part2 = kplayer.object.find('param', {'name': 'flashVars'})['value']
-            if url_part1 is not None and url_part2 is not None:
-                url = "%s?%s" % (url_part1, url_part2)
-                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-                if kplayer.next_sibling :
-                    if len(kplayer.next_sibling) > 0 and kplayer.next_sibling.name == 'figcaption':
-                        title = kplayer.next_sibling.contents[0]
-                        tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
-                    else:
-                        title = "__NO_TITLE__"
-                        tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
+def extract_embedded_media_from_top_box(container, site_netloc, site_internal_sites):
+    # It might be a Kewego video
+    if container.find(attrs={'class': 'emvideo emvideo-video emvideo-kewego'}):
+        kplayer = container.find(attrs={'class': 'emvideo emvideo-video emvideo-kewego'})
+        url_part1 = kplayer.object['data']
+        url_part2 = kplayer.object.find('param', {'name': 'flashVars'})['value']
+        if url_part1 is not None and url_part2 is not None:
+            url = "%s?%s" % (url_part1, url_part2)
+            all_tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+            if kplayer.next_sibling :
+                if len(kplayer.next_sibling) > 0 and kplayer.next_sibling.name == 'figcaption':
+                    title = kplayer.next_sibling.contents[0]
+                    all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = tagging.make_tagged_url(url, title, all_tags | set(['embedded', 'top box', 'kplayer', 'video']))
+                    return tagged_url
 
                 else:
                     title = "__NO_TITLE__"
-                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
+                    all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = tagging.make_tagged_url(url, title, all_tags | set(['embedded', 'top box', 'kplayer', 'video']))
+                    return tagged_url
             else:
-                raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
+                title = "__NO_TITLE__"
+                all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = tagging.make_tagged_url(url, title, all_tags | set(['embedded', 'top box', 'kplayer', 'video']))
+                return tagged_url
+        else:
+            raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
 
-        # sometimes it's a youtube player
-        youtube_player = top_box.find(attrs={'class': 'emvideo emvideo-video emvideo-youtube'})
-        if youtube_player:
-            url = youtube_player.find("a").get("href")
-            if url:
-                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-                tags.add('embedded')
-                tags.add('top box')
-                tags.add('video')
-                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+    # it might be a dailymotion or ustream video
+    elif container.find(attrs={'class': 'emvideo emvideo-video emvideo-embedly'}):
+        if container.find("param", {'name': 'movie'}):
+            if container.find("param").get("value"):
+                if container.find("param", {"name": "movie"}).get("value").startswith("http://www.ustream.tv"):
+                    tagged_url = tagging.make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
+                    return tagged_url
             else:
-                raise ValueError("There seems to be a Youtube player but we couldn't find an URL. Update the parser.")
-        return tagged_urls
+                print "no value or what?"
+
+        elif container.find("iframe"):
+            url = container.find("iframe").get("src")
+            if url:
+                all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'top box', 'video']))
+                return tagged_url
+            else:
+                raise ValueError("There seems to be a Dailymotion player but we couldn't find an URL. Update the parser.")
+        else:
+            raise ValueError("There's an embedded video that does not match known patterns")
+
+    elif container.find(attrs={'class': 'emvideo emvideo-video emvideo-youtube'}):
+        youtube_player = container.find(attrs={'class': 'emvideo emvideo-video emvideo-youtube'})
+        url = youtube_player.find("a").get("href")
+        if url:
+            all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+            tagged_url = tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'top box', 'video']))
+            return tagged_url
+
+        else:
+            raise ValueError("There seems to be a Youtube player but we couldn't find an URL. Update the parser.")
+
+    elif container.find(attrs={'class': "emvideo emvideo-video emvideo-videortl"}):
+        url = container.find("iframe").get("src")
+        if url:
+            all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+            tagged_url = tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'top box', 'video']))
+            return tagged_url
+        else:
+            raise ValueError("There seems to be a RTL video but it doesn't match known patterns")
+
+    elif container.find("img"):
+        return None
+
+    # if it's not a known case maybe we can still detect something:
+    elif container.find("embed"):
+        url = container.find("embed").get("src")
+        if url:
+            all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+            tagged_url = tagging.make_tagged_url(url, title, all_tags | set(['embedded', 'top box']))
+            return tagged_url
+
+        else:
+            raise ValueError("There to be an embedded object but we could not find an link. Update the parser.")
+    else:
+        raise ValueError("Unknown type of embedded media")
+
+
+
+def extract_links_to_embedded_content(soup):
+    if soup.find(attrs={'class': 'block-slidepic media'}):
+        top_box = soup.find(attrs={'class': 'block-slidepic media'}).find_all("figure")
+        embedded_links = list()
+        for container in top_box:
+            tagged_url = extract_embedded_media_from_top_box(container, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+            if tagged_url is not None:
+                embedded_links.append(tagged_url)
+        return embedded_links
     else:
         return []
+
 
 def extract_embedded_media_from_bottom(soup):
     tagged_urls = list()
@@ -343,35 +397,49 @@ def extract_article_data(source):
     if hasattr(source, 'read'):
         html_data = source.read()
     else:
-        html_data = fetch_html_content(source)
+        try:
+            html_data = fetch_html_content(source)
+        except HTTPError as e:
+            if e.code == 404 or e.code == 403:
+                return None, None
+            else:
+                raise
+        except Exception:
+            raise
 
 
     soup = bs4.BeautifulSoup(html_data)
-    title = extract_title(soup)
-    author_name = extract_author_name(soup)
-    intro = extract_intro(soup)
-    text, tagged_urls_intext = extract_text_content_and_links(soup)
-    category = extract_category(soup)
-    sidebar_links = extract_links_from_sidebar_box(soup)
-    article_tags = extract_article_tags(soup)
-    embedded_media_from_top_box = extract_embedded_media_from_top_box(soup)
-    embedded_media_from_bottom = extract_embedded_media_from_bottom(soup)
-    embedded_media_in_article = extract_embedded_media_in_article(soup)
-    embedded_media = embedded_media_from_top_box + embedded_media_from_bottom + embedded_media_in_article
-    all_links = tagged_urls_intext + sidebar_links + article_tags + embedded_media
-    pub_date, pub_time = extract_date_and_time(soup)
-    fetched_datetime = datetime.today()
 
-    updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
+    if soup.find(attrs={"id": "main-content"}).h2 and soup.find(attrs={"id": "main-content"}).h2.find(attrs={'class': 'ir locked'}):
+        print "PAID ARTICLE"
+        return None, None
 
-    # print generate_test_func('title_extraction', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
-    # save_sample_data_file(html_data, source, 'title_extraction', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+    else:
+        title = extract_title(soup)
+        author_name = extract_author_name(soup)
+        intro = extract_intro(soup)
+        text, tagged_urls_intext = extract_text_content_and_links(soup)
+        category = extract_category(soup)
+        sidebar_links = extract_links_from_sidebar_box(soup)
+        article_tags = extract_article_tags(soup)
+        embedded_media_from_top_box = extract_links_to_embedded_content(soup)
+        embedded_media_from_bottom = extract_embedded_media_from_bottom(soup)
+        embedded_media_in_article = extract_embedded_media_in_article(soup)
+        embedded_media = embedded_media_from_top_box + embedded_media_from_bottom + embedded_media_in_article
+        all_links = tagged_urls_intext + sidebar_links + article_tags + embedded_media
+        pub_date, pub_time = extract_date_and_time(soup)
+        fetched_datetime = datetime.today()
 
-    return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                updated_tagged_urls,
-                category, author_name,
-                intro, text),
-    html_data)
+        updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
+
+        # print generate_test_func('embedded_rtl', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_data, source, 'embedded_rtl', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+
+        return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
+                    updated_tagged_urls,
+                    category, author_name,
+                    intro, text),
+        html_data)
 
 
 def test_sample_data():
@@ -387,26 +455,176 @@ if __name__ == '__main__':
     # for p in paywalled:
     #     print p
 
-    urls = ["http://www.lesoir.be/191397/article/culture/cinema/2013-02-16/l%E2%80%99ours-d%E2%80%99or-d%C3%A9cern%C3%A9-au-drame-roumain-%C2%ABchild%E2%80%99s-pose%C2%BB",
-    "http://www.lesoir.be/200886/article/actualite/belgique/2013-03-02/didier-reynders-veut-mettre-imams-sous-contr%C3%B4le",
-    "http://www.lesoir.be/200800/article/sports/football/2013-03-02/coupe-genk-anderlecht-1-0-apr%C3%A8s-prolongations-direct",
-    "http://www.lesoir.be/200395/article/actualite/quiz/2013-03-01/quiz-actu-chiffr%C3%A9-semaine",
-    "http://www.lesoir.be/200851/article/actualite/belgique/2013-03-02/budget-pour-andr%C3%A9-antoine-%C2%AB-bons-comptes-font-bons-amis-%C2%BB",
-    "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB"
-    ]
-    
+    urls = ["file://localhost/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new/embedded_dailymotion_video.html",
+            "http://www.lesoir.be/187412/article/debats/chats/2013-02-11/11h02-%C2%ABil-est-temps-d%C3%A9finir-notre-politique-%C3%A9nerg%C3%A9tique%C2%BB"
+            "http://www.lesoir.be/191397/article/culture/cinema/2013-02-16/l%E2%80%99ours-d%E2%80%99or-d%C3%A9cern%C3%A9-au-drame-roumain-%C2%ABchild%E2%80%99s-pose%C2%BB",
+            "http://www.lesoir.be/200886/article/actualite/belgique/2013-03-02/didier-reynders-veut-mettre-imams-sous-contr%C3%B4le",
+            "http://www.lesoir.be/200800/article/sports/football/2013-03-02/coupe-genk-anderlecht-1-0-apr%C3%A8s-prolongations-direct",
+            "http://www.lesoir.be/200395/article/actualite/quiz/2013-03-01/quiz-actu-chiffr%C3%A9-semaine",
+            "http://www.lesoir.be/200851/article/actualite/belgique/2013-03-02/budget-pour-andr%C3%A9-antoine-%C2%AB-bons-comptes-font-bons-amis-%C2%BB",
+            "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB"
+            ]
+
     urls_from_errors = [
-    "http://www.lesoir.be/91986/article/actualite/regions/namur-luxembourg/2012-10-02/saucisson-d\u2019ardenne-une-victoire-face-\u00e0-flandre",
-    "http://www.lesoir.be/79210/article/actualite/belgique/2012-08-30/naissance-d-un-panda-roux-\u00e0-planckendael",
-    "http://www.lesoir.be/91398/article/actualite/petite-gazette/2012-10-01/jean-paul-belmondo-fin-d\u2019une-dr\u00f4le-love-story",
-    "http://www.lesoir.be/91671/article/actualite/belgique/2012-10-02/technologies-haut-vol-voitures",
-    "http://www.lesoir.be/202046/article/actualite/monde/2013-03-04/berlusconi-%C2%ABau-c%C5%93ur-d%E2%80%99un-syst%C3%A8me-prostitution%C2%BB"]
+        # return "None" does not work
+        #"http://www.lesoir.be/187412/article/debats/chats/2013-02-11/11h02-gaz-schiste-menace-pour-belgique", 
+        "http://www.lesoir.be/192039/article/actualite/belgique/2013-02-18/milquet-\u00abpas-question-supprimer-s\u00fbret\u00e9-l\u2019\u00e9tat\u00bb", 
+        "http://www.lesoir.be/192182/article/actualite/belgique/2013-02-18/tap-rejette-demande-marc-dutroux", 
+        "http://www.lesoir.be/192382/article/economie/2013-02-18/patron-novartis-empoche-58-millions-pour-son-d\u00e9part", 
+        "http://www.lesoir.be/192432/article/actualite/regions/hainaut/2013-02-18/p\u00e9ruwelz-corps-d\u2019un-b\u00e9b\u00e9-d\u00e9couvert-dans-un-camion-poubelle", 
+        "http://www.lesoir.be/192575/article/economie/2013-02-19/a\u00e9rodrome-spa-permis-provisoire", 
+        "http://www.lesoir.be/192567/article/actualite/belgique/2013-02-19/et-cr\u00e8che-des-fables-devint-un-cauchemar", 
+        "http://www.lesoir.be/192600/article/debats/chats/2013-02-19/11h02-qui-va-payer-pour-l\u2019\u00e9nergie-solaire", 
+        "http://www.lesoir.be/192567/article/actualite/belgique/2013-02-19/proc\u00e8s-kim-gelder-d\u00e9bute-aujourd-hui", 
+        "http://www.lesoir.be/192654/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-un-butin-350-millions-d\u2019euros", 
+        "http://www.lesoir.be/192674/article/actualite/belgique/2013-02-19/kim-gelder-est-arriv\u00e9-\u00e0-son-proc\u00e8s", 
+        "http://www.lesoir.be/192572/article/actualite/belgique/2013-02-19/\u00ab-wallonie-et-bruxelles-devront-collaborer-\u00bb", 
+        "http://www.lesoir.be/192600/article/debats/chats/2013-02-19/11h02-qui-va-payer-pour-l\u2019\u00e9nergie-solaire", 
+        "http://www.lesoir.be/192654/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-butin-s\u2019\u00e9l\u00e8ve-\u00e0-50-millions-dollars", 
+        "http://www.lesoir.be/192674/article/actualite/belgique/2013-02-19/proc\u00e8s-kim-gelder-officiellement-d\u00e9but\u00e9", 
+        "http://www.lesoir.be/192600/article/debats/chats/2013-02-19/11h02-\u00ab-nollet-fait-preuve-populisme-\u00bb", 
+        "http://www.lesoir.be/192654/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-malfrats-d\u00e9guis\u00e9s-en-policiers", 
+        "http://www.lesoir.be/192607/article/debats/chroniques/2013-02-19/pas-b\u0153uf-ni-cheval-sur-langue", 
+        "http://www.lesoir.be/192654/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-malfrats-\u00e9taient-d\u00e9guis\u00e9s-en-policiers", 
+        "http://www.lesoir.be/193085/article/sports/tennis/2013-02-19/une-2e-d\u00e9faite-face-\u00e0-llodra", 
+        "http://www.lesoir.be/192570/article/actualite/monde/2013-02-19/un-ol\u00e9oduc-explosif-pour-obama", 
+        "http://www.lesoir.be/193125/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-mesures-s\u00e9curit\u00e9-remises-en-cause", 
+        "http://www.lesoir.be/192674/article/actualite/belgique/2013-02-19/proc\u00e8s-kim-gelder-officiellement-d\u00e9but\u00e9", 
+        "http://www.lesoir.be/193125/article/actualite/belgique/2013-02-19/braquage-\u00e0-l\u2019a\u00e9roport-bruxelles-\u00ables-mesures-s\u00e9curit\u00e9-ont-\u00e9t\u00e9-respect\u00e9es\u00bb", 
+        "http://www.lesoir.be/193363/article/actualite/vie-du-net/2013-02-19/apple-dit-avoir-\u00e9t\u00e9-victime-d\u2019une-attaque-informatique", 
+        "http://www.lesoir.be/192625/article/culture/cinema/2013-02-19/vid\u00e9o-\u00e0-demande-confirme-cartons-en-salle", 
+        "http://www.lesoir.be/193384/article/actualite/belgique/2013-02-19/auto-guerre-du-co2-aura-bien-lieu", 
+        "http://www.lesoir.be/193468/article/economie/2013-02-20/nollet-\u00ab-je-ne-veux-pas-faire-peser-charge-sur-m\u00e9nages-\u00bb", 
+        "http://www.lesoir.be/193398/article/economie/2013-02-19/antargaz-livrera-gaz-et-\u00e9lectricit\u00e9", 
+        "http://www.lesoir.be/193572/article/actualite/belgique/2013-02-20/prince-laurent-bless\u00e9-au-ski-princesse-claire-se-veut-rassurante", 
+        "http://www.lesoir.be/193572/article/actualite/belgique/2013-02-20/prince-laurent-se-blesse-sans-gravit\u00e9-en-autriche", 
+        "http://www.lesoir.be/193262/article/debats/chats/2013-02-19/11h02-encore-une-manif-est-ce-bien-s\u00e9rieux", 
+        "http://www.lesoir.be/193262/article/debats/chats/2013-02-19/11h02-\u00ab-une-manif-s\u00e9rieuse-dans-un-contexte-crise-s\u00e9rieux-\u00bb", 
+        "http://www.lesoir.be/193572/article/actualite/belgique/2013-02-20/prince-laurent-bless\u00e9-au-ski-souffre-d\u2019un-h\u00e9matome-interne", 
+        "http://www.lesoir.be/193262/article/debats/chats/2013-02-19/manif-ce-jeudi-\u00abun-rapport-forces\u00bb", 
+        "http://www.lesoir.be/193528/article/actualite/belgique/2013-02-20/diamantaires-d\u2019anvers-cibles-truands-plus-en-plus-audacieux", 
+        "http://www.lesoir.be/193532/article/debats/cartes-blanches/2013-02-20/s\u00fbret\u00e9-surveille-profs\u2026", 
+        "http://www.lesoir.be/194000/article/economie/2013-02-20/une-nouvelle-playstation-pour-voler-au-secours-sony", 
+        "http://www.lesoir.be/194063/article/economie/2013-02-20/affaire-fortis-selon-parquet-il-y-eu-faux-en-\u00e9criture-escroquerie-et-manipulatio", 
+        "http://www.lesoir.be/194000/article/economie/2013-02-20/une-nouvelle-playstation-pour-voler-au-secours-sony", 
+        "http://www.lesoir.be/194330/article/actualite/belgique/2013-02-20/syndicats-ont-ils-raison-manifester", 
+        "http://www.lesoir.be/194302/article/economie/2013-02-20/energie-facture-des-wallons-va-grimper-380-euros", 
+        "http://www.lesoir.be/194252/article/actualite/belgique/2013-02-20/freinet-f\u00e2ch\u00e9-avec-maths", 
+        "http://www.lesoir.be/194330/article/actualite/belgique/2013-02-20/syndicats-ont-ils-raison-manifester-sondage", 
+        "http://www.lesoir.be/194127/article/debats/chats/2013-02-20/11h02-palais-doit-il-moderniser-sa-communication", 
+        "http://www.lesoir.be/194127/article/debats/chats/2013-02-20/11h02-palais-doit-il-moderniser-sa-communication", 
+        "http://www.lesoir.be/194127/article/debats/chats/2013-02-20/11h02-\u00abil-est-temps-pour-palais-moderniser-sa-communication\u00bb", 
+        "http://www.lesoir.be/194756/article/economie/2013-02-21/des-t\u00e9l\u00e9coms-encore-trop-co\u00fbteuses", 
+        "http://www.lesoir.be/194795/gallerie/2013-02-21/un-jour-sans-pour-messi-son-match-en-images", 
+        "http://www.lesoir.be/194839/article/actualite/belgique/2013-02-21/elio-di-rupo-appelle-\u00e0-reprise-du-dialogue-social", 
+        "http://www.lesoir.be/194711/article/debats/cartes-blanches/2013-02-21/l-in\u00e9vitable-intervention-au-mali-et-apr\u00e8s", 
+        "http://www.lesoir.be/195093/article/actualite/belgique/2013-02-21/echanges-fiscaux-154-demandes-fran\u00e7aises-renseignements-\u00e0-belgique-en-2012", 
+        "http://www.lesoir.be/195220/article/actualite/belgique/2013-02-21/un-camion-charg\u00e9-voitures-se-renverse-sur-l\u2019e40-une-heure-files", 
+        "http://www.lesoir.be/194839/article/actualite/belgique/2013-02-21/kern-se-termine-sans-relance-du-dialogue-social", 
+        "http://www.lesoir.be/195313/article/actualite/belgique/2013-02-21/olivier-maingain-veut-un-etat-wallonie-bruxelles", 
+        "http://www.lesoir.be/195374/article/actualite/vie-du-net/2013-02-22/google-veut-soigner-son-image", 
+        "http://www.lesoir.be/195417/article/sports/2013-02-22/oscar-pistorius-arrive-au-tribunal-o\u00f9-il-compara\u00eet-pour-meurtre", 
+        "http://www.lesoir.be/195372/article/sports/2013-02-22/van-petegem-l\u2019homme-qui-aimait-pav\u00e9s", 
+        "http://www.lesoir.be/195417/article/sports/2013-02-22/pistorius-une-longue-peine-prison-est-\u00abpresque-garantie\u00bb-estime-procureur", 
+        "http://www.lesoir.be/195395/article/debats/chats/2013-02-22/11h02-oscar-pistorius-peut-il-\u00e9chapper-\u00e0-condamnation", 
+        "http://www.lesoir.be/195614/article/economie/2013-02-22/des-d\u00e9tectives-priv\u00e9s-envoy\u00e9s-\u00e0-batibouw-vid\u00e9o", 
+        "http://www.lesoir.be/195417/article/sports/2013-02-22/pistorius-d\u00e9fense-admet-un-possible-homicide-volontaire", 
+        "http://www.lesoir.be/195380/article/actualite/monde/2013-02-22/pas-piti\u00e9-pour-cardinaux-entach\u00e9s", 
+        "http://www.lesoir.be/195736/article/sports/football/2013-02-22/charleroi-zulte-waregem-en-direct-comment\u00e9", 
+        "http://www.lesoir.be/195903/article/culture/cinema/2013-02-22/soir\u00e9e-des-c\u00e9sar-en-direct-21-heures", 
+        "http://www.lesoir.be/195903/article/culture/cinema/2013-02-22/soir\u00e9e-des-c\u00e9sar-en-direct", 
+        "http://www.lesoir.be/195903/article/culture/cinema/2013-02-22/belge-matthias-schoenaerts-remporte-c\u00e9sar-du-meilleur-acteur-live", 
+        "http://www.lesoir.be/195903/article/culture/cinema/2013-02-22/belge-matthias-schoenaerts-remporte-c\u00e9sar-du-meilleur-espoir-masculin-live", 
+        "http://www.lesoir.be/196132/article/actualite/belgique/2013-02-22/certificats-verts-\u00ab-nous-avons-tir\u00e9-sonnette-d\u2019alarme-en-2011-\u00bb", 
+        "http://www.lesoir.be/196234/article/actualite/belgique/2013-02-23/mort-en-prison-\u00e0-mortsel-slfp-contre-suspension-du-policier", 
+        "http://www.lesoir.be/196234/article/actualite/belgique/2013-02-23/battu-\u00e0-mort-en-prison-slfp-oppos\u00e9-\u00e0-suspension-du-policier", 
+        "http://www.lesoir.be/196236/article/actualite/belgique/2013-02-23/doel-tihange-doutes-fran\u00e7ais", 
+        "http://www.lesoir.be/196247/article/economie/2013-02-23/duel-milliardaires-autour-herbalife", 
+        "http://www.lesoir.be/196301/article/sports/tennis/2013-02-23/malisse-et-darcis-\u00e9vitent-t\u00eates-s\u00e9rie-au-1er-tour-\u00e0-delray-beach", 
+        "http://www.lesoir.be/196254/article/sports/cyclisme/2013-02-23/voici-venu-temps-des-\u00ab-vrais-\u00bb-flandriens", 
+        "http://www.lesoir.be/196352/article/actualite/belgique/2013-02-23/nollet-consommateur-ne-payera-pas-facture-du-photovolta\u00efque-\u00abje-m-y-engage\u00bb", 
+        "http://www.lesoir.be/196345/article/sports/cyclisme/2013-02-23/d\u00e9part-du-circuit-het-nieuwsblad-\u00e9t\u00e9-donn\u00e9", 
+        "http://www.lesoir.be/196351/article/actualite/belgique/2013-02-23/nollet-consommateur-ne-payera-pas-facture-du-photovolta\u00efque-\u00abje-m-y-engage\u00bb", 
+        "http://www.lesoir.be/196351/article/actualite/belgique/2013-02-23/nollet-consommateur-ne-payera-pas-facture-\u00abje-m\u2019y-engage\u00bb", 
+        "http://www.lesoir.be/196351/article/actualite/belgique/2013-02-23/nollet-consommateur-ne-payera-pas-facture-\u00abje-m\u2019y-engage\u00bb", 
+        "http://www.lesoir.be/196351/article/actualite/belgique/2013-02-23/nollet-\u00able-consommateur-ne-sera-pas-pigeon-du-photovolta\u00efque-je-m\u2019y-engage\u00bb", 
+        "http://www.lesoir.be/196404/article/sports/cyclisme/2013-02-23/l\u2019italien-paolini-remporte-het-nieuwsblad", 
+        "http://www.lesoir.be/195736/article/sports/football/2013-02-22/charleroi-zulte-waregem-0-0-direct", 
+        "http://www.lesoir.be/196514/article/sports/football/2013-02-23/mons-s\u2019impose-0-1-\u00e0-courtrai", 
+        "http://www.lesoir.be/196345/article/sports/cyclisme/2013-02-23/d\u00e9part-du-circuit-het-nieuwsblad-\u00e9t\u00e9-donn\u00e9", 
+        "http://www.lesoir.be/196760/article/debats/chats/2013-02-24/11h02-est-on-d\u00e9j\u00e0-en-campagne-\u00e9lectorale", 
+        "http://www.lesoir.be/196760/article/debats/chats/2013-02-24/11h02-est-on-d\u00e9j\u00e0-en-campagne-\u00e9lectorale", 
+        "http://www.lesoir.be/196962/article/culture/2013-02-25/lumi\u00e8re-et-l\u2019\u00e9l\u00e9gance", 
+        "http://www.lesoir.be/197036/article/sports/football/2013-02-25/un-super-sunday\u2026-pour-rien", 
+        "http://www.lesoir.be/196760/article/debats/chats/2013-02-24/11h02-\u00ab-entre-ps-et-mr-\u00e7a-va-\u00eatre-difficile-pour-cdh-et-ecolo-d-exister-\u00bb", 
+        "http://www.lesoir.be/197288/article/actualite/monde/2013-02-25/italie-gauche-bersani-largement-en-t\u00eate-des-l\u00e9gislatives", 
+        "http://www.lesoir.be/197317/article/economie/2013-02-25/bnp-paribas-fortis-annonce-une-s\u00e9rie-nouveaut\u00e9s-en-mati\u00e8re-paiements-\u00e9lectroniqu", 
+        "http://www.lesoir.be/196760/article/debats/chats/2013-02-24/11h02-\u00ab-entre-ps-et-mr-\u00e7a-va-\u00eatre-difficile-pour-cdh-et-ecolo-d-exister-\u00bb", 
+        "http://www.lesoir.be/197288/article/actualite/monde/2013-02-25/italie-gauche-en-t\u00eate-\u00e0-chambre-coude-\u00e0-coude-au-s\u00e9nat", 
+        "http://www.lesoir.be/197288/article/actualite/monde/2013-02-25/grillo-vrai-vainqueur-des-\u00e9lections-l\u2019italie-est-bloqu\u00e9e", 
+        "http://www.lesoir.be/197461/article/economie/2013-02-25/gr\u00e8ce-est-elle-presque-sauv\u00e9e", 
+        "http://www.lesoir.be/197288/article/actualite/monde/2013-02-25/grillo-v\u00e9ritable-vainqueur-des-\u00e9lections-l\u2019italie-est-bloqu\u00e9e", 
+        "http://www.lesoir.be/197549/article/culture/medias-tele/2013-02-25/eddy-wilde-failli-ravir-poste-\u00e0-corinne-boulangier", 
+        "http://www.lesoir.be/197664/article/economie/2013-02-26/nollet-assure-t-il-rentabilit\u00e9-minguet", 
+        "http://www.lesoir.be/197744/article/debats/chats/2013-02-26/11h02-le\u00e7ons-du-scrutin-italien", 
+        "http://www.lesoir.be/197744/article/debats/chats/2013-02-26/11h02-\u00ab-gauche-italienne-aujourd\u2019hui-choix-entre-peste-et-chol\u00e9ra-\u00bb", 
+        "http://www.lesoir.be/197631/article/actualite/sciences-et-sante/2013-02-26/circoncision-affaiblirait-plaisir", 
+        "http://www.lesoir.be/197856/article/actualite/belgique/2013-02-26/kim-gelder-rit-des-photos-ses-victimes", 
+        "http://www.lesoir.be/197635/article/debats/chroniques/2013-02-26/comment-jusqu\u2019ici-france-parvenait-\u00e0-s\u2019en-sortir", 
+        "http://www.lesoir.be/198178/article/economie/2013-02-26/scrutin-italien-affole-march\u00e9s", 
+        "http://www.lesoir.be/198364/article/actualite/belgique/2013-02-26/wallonie-va-mieux-c\u2019est-un-flamand-qui-dit", 
+        "http://www.lesoir.be/198432/article/actualite/belgique/2013-02-27/acw-lib\u00e9raux-r\u00e9clament-une-enqu\u00eate-parlementaire", 
+        "http://www.lesoir.be/198431/article/actualite/belgique/2013-02-27/acw-lib\u00e9raux-r\u00e9clament-une-enqu\u00eate-parlementaire", 
+        "http://www.lesoir.be/198470/article/debats/chats/2013-02-27/11h02-proc\u00e8s-gelder-devait-il-avoir-lieu", 
+        "http://www.lesoir.be/198513/article/economie/2013-02-27/marianne-dans-starting-blocks", 
+        "http://www.lesoir.be/198462/article/sports/2013-02-27/thorgan-hazard-\u00ab-on-voit-qui-je-suis-et-ce-que-je-vaux-\u00bb", 
+        "http://www.lesoir.be/198455/article/actualite/monde/2013-02-27/beppe-grillo-comique-devenu-homme-politique", 
+        "http://www.lesoir.be/198453/article/debats/chroniques/2013-02-27/n-va-objet-politique-non-identifi\u00e9", 
+        "http://www.lesoir.be/198955/article/actualite/belgique/2013-02-27/l\u2019accord-social-qui-ne-dit-pas-son-nom", 
+        "http://www.lesoir.be/198364/article/actualite/belgique/2013-02-26/wallonie-va-mieux-c\u2019est-un-flamand-qui-dit", 
+        "http://www.lesoir.be/199095/article/economie/2013-02-27/electricit\u00e9-risque-black-out-en-2014", 
+        "http://www.lesoir.be/199241/article/economie/2013-02-28/carterpillar-\u00abune-perte-850-emplois-c\u2019est-extr\u00eamement-pr\u00e9occupant\u00bb", 
+        "http://www.lesoir.be/199241/article/economie/2013-02-28/carterpillar-\u00abune-perte-850-emplois-c\u2019est-extr\u00eamement-pr\u00e9occupant\u00bb", 
+        "http://www.lesoir.be/199074/article/debats/2013-02-27/11h02-\u00ab-beno\u00eet-xvi-restera-une-pr\u00e9sence-spirituelle-pour-l\u2019eglise-\u00bb", 
+        "http://www.lesoir.be/199245/article/debats/chroniques/2013-02-28/calvaire-deux-\u00ab-bekende-\u00bb", 
+        "http://www.lesoir.be/199392/article/actualite/monde/2013-02-28/berlusconi-fait-\u00e0-nouveau-l\u2019objet-d\u2019une-enqu\u00eate-pour-corruption", 
+        "http://www.lesoir.be/199249/article/actualite/monde/2013-02-28/beno\u00eet-xvi-retourne-\u00ab-\u00e0-une-vie-pri\u00e8re-\u00bb", 
+        "http://www.lesoir.be/199243/article/debats/cartes-blanches/2013-02-28/parfois-mieux-vaut-se-taire-que-grincer-des-dents", 
+        "http://www.lesoir.be/199247/article/actualite/monde/2013-02-28/budget-am\u00e9ricain-prix-du-sacrifice", 
+        "http://www.lesoir.be/199877/article/economie/2013-02-28/aust\u00e9rit\u00e9-usa-obama-accuse-r\u00e9publicains-menacer-croissance", 
+        "http://www.lesoir.be/199816/article/une/2013-02-28/missions-princi\u00e8res-il-faudra-payer-pour-\u00eatre-\u00e0-table-royale", 
+        "http://www.lesoir.be/199917/article/culture/livres/2013-03-01/foire-aux-\u00e9crits-meurtriers", 
+        "http://www.lesoir.be/199892/article/sports/2013-03-01/lierse-y-\u00e9tait-parvenu-en-1997-zulte-waregem-peut-il-r\u00e9p\u00e9ter-l\u2019exploit", 
+        "http://www.lesoir.be/199816/article/actualite/belgique/2013-02-28/missions-princi\u00e8res-il-faudra-payer-pour-\u00eatre-\u00e0-table-royale", 
+        "http://www.lesoir.be/199794/article/debats/chats/2013-02-28/11h02-caterpillar-o\u00f9-s-arr\u00eatera-jeu-domino", 
+        "http://www.lesoir.be/199962/article/economie/2013-03-01/belgacom-banquier-du-gouvernement", 
+        "http://www.lesoir.be/199895/article/actualite/belgique/2013-03-01/l\u2019amiante-tu\u00e9-160-fois-\u00e0-kapelle", 
+        "http://www.lesoir.be/199794/article/debats/chats/2013-02-28/11h02-caterpillar-o\u00f9-s-arr\u00eatera-jeu-dominos", 
+        "http://www.lesoir.be/199816/article/actualite/belgique/2013-02-28/missions-princi\u00e8res-il-faudra-payer-pour-assister-au-d\u00eener-gala", 
+        "http://www.lesoir.be/199794/article/debats/chats/2013-02-28/11h02-caterpillar-o\u00f9-s-arr\u00eatera-jeu-dominos", 
+        "http://www.lesoir.be/199794/article/debats/chats/2013-02-28/11h02-\u00ab-caterpillar-au-del\u00e0-l\u2019indignation-retrouver-un-\u00e9lan-collectif-\u00bb", 
+        "http://www.lesoir.be/200115/article/actualite/fil-info/fil-info-economie/2013-03-01/nouveau-record-du-nombre-faillites-en-f\u00e9vrier", 
+        "http://www.lesoir.be/199890/article/actualite/monde/2013-03-01/john-kerry-d\u00e9\u00e7oit-l\u2019opposition", 
+        "http://www.lesoir.be/200427/article/economie/2013-03-01/belgacom-sanctionn\u00e9-en-bourse-pour-ses-r\u00e9sultats", 
+        "http://www.lesoir.be/200467/article/actualite/fil-info/fil-info-belgique/2013-03-01/un-bonus-pension-pour-inciter-travailleurs-\u00e0-rester-plus-longtemp", 
+        "http://www.lesoir.be/200601/article/economie/2013-03-01/caterpillar-\u00able-gouvernement-est-trop-mou\u00bb", 
+        "http://www.lesoir.be/200627/article/sports/autres-sports/2013-03-01/euro-en-salle-r\u00e9sultats-1re-journ\u00e9e", 
+        "http://www.lesoir.be/200557/article/actualite/belgique/2013-03-01/un-barom\u00e8tre-du-m\u00e9tissage-en-belgique", 
+        "http://www.lesoir.be/200596/article/actualite/belgique/2013-03-01/budget-un-effort-25-milliards", 
+        "http://www.lesoir.be/200573/article/actualite/belgique/2013-03-01/\u00ab-avant-notre-pays-avait-l\u2019image-l\u2019eldorado-pour-migrants-c\u2019est-fini-\u00bb", 
+        "http://www.lesoir.be/200765/article/economie/2013-03-02/sncb-bye-bye-papier-bonjour-puce", 
+        "http://www.lesoir.be/200788/article/sports/football/2013-03-02/vercauteren-\u00abj\u2019ai-poliment-refus\u00e9-un-contrat-pour-9-matchs\u00bb", 
+        "http://www.lesoir.be/200815/article/economie/2013-03-02/\u00ab-caterpillar-faute-aux-salaires-trop-\u00e9lev\u00e9s-\u00bb", 
+        "http://www.lesoir.be/200842/article/actualite/belgique/2013-03-02/fun\u00e9railles-du-cardinal-julien-ries-ont-eu-lieu-\u00e0-tournai", 
+        "http://www.lesoir.be/201002/article/actualite/belgique/2013-03-03/une-voiture-tombe-dans-canal-bruxelles-charleroi-\u00e0-hauteur-hal" 
+    ]
 
-    article, html = extract_article_data(urls_from_errors[-1])
+    article, html = extract_article_data(urls_from_errors[0])
+    # article, html = extract_article_data(urls[0])
 
-    print [article.title]
-    print article.intro
-    print article.content
+    # print article.title
+    # print article.intro
+    # print article.content
 
     # for link in article.links:
     #     print link.title
@@ -417,7 +635,6 @@ if __name__ == '__main__':
 
     # from csxj.common.tagging import print_taggedURLs
     # print_taggedURLs(article.links)
-
 
     # toc, blogposts = get_frontpage_toc()
     # for t, u in toc:
@@ -432,13 +649,17 @@ if __name__ == '__main__':
 
     #     print "************************"
 
+
+
+
     # for url in urls_from_errors:
-    # print url
-    # article, html = extract_article_data(url)
-    # if article:
-    #     print "this one works just fine"
-    # else:
-    #     print "404"
+    #     print url
+    #     if "sondage" not in url and "gallerie" not in url :
+    #         article, html = extract_article_data(url)
+    #         if article:
+    #             print "this one works just fine"
+    #         else:
+    #             print "404/403"
 
 
 
