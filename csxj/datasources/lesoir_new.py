@@ -404,6 +404,22 @@ def extract_embedded_media_in_article(soup):
     return tagged_urls
 
 
+def filter_articles_from_photoalbums_and_polls(url):
+    IS_PHOTOALBUM = 1
+    IS_POLL = 2
+    IS_ARTICLE = 3
+
+    if "/sondage" in url:
+        return IS_POLL
+
+    elif "/gallerie" in url:
+        return IS_PHOTOALBUM
+
+    else:
+        return IS_ARTICLE
+
+
+
 def extract_article_data(source):
 
     if hasattr(source, 'read'):
@@ -422,9 +438,10 @@ def extract_article_data(source):
 
     soup = bs4.BeautifulSoup(html_data)
 
+    # this is how we detect paywalled articles
     if soup.find(attrs={"id": "main-content"}).h2 and soup.find(attrs={"id": "main-content"}).h2.find(attrs={'class': 'ir locked'}):
-        print "PAID ARTICLE"
-        return None, None
+        title = extract_title(soup)
+        return (ArticleData(source, title, None, None, None, None, None, None, None, "PAYWALLED"), html_data)
 
     else:
         title = extract_title(soup)
@@ -477,7 +494,6 @@ if __name__ == '__main__':
             "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB"
             ]
 
-
     # article, html = extract_article_data(urls_from_errors[0])
     # article, html = extract_article_data(urls[0])
 
@@ -507,18 +523,3 @@ if __name__ == '__main__':
     #         print traceback.format_exc()
 
     #     print "************************"
-
-
-
-
-    # for url in urls_from_errors:
-    #     print url
-    #     if "sondage" not in url and "gallerie" not in url :
-    #         article, html = extract_article_data(url)
-    #         if article:
-    #             print "this one works just fine"
-    #         else:
-    #             print "404/403"
-
-
-
