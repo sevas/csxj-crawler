@@ -298,6 +298,17 @@ def extract_links_from_media_items(media_items):
                     tagged_urls.append(make_tagged_url(url, title, tags))
                 else:
                     raise ValueError("There is a youtube video here somewhere, but we could not find the link.")
+            elif item.select(".//div [contains(@class, 'emvideo-dailymotion')]"):
+                url = item.select(".//div [contains(@class, 'emvideo-dailymotion')]//iframe/@src").extract()
+                if url:
+                    url = url[0]
+                    tags = classify_and_tag(url, SUDINFO_OWN_NETLOC, SUDINFO_INTERNAL_SITES)
+                    tags.update(['bottom', 'video', 'embedded', 'dailymotion'])
+                    tagged_urls.append(make_tagged_url(url, title, tags))
+                else:
+                    raise ValueError("There is a dailymotion video here somewhere, but we could not find the link.")
+    
+
             else:
                 raise ValueError("A unknown type of embedded video has been detected. Please update this parser.")
         elif media_type == 'document':
@@ -446,9 +457,10 @@ def extract_article_data(source):
         return None, html_content
     else:
         category = hxs.select("//p[starts-with(@class, 'fil_ariane')]/a//text()").extract()
+        #old version
         title = hxs.select("//div[@id='article']/h1/text()").extract()[0]
         # new version:
-        # #title = hxs.select("//div[@id='article']/article//h1/text()").extract()[0]
+        # title = hxs.select("//div[@id='article']/article//h1/text()").extract()[0]
 
         pub_date, pub_time = extract_date(hxs)
         author = hxs.select("//p[@class='auteur']/text()").extract()[0]
@@ -550,7 +562,10 @@ def show_article():
         # embeddes scribble
         u"http://www.sudinfo.be/655859/article/sports/foot-belge/anderlecht/2013-02-03/suivez-le-super-sunday-en-live-genk-ecrase-bruges-4-1-le-standard-en-visi",
 
-        u"http://www.sudinfo.be/648601/article/regions/tournai/actualite/2013-01-23/le-papa-se-fait-operer-et-devient%E2%80%A6-maman"
+        u"http://www.sudinfo.be/648601/article/regions/tournai/actualite/2013-01-23/le-papa-se-fait-operer-et-devient%E2%80%A6-maman",
+
+        u'http://www.sudinfo.be/496191/article/sports/omnisports/2012-08-20/liga-l’enorme-collision-entre-casillas-et-pepe-lors-de-real-madrid-valence-video',
+        u'http://www.sudinfo.be/515787/article/sports/omnisports/2012-09-05/the-northface-ultra-trail-du-mont-blanc-utmb-deux-liegeois-sur-le-podium-de-la-p'
     ]
 
 
@@ -689,12 +704,19 @@ def show_article():
     # "/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-06-26/16.05.08/raw_data/2.html",
     # "/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudinfo/2012-03-26/13.05.07/raw_data/7.html",]
 
-    for i, fpath in enumerate(fpaths):
-        print "*" * 20, i, fpath
-        with open(fpath) as f:
-            article, html = extract_article_data(f)
-            print_taggedURLs(article.links, 50)
+    # for i, fpath in enumerate(fpaths):
+    #     print "*" * 20, i, fpath
+    #     with open(fpath) as f:
+    #         article, html = extract_article_data(f)
+    #         print_taggedURLs(article.links, 50)
 
+    fpath = "/Volumes/CALIGULA/csxj_data/json_db_0_5/sudinfo/2012-09-05/22.05.07/raw_data/4.html"
+    with open(fpath) as f:
+        article, html = extract_article_data(f)
+        print article.title
+        print article.author
+        for link in article.links:
+            print link
 
 if __name__ == '__main__':
     show_article()
