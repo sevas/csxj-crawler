@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# coding=utf-8
 
 from datetime import datetime
 import codecs
@@ -7,13 +7,14 @@ from itertools import izip, chain
 from urlparse import urlparse
 from scrapy.selector import HtmlXPathSelector
 
-from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls
+from csxj.common.tagging import classify_and_tag, make_tagged_url, update_tagged_urls, print_taggedURLs
 from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import extract_plaintext_urls_from_text, setup_locales
 from parser_tools.utils import remove_text_formatting_markup_from_fragments, remove_text_formatting_and_links_from_fragments
+from parser_tools import constants
 
-from helpers.unittest_generator import generate_test_func, save_sample_data_file
+from helpers.unittest_generator import generate_unittest
 
 setup_locales()
 
@@ -99,7 +100,7 @@ def extract_publication_date(raw_date):
 
 
 def extract_links_from_article_body(article_body_hxs):
-    links = list()
+    tagged_urls = list()
     # intext urls
     urls = article_body_hxs.select(".//p//a/@href").extract()
     titles = [t.strip() for t in article_body_hxs.select(".//p//a//text()").extract()]
@@ -107,7 +108,7 @@ def extract_links_from_article_body(article_body_hxs):
     for title, url in izip(titles, urls):
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
         tags.add('in text')
-        links.append(make_tagged_url(url, title, tags))
+        tagged_urls.append(make_tagged_url(url, title, tags))
 
     #plaintext text urls
     raw_content = article_body_hxs.select(".//p/text()").extract()
@@ -118,16 +119,41 @@ def extract_links_from_article_body(article_body_hxs):
             for url in plaintext_urls:
                 tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
                 tags.update(['plaintext', 'in text'])
-                links.append(make_tagged_url(url, url, tags))
+                tagged_urls.append(make_tagged_url(url, url, tags))
 
     #embedded objects
     iframe_sources = article_body_hxs.select(".//iframe/@src").extract()
     for url in iframe_sources:
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
         tags = tags.union(['in text', 'embedded', 'iframe'])
-        links.append(make_tagged_url(url, url, tags))
+        tagged_urls.append(make_tagged_url(url, url, tags))
 
-    return links
+    return tagged_urls
+
+
+def extract_links_from_highlight_section(article_detail_hxs):
+    tagged_urls = list()
+    video_pane = article_detail_hxs.select(".//div [@id='video']")
+
+    if not video_pane:
+        return tagged_urls
+
+    iframes = video_pane.select('.//iframe')
+
+    if not iframes:
+        raise ValueError("There is an embedded video in here somewhere, but it's not an iframe")
+
+    for iframe in iframes:
+        url = iframe.select('./@src').extract()
+        if not url:
+            raise ValueError("This iframe has no 'src' attribute. What?")
+        else:
+            url = url[0]
+            tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+            tags |= set(['embedded', 'video'])
+            tagged_urls.append(make_tagged_url(url, url, tags))
+
+    return tagged_urls
 
 
 def select_title_and_url(selector, tag_name):
@@ -138,8 +164,8 @@ def select_title_and_url(selector, tag_name):
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
         tags = tags.union([tag_name])
     else:
-        tags = set([tag_name, 'ghost link'])
-        title = '__GHOST_LINK__'
+        tags = set([tag_name, constants.GHOST_LINK_TAG])
+        title = constants.GHOST_LINK_TITLE
     return make_tagged_url(url, title, tags)
 
 
@@ -172,7 +198,7 @@ def extract_article_data(source):
     if len(intro_h1s) == 1:
         title = intro_h1s[0].strip()
     else:
-        return None
+        return None, None
 
     # all the date stuff
     #raw_date = article_detail_hxs.select(".//div[@id='intro']//li[@id='liDate']/*").extract()
@@ -209,9 +235,8 @@ def extract_article_data(source):
     article_body = article_detail_hxs.select("./div/div[@class='article-body ']")
     content = article_body.select(".//p//text()").extract()
 
-
     all_links.extend(extract_links_from_article_body(article_body))
-
+    all_links.extend(extract_links_from_highlight_section(article_body.select('../..')))
 
     # associated sidebar links
     sidebar_links = article_detail_hxs.select("./div/div[@class='article-side']/div[@class='article-related']//li/a")
@@ -223,10 +248,9 @@ def extract_article_data(source):
 
     updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
-    # print generate_test_func('external_links', 'lavenir', dict(tagged_urls=updated_tagged_urls))
-    # save_sample_data_file(html_content, source, 'external_links', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lavenir')
+    import os
+    generate_unittest("links_highlighted_youtube_and_ghost_links", "lavenir", dict(urls=updated_tagged_urls), html_content, source, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
 
-    # wrapping up
     article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                                updated_tagged_urls,
                                category, author,
@@ -236,7 +260,6 @@ def extract_article_data(source):
 
 
 def expand_full_url(local_url):
-
     if not local_url.startswith("http://"):
         return "http://{0}{1}".format(LAVENIR_NETLOC, local_url)
     else:
@@ -257,8 +280,8 @@ def separate_blogposts(all_items):
 
 
 def get_frontpage_toc():
-    url = "http://{0}".format(LAVENIR_NETLOC)
-    html_data = fetch_html_content(url)
+    frontpage_url = "http://{0}".format(LAVENIR_NETLOC)
+    html_data = fetch_html_content(frontpage_url)
 
     hxs = HtmlXPathSelector(text=html_data)
 
@@ -275,84 +298,52 @@ def get_frontpage_toc():
     return [(title, expand_full_url(url)) for (title, url) in news_items if url not in BLACKLIST], list(blogpost_items), []
 
 
-# def show_sample_articles():
-
-#     normal_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120221_00121183"
-#     photoset_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120224_00122366"
-#     intro_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_002"
-#     photoset_with_links = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120222_00121489"
-
-#     normal_url = "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582"
-#     for url in [normal_url, photoset_url, intro_url, photoset_with_links]:
-#     for url in [normal_url]:
-#         article, raw_html = extract_article_data(url)
-#         article.print_summary()
-#         for tagged_link in article.links:
-#             print tagged_link.URL, tagged_link.title, tagged_link.tags
-
-
-def show_sample_articles():
-    urls = ["http://www.lavenir.net/article/detail.aspx?articleid=DMF20120326_023",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120331_00140331",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199571",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199563",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00199041",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199541",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_001",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_005",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_016",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130221_00271965",
-            "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_00273104"
-
-            ]
-
-    # for url in urls[:]:
-    #     article, raw_html = extract_article_data(url)
-    #     article.print_summary()
-    #     for tagged_link in article.links:
-    #         print tagged_link.URL, tagged_link.title, tagged_link.tags
-
-    article, html = extract_article_data(urls[1])
-    # print article.title
-    # print article.intro
-    # print article.url
-    # print article.content
-    # print "LINKS:"
-    # for link in article.links:
-    #     print link.title
-    #     print link.URL
-    #     print link.tags
-    #     print "___________"
-
-
 def test_sample_data():
-    filepath = "../../tests/datasources/test_data/lavenir/"
-    filepath = "/Volumes/CALIGULA/csxj_data/json_db_0_5/lavenir/2012-02-29/10.05.12/raw_data/2.html"
-    filepath = "/Volumes/CALIGULA/csxj_data/json_db_0_5/lavenir/2012-02-29/10.05.12/raw_data/5.html"
-    with open(filepath) as f:
-        article, raw = extract_article_data(f)
-        print article.title
-        print article.intro
-        print article.url
-        print article.content
-        print "LINKS:"
-        for link in article.links:
-            print link.title
-            print link.URL
-            print link.tags
-            print "___________"
+    urls = [
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120326_023",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120330_00139582",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120331_00140331",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199571",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120902_00199563",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00199041",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199541",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120901_00199482",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120317_002",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_001",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_005",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_016",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130221_00271965",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_00273104",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_005",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968"
+        ]
 
+    urls_ = [
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168756",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_005",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_008",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168714",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168727",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168746",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120608_036",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168739",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168747",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168712",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168710",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120608_00168309",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168735",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168743",
+    ]
 
-
+    for url in urls[-1:]:
+        article, _ = extract_article_data(url)
+        print(article.title)
+        print(article.url)
+        print_taggedURLs(article.links, 70)
+        print("°" * 80)
 
 
 if __name__ == "__main__":
-    # show_sample_articles()
-    #show_frontpage_articles()
-    #show_frontpage()
     test_sample_data()

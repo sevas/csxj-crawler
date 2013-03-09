@@ -55,17 +55,17 @@ def classify_and_tag(url, own_netloc, associated_sites):
             tags = ['external']
     return set(tags)
 
+
 def tag_same_owner(url, same_owner_sites):
     tags = []
     parsed = urlparse.urlparse(url)
-    _, netloc, _, _, _, _  = parsed
-    if netloc :
+    _, netloc, _, _, _, _ = parsed
+    if netloc:
         for site in same_owner_sites:
             if netloc.lower().endswith(site):
                 tags.append('same owner')
 
     return set(tags)
-
 
 
 def update_tagged_urls(all_links, same_owner_sites):

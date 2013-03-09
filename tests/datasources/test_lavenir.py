@@ -31,7 +31,6 @@ class TestLavenirLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-
     def test_in_text_links(self):
         """ lavenir parser correctly extracts and tags in text links and does not mistakelny extracts the end of a sentence as a plaintext link"""
         with open(os.path.join(DATA_ROOT, "in_text_links.html")) as f:
@@ -58,6 +57,7 @@ class TestLavenirLinkExtraction(object):
                 make_tagged_url("http://embed.scribblelive.com/Embed/v5.aspx?Id=84774&ThemeId=6630", u"""http://embed.scribblelive.com/Embed/v5.aspx?Id=84774&ThemeId=6630""", set(['iframe', 'external', 'embedded', 'in text'])),
                 make_tagged_url("/channel/index.aspx?channelid=487", u"""Tout sur la manifestation du 21 février 2013""", set(['internal', 'sidebar box'])),
                 make_tagged_url("/channel/index.aspx?channelid=487", u"""Tout sur la manifestation du 21 février 2013""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://player.vimeo.com/video/60173231?title=0&byline=0&portrait=0&color=47bf61", u"""http://player.vimeo.com/video/60173231?title=0&byline=0&portrait=0&color=47bf61""", set(['video', 'external', 'embedded'])),
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
@@ -78,6 +78,34 @@ class TestLavenirLinkExtraction(object):
                 make_tagged_url("/channel/index.aspx?channelid=369", u"""Tout sur le festival Couleur Café""", set(['bottom box', 'internal'])),
             ]
             expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_embedded_youtube(self):
+        """ lavenir parser correctly extract links from embedded youtube videos"""
+        with open(os.path.join(DATA_ROOT, "links_embedded_youtube.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.youtube.com/embed/gS9o1FAszdk", u"""http://www.youtube.com/embed/gS9o1FAszdk""", set(['iframe', 'external', 'embedded', 'in text'])),
+                make_tagged_url("http://www.youtube.com/embed/qMxX-QOV9tI", u"""http://www.youtube.com/embed/qMxX-QOV9tI""", set(['iframe', 'external', 'embedded', 'in text'])),
+                make_tagged_url("http://www.youtube.com/embed/6KUJE2xs-RE", u"""http://www.youtube.com/embed/6KUJE2xs-RE""", set(['iframe', 'external', 'embedded', 'in text'])),
+                make_tagged_url("http://www.youtube.com/embed/uSD4vsh1zDA", u"""http://www.youtube.com/embed/uSD4vsh1zDA""", set(['iframe', 'external', 'embedded', 'in text'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_highlighted_youtube_and_ghost_links(self):
+        """ lavenir parser can extracts links to videos in that weird 'highlighted' top section. Also, it deals with ghost links like a champ."""
+        with open(os.path.join(DATA_ROOT, "links_highlighted_youtube_and_ghost_links.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://rainn.org/", u"""RAINN,""", set(['external', 'in text'])),
+                make_tagged_url("http://www.youtube.com/embed/KtzqvqzBdUQ", u"""http://www.youtube.com/embed/KtzqvqzBdUQ""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://", u"""__GHOST_LINK__""", set([u'ghost link', 'sidebar box'])),
+                make_tagged_url("http://", u"""__GHOST_LINK__""", set(['bottom box', u'ghost link'])),
+            ]
+            expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
 
