@@ -38,11 +38,6 @@ class TestLeSoirNewContentExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
-    def test_title_extraction(self):
-        with open(os.path.join(DATA_ROOT, "title_extraction.html")) as f:
-            article, raw_html = lesoir_new.extract_article_data(f)
-            expected_title = u'Technologies de haut vol (de voitures)'
-            eq_(article.title, expected_title)
 
 
 class TestLaSoirNewLinkExtraction(object):
@@ -108,6 +103,68 @@ class TestLaSoirNewLinkExtraction(object):
                 make_tagged_url("http://soirmag.lesoir.be/search/node/gandolfi", u"""Dans toutes ses interviews""", set(['internal', 'internal site', 'in text'])),
                 make_tagged_url("http://soirmag.lesoir.be/search/node/gandolfi", u"""Les articles sur Barbara Gandolfi sur SoirMag""", set(['internal', 'sidebar box', 'internal site'])),
                 make_tagged_url("http://sll.kewego.com/swf/p3/epix.swf?language_code=fr&playerKey=5ff3260def2a&skinKey=6624e00d250s&sig=d09800d9f8as&autostart=false&advertise=true", u"""__NO_TITLE__""", set(['kplayer', 'external', 'embedded', 'top box'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_ustream(self):
+        with open(os.path.join(DATA_ROOT, "embedded_ustream.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.lesoir.be/187345/article/economie/2013-02-11/gaz-schiste-menace-pour-belgique", u"""notre dossier sur le gaz de schiste""", set(['internal', 'in text'])),
+                make_tagged_url("http://sll.kewego.com/swf/p3/epix.swf?language_code=fr&playerKey=5ff3260def2a&skinKey=6624e00d250s&sig=ed3b67b4053s&autostart=false&advertise=true", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded', 'top box'])),
+                make_tagged_url("__NO_URL__", u"""__NO_TITLE__""", set(['video', u'unfinished', 'embedded'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_dailymotion_video(self):
+        with open(os.path.join(DATA_ROOT, "embedded_dailymotion_video.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url(u"/156026/article/actualite/monde/2013-01-11/l-etat-d-urgence-été-décrété-au-mali", u"""L'Etat d'urgence a été décrété au Mali""", set(['internal', 'sidebar box'])),
+                make_tagged_url(u"/159828/article/actualite/monde/2013-01-12/raid-raté-en-somalie-confusion-autour-l-otage-français", u"""Raid raté en Somalie : confusion autour de l'otage français""", set(['internal', 'sidebar box'])),
+                make_tagged_url(u"/159960/article/actualite/france/2013-01-12/mali-l’intégralité-du-discours-françois-hollande", u"""Mali : l’intégralité du discours de François Hollande""", set(['internal', 'sidebar box'])),
+                make_tagged_url(u"/tag/mali", u"""Mali""", set(['internal', 'keyword'])),
+                make_tagged_url(u"http://www.dailymotion.com/embed/video/xwpmlt", u"""http://www.dailymotion.com/embed/video/xwpmlt""", set(['video', 'external', 'embedded', 'top box'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_rtl(self):
+        with open(os.path.join(DATA_ROOT, "embedded_rtl.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.lesoir.be/191955/article/actualite/monde/2013-02-18/belgique-maintient-son-engagement-au-mali", u"""La Belgique maintient son engagement au Mali""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/191635/article/actualite/monde/2013-02-17/arm%C3%A9e-malienne-quelle-contribution-belge", u"""Armée malienne: quelle contribution belge?""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/191734/article/actualite/belgique/crise-politique/2013-02-17/r%C3%A9forme-l%E2%80%99etat-vers-un-accord-francophone", u"""Réforme de l’Etat : vers un accord francophone""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/191090/article/actualite/belgique/2013-02-16/s%C3%BBret%C3%A9-l%E2%80%99%C3%A9tat-bart-debie-menti-sur-sa-fonction-%C2%ABtaupe%C2%BB", u"""Sûreté de l’État: Bart Debie a menti sur sa fonction de «taupe»""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/188948/article/actualite/belgique/2013-02-13/s%C3%BBret%C3%A9-l%E2%80%99etat-victime-man%C5%93uvres-d%C3%A9stabilisation", u"""La Sûreté de l’Etat victime de manœuvres de déstabilisation?""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.rtl.be/videobelrtl/page/syndication/913.aspx?videoid=433472&key=bcef71c1-0360-4bc5-b78e-4d75d397ecfa", u"""La vidéo""", set(['sidebar box', 'external', 'same owner'])),
+                make_tagged_url("http://videos.lesoir.be/video/236054e7441s.html", u"""Le 11h02 : l'Etat a plus que jamais besoin de sa Sûreté""", set(['internal', 'sidebar box', 'internal site'])),
+                make_tagged_url("http://www.rtl.be/videos/page/rtl-video-en-embed/640.aspx?VideoID=433472&key=bcef71c1-0360-4bc5-b78e-4d75d397ecfa", u"""http://www.rtl.be/videos/page/rtl-video-en-embed/640.aspx?VideoID=433472&key=bcef71c1-0360-4bc5-b78e-4d75d397ecfa""", set(['same owner', 'video', 'external', 'embedded', 'top box'])),
+                make_tagged_url("http://sll.kewego.com/swf/p3/epix.swf?language_code=fr&playerKey=5ff3260def2a&skinKey=6624e00d250s&sig=236054e7441s&autostart=false&advertise=true", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded', 'top box'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_loads_of_embedded_stuff_and_pdf_newspaper(self):
+        with open(os.path.join(DATA_ROOT, "loads_of_embedded_stuff_and_pdf_newspaper.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://pdf.lesoir.be", u"""Notre dossier complet pp. 2 et 3 dans Le Soir en PDF""", set(['internal', 'pdf newspaper', 'in text'])),
+                make_tagged_url("http://www.lesoir.be/194330/article/actualite/belgique/2013-02-20/syndicats-ont-ils-raison-manifester", u"""Les syndicats ont-ils raison de manifester ? (sondage)""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/193899/article/actualite/belgique/2013-02-20/manif-jeudi-gros-points-noirs-redout%C3%A9s-partout-en-belgique", u"""Manif de jeudi: de gros points noirs redoutés partout en Belgique""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/194401/article/debats/editos/2013-02-21/crise-vaut-bien-une-manif-mais-pas-une-fuite", u"""L'édito - La crise vaut bien une manif, mais pas une fuite""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/193262/article/debats/chats/2013-02-19/manif-ce-jeudi-%C2%ABun-rapport-forces%C2%BB", u"""Manif de ce jeudi: «Un rapport de forces»""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://videos.lesoir.be/video/076717938cas.html", u'''Le 11h02 : "Un rapport de force"''', set(['internal', 'sidebar box', 'internal site'])),
+                make_tagged_url("http://sll.kewego.com/swf/p3/epix.swf?language_code=fr&playerKey=5ff3260def2a&skinKey=6624e00d250s&sig=076717938cas&autostart=false&advertise=true", u"""__NO_TITLE__""", set(['kplayer', 'video', 'external', 'embedded', 'top box'])),
+                make_tagged_url("http://maps.google.be/maps/ms?msid=209311417319162309079.0004d630121a53cbdf34c&msa=0&output=embed", u"""http://maps.google.be/maps/ms?msid=209311417319162309079.0004d630121a53cbdf34c&msa=0&output=embed""", set(['embedded', 'external', 'iframe', 'top box'])),
+                make_tagged_url("http://player.qualifio.com/08/v1.cfm?id=D55B0593-5056-8040-9EBD-0632E0DED7C7&iframe=true", u"""http://player.qualifio.com/08/v1.cfm?id=D55B0593-5056-8040-9EBD-0632E0DED7C7&iframe=true""", set(['iframe', 'external', 'embedded'])),
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)

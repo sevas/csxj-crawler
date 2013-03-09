@@ -212,7 +212,8 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                         tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
                         return tagged_url
                     else:
-                        raise ValueError()
+                        tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
+                        return tagged_url
                 else:
                     raise ValueError("It looks like a Brightcove video but it did not match known patterns")
 

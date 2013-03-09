@@ -31,6 +31,10 @@
     [
       "csxjdb://sudinfo/2012-03-26/13.05.07/raw_data/7.html", 
       "links_embedded_kewego_gallery.html"
+    ], 
+    [
+      "csxjdb://sudinfo/2012-03-26/13.05.07/raw_data/7.html", 
+      "embedded_dailymotion_video.html"
     ]
   ]
 }

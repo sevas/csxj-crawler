@@ -16,6 +16,7 @@ from parser_tools.utils import setup_locales
 from parser_tools import rossel_utils
 from parser_tools.utils import convert_utf8_url_to_ascii
 from parser_tools import constants
+from urllib2 import HTTPError
 
 from helpers.unittest_generator import generate_test_func, save_sample_data_file
 
@@ -116,7 +117,6 @@ def extract_title(soup):
         title = main_content.find("h2").contents[0]
     return title
 
-
 def extract_author_name(soup):
     authors = []
     meta_box = soup.find(attrs={"class": "meta"})
@@ -141,16 +141,21 @@ def extract_date_and_time(soup):
 
 
 def extract_intro(soup):
-    intro_box = soup.find(attrs={"class": "article-content"})
-    if len(intro_box.find("h3").contents) > 0:
-        fragment = intro_box.find("h3").contents[0]
-        intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n').rstrip()
-        return intro
+    if soup.find(attrs={"class": "article-content"}).h3:
+        intro_box = soup.find(attrs={"class": "article-content"})
+        if len(intro_box.find("h3").contents) > 0:
+            fragment = intro_box.find("h3").contents[0]
+            intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n').rstrip()
+            return intro
 
-    if intro_box.find("h3").find_next_sibling("p"):
-        fragment = intro_box.find("h3").find_next_sibling("p")
-        intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n')
-        return intro
+        if intro_box.find("h3").find_next_sibling("p"):
+            fragment = intro_box.find("h3").find_next_sibling("p")
+            intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n')
+            return intro
+        else:
+            return []
+    else:
+        return []
 
 
 def extract_title_and_url_from_bslink(link):
@@ -253,55 +258,115 @@ def extract_links_from_sidebar_box(soup):
     return tagged_urls
 
 
-def extract_embedded_media_from_top_box(soup):
-    tagged_urls = list()
-    if soup.find(attrs={'class': 'block-slidepic media'}):
-        top_box = soup.find(attrs={'class': 'block-slidepic media'})
-        if top_box.find("embed"):
-            url = top_box.find("embed").get("src")
-            if url:
-                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-                tags.add('embedded')
-                tags.add('top box')
-                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
-            else:
-                raise ValueError("There to be an embedded object but we could not find an link. Update the parser.")
-
-        # sometimes it's a kewego player
-        kplayer = top_box.find(attrs={'class': 'emvideo emvideo-video emvideo-kewego'})
-        if kplayer:
-            url_part1 = kplayer.object['data']
-            url_part2 = kplayer.object.find('param', {'name': 'flashVars'})['value']
-            if url_part1 is not None and url_part2 is not None:
-                url = "%s?%s" % (url_part1, url_part2)
-                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-                if kplayer.next_sibling:
-                    if len(kplayer.next_sibling) > 0 and kplayer.next_sibling.name == 'figcaption':
-                        title = kplayer.next_sibling.contents[0]
-                        tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
-                    else:
-                        title = "__NO_TITLE__"
-                        tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
+def extract_embedded_media_from_top_box(container, site_netloc, site_internal_sites):
+    # It might be a Kewego video
+    if container.find(attrs={'class': 'emvideo emvideo-video emvideo-kewego'}):
+        kplayer = container.find(attrs={'class': 'emvideo emvideo-video emvideo-kewego'})
+        url_part1 = kplayer.object['data']
+        url_part2 = kplayer.object.find('param', {'name': 'flashVars'})['value']
+        if url_part1 is not None and url_part2 is not None:
+            url = "%s?%s" % (url_part1, url_part2)
+            all_tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+            if kplayer.next_sibling :
+                if len(kplayer.next_sibling) > 0 and kplayer.next_sibling.name == 'figcaption':
+                    title = kplayer.next_sibling.contents[0]
+                    all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = tagging.make_tagged_url(url, title, all_tags | set(['embedded', 'top box', 'kplayer', 'video']))
+                    return tagged_url
 
                 else:
-                    title = constants.GHOST_LINK_TITLE
-                    tagged_urls.append(tagging.make_tagged_url(url, title, tags | set(['embedded', 'top box', 'kplayer'])))
+                    title = "__NO_TITLE__"
+                    all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+                    tagged_url = tagging.make_tagged_url(url, title, all_tags | set(['embedded', 'top box', 'kplayer', 'video']))
+                    return tagged_url
             else:
-                raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
+                title = "__NO_TITLE__"
+                all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = tagging.make_tagged_url(url, title, all_tags | set(['embedded', 'top box', 'kplayer', 'video']))
+                return tagged_url
+        else:
+            raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
 
-        # sometimes it's a youtube player
-        youtube_player = top_box.find(attrs={'class': 'emvideo emvideo-video emvideo-youtube'})
-        if youtube_player:
-            url = youtube_player.find("a").get("href")
-            if url:
-                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-                tags.add('embedded')
-                tags.add('top box')
-                tags.add('video')
-                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+    # it might be a dailymotion or ustream video
+    elif container.find(attrs={'class': 'emvideo emvideo-video emvideo-embedly'}):
+        if container.find("param", {'name': 'movie'}):
+            if container.find("param").get("value"):
+                if container.find("param", {"name": "movie"}).get("value").startswith("http://www.ustream.tv"):
+                    tagged_url = tagging.make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
+                    return tagged_url
             else:
-                raise ValueError("There seems to be a Youtube player but we couldn't find an URL. Update the parser.")
-        return tagged_urls
+                print "no value or what?"
+
+        elif container.find("iframe"):
+            url = container.find("iframe").get("src")
+            if url:
+                all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'top box', 'video']))
+                return tagged_url
+            else:
+                raise ValueError("There seems to be a Dailymotion player but we couldn't find an URL. Update the parser.")
+        else:
+            raise ValueError("There's an embedded video that does not match known patterns")
+
+    elif container.find(attrs={'class': 'emvideo emvideo-video emvideo-youtube'}):
+        youtube_player = container.find(attrs={'class': 'emvideo emvideo-video emvideo-youtube'})
+        url = youtube_player.find("a").get("href")
+        if url:
+            all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+            tagged_url = tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'top box', 'video']))
+            return tagged_url
+
+        else:
+            raise ValueError("There seems to be a Youtube player but we couldn't find an URL. Update the parser.")
+
+    # RTL videos
+    elif container.find(attrs={'class': "emvideo emvideo-video emvideo-videortl"}):
+        url = container.find("iframe").get("src")
+        if url:
+            all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+            tagged_url = tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'top box', 'video']))
+            return tagged_url
+        else:
+            raise ValueError("There seems to be a RTL video but it doesn't match known patterns")
+
+    elif container.find("iframe"):
+        url = container.find("iframe").get("src")
+        if url:
+            all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+            tagged_url = tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'top box', 'iframe']))
+            return tagged_url
+        else:
+            raise ValueError("There seems to be an iframe but it doesn't match known patterns")
+
+    # we want to avoid images
+    elif container.find("img"):
+        return None
+
+
+    # if it's not a known case maybe we can still detect something:
+    elif container.find("embed"):
+        url = container.find("embed").get("src")
+        if url:
+            all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
+            tagged_url = tagging.make_tagged_url(url, title, all_tags | set(['embedded', 'top box']))
+            return tagged_url
+
+        else:
+            raise ValueError("There to be an embedded object but we could not find an link. Update the parser.")
+    else:
+        raise ValueError("Unknown type of embedded media")
+
+
+
+def extract_links_to_embedded_content(soup):
+    if soup.find(attrs={'class': 'block-slidepic media'}):
+        top_box = soup.find(attrs={'class': 'block-slidepic media'}).find_all("figure")
+        embedded_links = list()
+        for container in top_box:
+            tagged_url = extract_embedded_media_from_top_box(container, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+            if tagged_url is not None:
+                embedded_links.append(tagged_url)
+        return embedded_links
     else:
         return []
 
@@ -326,7 +391,7 @@ def extract_embedded_media_from_bottom(soup):
 
 def extract_embedded_media_in_article(soup):
     tagged_urls = list()
-    story = soup.find(attrs={'class': 'article-body'})
+    story = soup.find(attrs = {'class': 'article-body'})
     scripts = story.findAll('script', recursive=True)
     for script in scripts:
         url = script.get('src')
@@ -339,41 +404,71 @@ def extract_embedded_media_in_article(soup):
     return tagged_urls
 
 
+def filter_articles_from_photoalbums_and_polls(url):
+    IS_PHOTOALBUM = 1
+    IS_POLL = 2
+    IS_ARTICLE = 3
+
+    if "/sondage" in url:
+        return IS_POLL
+
+    elif "/gallerie" in url:
+        return IS_PHOTOALBUM
+
+    else:
+        return IS_ARTICLE
+
+
+
 def extract_article_data(source):
 
     if hasattr(source, 'read'):
         html_data = source.read()
     else:
-        source = convert_utf8_url_to_ascii(source)
-        html_data = fetch_html_content(source)
+        try:
+            html_data = fetch_html_content(source)
+        except HTTPError as e:
+            if e.code == 404 or e.code == 403:
+                return None, None
+            else:
+                raise
+        except Exception:
+            raise
 
 
     soup = bs4.BeautifulSoup(html_data)
-    title = extract_title(soup)
-    author_name = extract_author_name(soup)
-    intro = extract_intro(soup)
-    text, tagged_urls_intext = extract_text_content_and_links(soup)
-    category = extract_category(soup)
-    sidebar_links = extract_links_from_sidebar_box(soup)
-    article_tags = extract_article_tags(soup)
-    embedded_media_from_top_box = extract_embedded_media_from_top_box(soup)
-    embedded_media_from_bottom = extract_embedded_media_from_bottom(soup)
-    embedded_media_in_article = extract_embedded_media_in_article(soup)
-    embedded_media = embedded_media_from_top_box + embedded_media_from_bottom + embedded_media_in_article
-    all_links = tagged_urls_intext + sidebar_links + article_tags + embedded_media
-    pub_date, pub_time = extract_date_and_time(soup)
-    fetched_datetime = datetime.today()
 
-    updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
+    # this is how we detect paywalled articles
+    if soup.find(attrs={"id": "main-content"}).h2 and soup.find(attrs={"id": "main-content"}).h2.find(attrs={'class': 'ir locked'}):
+        title = extract_title(soup)
+        return (ArticleData(source, title, None, None, None, None, None, None, None, "PAYWALLED"), html_data)
 
-    # print generate_test_func('title_extraction', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
-    # save_sample_data_file(html_data, source, 'title_extraction', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+    else:
+        title = extract_title(soup)
+        author_name = extract_author_name(soup)
+        intro = extract_intro(soup)
+        text, tagged_urls_intext = extract_text_content_and_links(soup)
+        category = extract_category(soup)
+        sidebar_links = extract_links_from_sidebar_box(soup)
+        article_tags = extract_article_tags(soup)
+        embedded_media_from_top_box = extract_links_to_embedded_content(soup)
+        embedded_media_from_bottom = extract_embedded_media_from_bottom(soup)
+        embedded_media_in_article = extract_embedded_media_in_article(soup)
+        embedded_media = embedded_media_from_top_box + embedded_media_from_bottom + embedded_media_in_article
+        all_links = tagged_urls_intext + sidebar_links + article_tags + embedded_media
+        pub_date, pub_time = extract_date_and_time(soup)
+        fetched_datetime = datetime.today()
 
-    return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-            updated_tagged_urls,
-            category, author_name,
-            intro, text),
-            html_data)
+        updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
+
+        # print generate_test_func('loads_of_embedded_stuff_and_pdf_newspaper', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_data, source, 'loads_of_embedded_stuff_and_pdf_newspaper', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+
+        return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
+                    updated_tagged_urls,
+                    category, author_name,
+                    intro, text),
+        html_data)
 
 
 def test_sample_data():
@@ -385,27 +480,26 @@ def test_sample_data():
 
 
 if __name__ == '__main__':
-    urls = ["http://www.lesoir.be/191397/article/culture/cinema/2013-02-16/l%E2%80%99ours-d%E2%80%99or-d%C3%A9cern%C3%A9-au-drame-roumain-%C2%ABchild%E2%80%99s-pose%C2%BB",
-    "http://www.lesoir.be/200886/article/actualite/belgique/2013-03-02/didier-reynders-veut-mettre-imams-sous-contr%C3%B4le",
-    "http://www.lesoir.be/200800/article/sports/football/2013-03-02/coupe-genk-anderlecht-1-0-apr%C3%A8s-prolongations-direct",
-    "http://www.lesoir.be/200395/article/actualite/quiz/2013-03-01/quiz-actu-chiffr%C3%A9-semaine",
-    "http://www.lesoir.be/200851/article/actualite/belgique/2013-03-02/budget-pour-andr%C3%A9-antoine-%C2%AB-bons-comptes-font-bons-amis-%C2%BB",
-    "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB",
-    u'http://www.lesoir.be/94315/article/styles/bien-etre/2012-10-05/des-pommes-100-belges-chez-mcdonald\u2019s'
-    ]
+    # _, _, paywalled = get_frontpage_toc()
+    # for p in paywalled:
+    #     print p
 
-    urls_from_errors = [
-    "http://www.lesoir.be/91986/article/actualite/regions/namur-luxembourg/2012-10-02/saucisson-d\u2019ardenne-une-victoire-face-\u00e0-flandre",
-    "http://www.lesoir.be/79210/article/actualite/belgique/2012-08-30/naissance-d-un-panda-roux-\u00e0-planckendael",
-    "http://www.lesoir.be/91398/article/actualite/petite-gazette/2012-10-01/jean-paul-belmondo-fin-d\u2019une-dr\u00f4le-love-story",
-    "http://www.lesoir.be/91671/article/actualite/belgique/2012-10-02/technologies-haut-vol-voitures",
-    "http://www.lesoir.be/202046/article/actualite/monde/2013-03-04/berlusconi-%C2%ABau-c%C5%93ur-d%E2%80%99un-syst%C3%A8me-prostitution%C2%BB"]
+    urls = ["file://localhost/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new/embedded_dailymotion_video.html",
+            "http://www.lesoir.be/187412/article/debats/chats/2013-02-11/11h02-%C2%ABil-est-temps-d%C3%A9finir-notre-politique-%C3%A9nerg%C3%A9tique%C2%BB"
+            "http://www.lesoir.be/191397/article/culture/cinema/2013-02-16/l%E2%80%99ours-d%E2%80%99or-d%C3%A9cern%C3%A9-au-drame-roumain-%C2%ABchild%E2%80%99s-pose%C2%BB",
+            "http://www.lesoir.be/200886/article/actualite/belgique/2013-03-02/didier-reynders-veut-mettre-imams-sous-contr%C3%B4le",
+            "http://www.lesoir.be/200800/article/sports/football/2013-03-02/coupe-genk-anderlecht-1-0-apr%C3%A8s-prolongations-direct",
+            "http://www.lesoir.be/200395/article/actualite/quiz/2013-03-01/quiz-actu-chiffr%C3%A9-semaine",
+            "http://www.lesoir.be/200851/article/actualite/belgique/2013-03-02/budget-pour-andr%C3%A9-antoine-%C2%AB-bons-comptes-font-bons-amis-%C2%BB",
+            "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB"
+            ]
 
-    article, html = extract_article_data(urls_from_errors[-1])
+    # article, html = extract_article_data(urls_from_errors[0])
+    # article, html = extract_article_data(urls[0])
 
-    print [article.title]
-    print article.intro
-    print article.content
+    # print article.title
+    # print article.intro
+    # print article.content
 
     # for link in article.links:
     #     print link.title
@@ -417,3 +511,15 @@ if __name__ == '__main__':
     # from csxj.common.tagging import print_taggedURLs
     # print_taggedURLs(article.links)
 
+    # toc, blogposts = get_frontpage_toc()
+    # for t, u in toc:
+    #     url = codecs.encode(u, 'utf-8')
+    #     print url
+    #     try:
+    #         extract_article_data(url)
+    #     except Exception as e:
+    #         print "Something went wrong with: ", url
+    #         import traceback
+    #         print traceback.format_exc()
+
+    #     print "************************"

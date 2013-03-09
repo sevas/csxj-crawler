@@ -40,7 +40,7 @@ def classify_and_tag(url, own_netloc, associated_sites):
         else:
             if netloc in associated_sites:
                 tags.extend(associated_sites[netloc])
-            if is_on_same_domain(url, get_netloc_domain(own_netloc)):
+            elif is_on_same_domain(url, get_netloc_domain(own_netloc)):
                 tags.append('internal site')
                 tags.append('internal')
             else:

@@ -27,6 +27,22 @@
     [
       "http://www.lesoir.be/91671/article/actualite/belgique/2012-10-02/technologies-haut-vol-voitures", 
       "title_extraction.html"
+    ], 
+    [
+      "http://www.lesoir.be/159954/article/actualite/france/2013-01-12/hollande-%C2%ABla-france-n%E2%80%99-d%E2%80%99autre-but-que-lutte-contre-terrorisme%C2%BB-vid%C3%A9o", 
+      "embedded_dailymotion_video.html"
+    ], 
+    [
+      "http://www.lesoir.be/187412/article/debats/chats/2013-02-11/11h02-%C2%ABil-est-temps-d%C3%A9finir-notre-politique-%C3%A9nerg%C3%A9tique%C2%BBhttp://www.lesoir.be/191397/article/culture/cinema/2013-02-16/l%E2%80%99ours-d%E2%80%99or-d%C3%A9cern%C3%A9-au-drame-roumain-%C2%ABchild%E2%80%99s-pose%C2%BB", 
+      "embedded_ustream.html"
+    ], 
+    [
+      "http://www.lesoir.be/192039/article/actualite/belgique/2013-02-18/milquet-\\u00abpas-question-supprimer-s\\u00fbret\\u00e9-l\\u2019\\u00e9tat\\u00bb", 
+      "embedded_rtl.html"
+    ], 
+    [
+      "http://www.lesoir.be/194330/article/actualite/belgique/2013-02-20/syndicats-ont-ils-raison-manifester", 
+      "loads_of_embedded_stuff_and_pdf_newspaper.html"
     ]
   ]
 }

@@ -33,7 +33,8 @@ DHNET_INTERNAL_SITES = {
     'alorsonbuzz.blogs.dhnet.be': ['internal', 'jblog'],
     'letitsound.blogs.dhnet.be': ['internal', 'jblog'],
 
-    'pdf-online.dhnet.be': ['internal', 'pdf newspaper']
+    'pdf-online.dhnet.be': ['internal', 'pdf newspaper'],
+    'podcast.dhnet.be': ['internal', 'podcast']
 
 }
 
@@ -277,7 +278,12 @@ def extract_date_from_maincontent(main_content):
 
 def extract_links_to_embedded_content(main_content):
     items = main_content.findAll('div', {'class': 'embedContents'})
-    return [ipm_utils.extract_tagged_url_from_embedded_item(item, DHNET_NETLOC, DHNET_INTERNAL_SITES) for item in items]
+    embedded_links = list()
+    for item in items:
+        tagged_url = ipm_utils.extract_tagged_url_from_embedded_item(item, DHNET_NETLOC, DHNET_INTERNAL_SITES)
+        if tagged_url is not None:
+            embedded_links.append(tagged_url)
+    return embedded_links
 
 
 def extract_article_data(source):
@@ -459,7 +465,9 @@ if __name__ == "__main__":
         "http://www.dhnet.be/infos/monde/article/386567/veronique-de-keyser-bachar-el-assad-doit-partir.html",
         "http://www.dhnet.be/sports/cyclisme/article/411974/rabobank-dans-le-peloton-l-an-prochain-sans-le-nom-de-son-sponsor.html",
         "http://www.dhnet.be/infos/faits-divers/article/410926/legear-n-a-pas-minimise-l-accident-mais-ne-maitrise-pas-l-anglais.html",
-        "http://www.dhnet.be/infos/societe/article/417448/la-nasa-revele-le-cote-obscur-de-la-planete.html"
+        "http://www.dhnet.be/infos/societe/article/417448/la-nasa-revele-le-cote-obscur-de-la-planete.html",
+        'http://www.dhnet.be/cine-tele/musique-festival/article/427003/decouvrez-en-exclusivite-it-s-a-beautiful-day-le-nouveau-single-de-michael-buble.html',
+        'http://www.dhnet.be/sports/diables-rouges/article/411590/deja-des-tickets-pour-le-bresil.html'
     ]
 
     from csxj.common.tagging import print_taggedURLs
@@ -476,15 +484,15 @@ if __name__ == "__main__":
         print "°°°°°°°°°°°°°°°°°°°°"
 
     
-    # article, html = extract_article_data(urls[-1])
-    # print article.title
-    # print article.url
-    # print "°°°°°°°°°°°°°°°°°°°°"
-    # for link in article.links:
-    #     print link.title
-    #     print link.URL
-    #     print link.tags
-    #     print "°°°°°°°°°°°°°°°°°°°°"
+    article, html = extract_article_data(urls[-1])
+    print article.title
+    print article.url
+    print "°°°°°°°°°°°°°°°°°°°°"
+    for link in article.links:
+        print link.title
+        print link.URL
+        print link.tags
+        print "°°°°°°°°°°°°°°°°°°°°"
 
     # from pprint import pprint
     # print_taggedURLs(article.links)

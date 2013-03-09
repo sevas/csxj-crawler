@@ -278,7 +278,7 @@ class TestLavenirNewLinkExtraction(object):
             article, raw_html = lavenir.extract_article_data(f)
             extracted_links = article.links
             urls = [
-                make_tagged_url("http://lavenir.newspaperdirect.com/epaper/viewer.aspx?utm_source=site&utm_medium=journal", u"""en format PDF""", set(['internal', 'external', 'pdf newspaper', 'in text'])),
+                make_tagged_url("http://lavenir.newspaperdirect.com/epaper/viewer.aspx?utm_source=site&utm_medium=journal", u"""en format PDF""", set(['internal', 'pdf newspaper', 'in text'])),
                 make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
                 make_tagged_url("http://www.lavenir.net/diaporamas", u"""Diaporamas""", set(['internal', 'keyword'])),
                 make_tagged_url("/sports/basket", u"""Basket""", set(['internal', 'keyword'])),
@@ -339,7 +339,7 @@ class TestLavenirNewLinkExtraction(object):
             article, raw_html = lavenir.extract_article_data(f)
             extracted_links = article.links
             urls = [
-                make_tagged_url("http://lavenir.newspaperdirect.com/epaper/viewer.aspx?utm_source=site&utm_medium=journal", u"""en format PDF""", set(['internal', 'external', 'pdf newspaper', 'in text'])),
+                make_tagged_url("http://lavenir.newspaperdirect.com/epaper/viewer.aspx?utm_source=site&utm_medium=journal", u"""en format PDF""", set(['internal', 'pdf newspaper', 'in text'])),
                 make_tagged_url("http://tech.lavenir.net/foot_d1_afp", u"""http://tech.lavenir.net/foot_d1_afp""", set(['internal', 'iframe', 'internal site', 'embedded', 'in text'])),
                 make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
                 make_tagged_url("/sports/football/proleague", u"""Pro League""", set(['internal', 'keyword'])),
