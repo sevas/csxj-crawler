@@ -1,12 +1,12 @@
 $def with (name, parser_name, urls_by_group)
-def test_$(name)(self):
-    with open(os.path.join(DATA_ROOT, "$(name).html")) as f:
-        article, raw_html = $(parser_name).extract_article_data(f)
-        extracted_links = article.links
-        $for group_name, tagged_urls in urls_by_group.items():
-            $(group_name) = [
-                $for taggedURL in tagged_urls:
-                make_tagged_url("$(taggedURL.URL)", u"""$(taggedURL.title)""", $(taggedURL.tags)),
-            ]
-        expected_links = $(" + ".join(urls_by_group.keys()))
-        assert_taggedURLs_equals(expected_links, extracted_links)
+    def test_$(name)(self):
+        with open(os.path.join(DATA_ROOT, "$(name).html")) as f:
+            article, raw_html = $(parser_name).extract_article_data(f)
+            extracted_links = article.links
+            $for group_name, tagged_urls in urls_by_group.items():
+                $(group_name) = [
+                    $for taggedURL in tagged_urls:
+                    make_tagged_url("$(taggedURL.URL)", u"""$(taggedURL.title)""", $(taggedURL.tags)),
+                ]
+            expected_links = $(" + ".join(urls_by_group.keys()))
+            assert_taggedURLs_equals(expected_links, extracted_links)
