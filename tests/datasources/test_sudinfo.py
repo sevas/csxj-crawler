@@ -148,6 +148,24 @@ class TestSudinfoLinkExtraction(object):
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_embedded_dailymotion_video(self):
+        """ sudinfo parser can extract dailymotion videos from the bottom embedded media container"""
+        with open(os.path.join(DATA_ROOT, "embedded_dailymotion_video.html")) as f:
+            article, raw_html = sudinfo.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://utmb.livetrail.net/classentete.php?course=ptl", u"""Voir ici tous les temps de la PTL""", set(['external', 'in text'])),
+                make_tagged_url("http://videos.tf1.fr/jt-20h/l-utra-trail-une-randonnee-de-l-extreme-7484900.html", u"""Voir ici un reportage de TF1 tourné lors des premières journées de la PTL""", set(['external', 'in text'])),
+                make_tagged_url("http://utmb.livetrail.net/classentete.php?course=tds", u"""Voir ici les classements complets de la TDS""", set(['external', 'in text'])),
+                make_tagged_url("http://utmb.livetrail.net/classentete.php?course=ccc", u"""Voir ici les classements complets de la CCC""", set(['external', 'in text'])),
+                make_tagged_url("http://utmb.livetrail.net/classentete.php?course=utmb", u"""Voir ici les classements complets de l'UTMB""", set(['external', 'in text'])),
+                make_tagged_url("http://www.dailymotion.com/embed/video/xt6kuu_2012-ultratrailtv-ccc-grand-col-ferret_sport", u"""Passage impressionnant de la CCC au Grand Col Ferret""", set(['dailymotion', 'video', 'external', 'embedded', 'bottom'])),
+                make_tagged_url("http://www.dailymotion.com/embed/video/xt7chi_2012-ultratrailtv-utmb-start_sport", u"""Départ de l'UTMB""", set(['dailymotion', 'video', 'external', 'embedded', 'bottom'])),
+                make_tagged_url("http://portfolio.sudpresse.be/main.php?g2_itemId=1106426", u"""Quelques clichés de la course""", set(['internal', 'sidebar box', 'gallery'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestSudinfoContentExtracttion(object):
     def test_intext_link(self):

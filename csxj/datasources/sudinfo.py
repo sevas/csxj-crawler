@@ -474,7 +474,7 @@ def extract_article_data(source):
         updated_tagged_urls = update_tagged_urls(all_links, rossel_utils.SUDINFO_SAME_OWNER)
 
         # import os
-        # generate_unittest("links_embedded_kewego_gallery", "sudinfo", dict(urls=updated_tagged_urls), html_content, "csxjdb://sudinfo/2012-03-26/13.05.07/raw_data/7.html", os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/sudinfo"), True)
+        # generate_unittest("embedded_dailymotion_video", "sudinfo", dict(urls=updated_tagged_urls), html_content, "csxjdb://sudinfo/2012-03-26/13.05.07/raw_data/7.html", os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/sudinfo"), True)
 
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                             updated_tagged_urls,
@@ -713,10 +713,10 @@ def show_article():
     fpath = "/Volumes/CALIGULA/csxj_data/json_db_0_5/sudinfo/2012-09-05/22.05.07/raw_data/4.html"
     with open(fpath) as f:
         article, html = extract_article_data(f)
-        print article.title
-        print article.author
-        for link in article.links:
-            print link
+        # print article.title
+        # print article.author
+        # for link in article.links:
+        #     print link
 
 if __name__ == '__main__':
     show_article()
