@@ -26,7 +26,9 @@ LALIBRE_ASSOCIATED_SITES = {
     'momento.blogs.lalibre.be': ['internal', 'jblog'],
     'lameteo.blogs.lalibre.be': ['internal', 'jblog'],
 
-    'pdf-online.lalibre.be': ['internal', 'pdf newspaper']
+    'pdf-online.lalibre.be': ['internal', 'pdf newspaper'],
+
+    'galeries.lalibre.be': ['internal', 'image gallery']
 
 }
 

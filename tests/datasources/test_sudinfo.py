@@ -82,7 +82,7 @@ class TestSudinfoLinkExtraction(object):
                 make_tagged_url("http://www.coveritlive.com/index2.php/option=com_altcaster/task=viewaltcast/altcast_code=82d305926f/height=850/width=600", u"""__EMBEDDED_IFRAME__""", set(['iframe', 'external', 'embedded'])),
                 make_tagged_url("http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=9bb12b4294es", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=9bb12b4294es""", set(['video', 'external', 'embedded', 'bottom'])),
                 make_tagged_url("http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=ab7055b944bs", u"""http://api.kewego.com/video/getHTML5Thumbnail/?playerKey=7b7e2d7a9682&sig=ab7055b944bs""", set(['video', 'external', 'embedded', 'bottom'])),
-                make_tagged_url("http://portfolio.sudpresse.be/main.php?g2_itemId=1033320", u"""Nos photos de la conférence de presse""", set(['internal', 'sidebar box', 'gallery', 'external'])),
+                make_tagged_url("http://portfolio.sudpresse.be/main.php?g2_itemId=1033320", u"""Nos photos de la conférence de presse""", set(['internal', 'sidebar box', 'gallery'])),
                 make_tagged_url("/425052/article/sports/foot-belge/standard/2012-05-29/ron-jans-au-standard-les-supporters-partages-entre-c-est-n-importe-quoi-et-", u'''Ron Jans au Standard: les supporters partagés entre "C'est n'importe quoi" et "Laissons-lui sa chance"''', set(['internal', 'sidebar box'])),
             ]
             expected_links = tagged_urls
@@ -94,7 +94,7 @@ class TestSudinfoLinkExtraction(object):
             article, raw_html = sudinfo.extract_article_data(f)
             extracted_links = article.links
             tagged_urls = [
-                make_tagged_url("http://secourslux.blogs.sudinfo.be", u"""http://secourslux.blogs.sudinfo.be""", set(['in text', 'internal', 'internal site', 'jblog'])),
+                make_tagged_url("http://secourslux.blogs.sudinfo.be", u"""http://secourslux.blogs.sudinfo.be""", set(['in text', 'internal', 'jblog'])),
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
@@ -131,7 +131,7 @@ class TestSudinfoLinkExtraction(object):
                 make_tagged_url(u"/443260/article/sports/tennis/2012-06-26/wimbledon-olivier-rochus-elimine-des-le-1er-tour", u"""Wimbledon: Olivier Rochus éliminé dès le 1er tour""", set(['internal', 'sidebar box'])),
                 make_tagged_url(u"/440873/article/regions/liege/sports/2012-06-22/le-perron-d’or-est-pour-david-goffin", u"""Le Perron d’Or est pour David Goffin""", set(['internal', 'sidebar box'])),
                 make_tagged_url(u"/438432/article/actualite/l-info-en-continu/2012-06-19/15 nouveaux-athletes-pour-les-jo-de-londres-avec-david-goffin", u"""15 nouveaux athlètes pour les JO de Londres avec David Goffin""", set(['internal', 'sidebar box'])),
-                make_tagged_url(u"http://portfolio.sudpresse.be/main.php?g2_itemId=1063685", u"""Les photos de David et Stéphanie à Wimbledon""", set(['internal', 'sidebar box', 'gallery', 'external'])),
+                make_tagged_url(u"http://portfolio.sudpresse.be/main.php?g2_itemId=1063685", u"""Les photos de David et Stéphanie à Wimbledon""", set(['internal', 'sidebar box', 'gallery'])),
             ]
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
@@ -142,7 +142,7 @@ class TestSudinfoLinkExtraction(object):
             article, raw_html = sudinfo.extract_article_data(f)
             extracted_links = article.links
             urls = [
-                make_tagged_url("http://portfolio.sudpresse.be/main.php?g2_itemId=992521", u"""Une belle après-midi à Bleid""", set(['internal', 'sidebar box', 'gallery', 'external'])),
+                make_tagged_url("http://portfolio.sudpresse.be/main.php?g2_itemId=992521", u"""Une belle après-midi à Bleid""", set(['internal', 'sidebar box', 'gallery'])),
                 make_tagged_url("http://sll.kewego.com/swf/p3/epix.swf?language_code=fr&playerKey=7b7e2d7a9682&skinKey=a07930e183e6&sig=054c411daa8s&autostart=0&advertise=true", u"""__NO_TITLE__""", set(['kewego', 'video', 'external', 'embedded'])),
             ]
             expected_links = urls

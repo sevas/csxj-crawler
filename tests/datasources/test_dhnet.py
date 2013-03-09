@@ -150,7 +150,7 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("#embed_pos1", u"Retrouvez les photos et les vidéos de l'ouragan", set(["internal", "sidebar box", "anchor"])),
                 make_tagged_url("/infos/monde/article/412959/sandy-presque-tous-les-vols-depuis-brussels-airport-vers-les-usa-annules.html", u"Sandy:  presque tous les vols depuis Brussels Airport vers les USA annulés", set(["internal", "sidebar box"])),
                 make_tagged_url("#embed_pos3", u"VIDEO: Sandy menace 50 millions d'Américains", set(["internal", "sidebar box", "anchor"])),
-                make_tagged_url("http://galeries.dhnet.be/album/actumonde/ouragansandy/", u"La galerie photos de l'ouragan Sandy", set(["internal", "sidebar box", "image gallery", "internal site"])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/ouragansandy/", u"La galerie photos de l'ouragan Sandy", set(["internal", "sidebar box", "image gallery"])),
                 make_tagged_url("#embed_pos2", u"VIDEO: Sandy a déjà fait 21 morts", set(["internal", "sidebar box", "anchor"])),
 
             ]
@@ -162,7 +162,7 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("/infos/monde/article/413089/sandy-11600-belges-concernes-par-l-ouragan.html", u"Sandy: 11.600 Belges concernés par l'ouragan", set(["internal", 'bottom box'])),
                 make_tagged_url("/infos/monde/article/413108/sandy-au-moins-16-morts-aux-usa-deux-reacteurs-nucleaires-fermes.html", u"Sandy: au moins 16 morts aux USA, deux réacteurs nucléaires fermés", set(["internal", 'bottom box'])),
                 make_tagged_url("http://www.dhnet.be/infos/monde/article/413062/la-cote-est-des-etats-unis-se-barricade-pour-affronter-l-ouragan-sandy.html#encart", u"Sandy : 6 ou 7 Français disparus entre Martinique et Dominique", set(["internal", 'bottom box'])),
-                make_tagged_url("http://galeries.dhnet.be/album/actumonde/ouragansandy/", u"La galerie photos de l'ouragan Sandy", set(["internal", 'bottom box', 'image gallery', 'internal site'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/ouragansandy/", u"La galerie photos de l'ouragan Sandy", set(["internal", 'bottom box', 'image gallery'])),
             ]
 
             expected_embedded_media_links = [
@@ -245,10 +245,10 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("#embed_pos3", u"""Vive émotion pour Elio Di Rupo après le drame de Sierre""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("#embed_pos6", u"""Les réactions de Vande Lanotte et Van Quickenborne""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("#embed_pos4", u"""Tragédie de Sierre : réaction de J. Milquet""", set(['internal', 'sidebar box', 'anchor'])),
-                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331708882.mp3", u"""Accident de car en Suisse: écoutez Didier Reynders""", set(['sidebar box', 'audio', 'embedded', 'internal site'])),
-                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331708068.mp3", u"""Jan Luykx  revient sur l'accident de car de ce matin à Sierre""", set(['sidebar box', 'audio', 'embedded', 'internal site'])),
-                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331708936.mp3", u"""Le chef des informations de la police du canton de Valais""", set(['sidebar box', 'audio', 'embedded', 'internal site'])),
-                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331728657.mp3", u"""Le témoignage du chef de la police de Val d'anivier, reccueilli par Twizz Radio""", set(['sidebar box', 'audio', 'embedded', 'internal site'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331708882.mp3", u"""Accident de car en Suisse: écoutez Didier Reynders""", set(['sidebar box', 'audio', 'embedded', 'podcast'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331708068.mp3", u"""Jan Luykx  revient sur l'accident de car de ce matin à Sierre""", set(['sidebar box', 'audio', 'embedded', 'podcast'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331708936.mp3", u"""Le chef des informations de la police du canton de Valais""", set(['sidebar box', 'audio', 'embedded', 'podcast'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_388635_1331728657.mp3", u"""Le témoignage du chef de la police de Val d'anivier, reccueilli par Twizz Radio""", set(['sidebar box', 'audio', 'embedded', 'podcast'])),
 
 
             ]
@@ -368,13 +368,13 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("#embed_pos1", u"""Regardez la boulette de  Xavier Bongibault.""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("#embed_pos2", u"""Xavier Bongibault présente ses excuses @bfmtv""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("/infos/monde/article/421044/des-centaines-de-milliers-de-manifestants-contre-le-mariage-gay.html", u"""Des centaines de milliers de manifestants contre le mariage gay""", set(['internal', 'sidebar box'])),
-                make_tagged_url("http://galeries.dhnet.be/album/actumonde/manifantimariagegay/01.jpg/", u"""Les manifs contre le mariage gay""", set(['sidebar box', 'internal', 'image gallery', 'internal site'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/manifantimariagegay/01.jpg/", u"""Les manifs contre le mariage gay""", set(['sidebar box', 'internal', 'image gallery'])),
                 make_tagged_url("http://link.brightcove.com/services/player/bcpid1027556707001?bctid=2090284983001", u"""http://link.brightcove.com/services/player/bcpid1027556707001?bctid=2090284983001""", set(['video', 'external', 'embedded'])),
                 make_tagged_url("http://www.dailymotion.com/embed/video/xwq838", u"""http://www.dailymotion.com/embed/video/xwq838""", set(['embedded', 'external', 'iframe'])),
                 make_tagged_url("/infos/monde/article/421044/des-centaines-de-milliers-de-manifestants-contre-le-mariage-gay.html", u"""Des centaines de milliers de manifestants contre le mariage gay""", set(['bottom box', 'internal'])),
                 make_tagged_url("/infos/monde/article/421154/mariage-gay-di-rupo-est-fier-de-la-modernite-de-la-belgique.html", u"""Mariage gay: Di Rupo est "fier de la modernité" de la Belgique""", set(['bottom box', 'internal'])),
                 make_tagged_url("/infos/monde/article/421973/francois-hollande-va-recevoir-les-opposants-au-mariage-homo.html", u"""François Hollande va recevoir les opposants au mariage homo""", set(['bottom box', 'internal'])),
-                make_tagged_url("http://galeries.dhnet.be/album/actumonde/manifantimariagegay/01.jpg/", u"""Les manifs contre le mariage gay""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/manifantimariagegay/01.jpg/", u"""Les manifs contre le mariage gay""", set(['bottom box', 'internal', 'image gallery'])),
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
@@ -387,7 +387,7 @@ class TestDHNetLinkExtraction(object):
             tagged_urls = [
                 make_tagged_url("#embed_pos1", u"""Jennifer Lawrence perd sa robe !""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("http://player.ooyala.com/iframe.html#ec=t4YWF0ODq-F_xnDy9kb41w3bZnN8kN4Y&pbid=NDcyOWI0M2YyMDdkN2YwODU5Mzc5MDUz", u"""http://player.ooyala.com/iframe.html#ec=t4YWF0ODq-F_xnDy9kb41w3bZnN8kN4Y&pbid=NDcyOWI0M2YyMDdkN2YwODU5Mzc5MDUz""", set(['video', 'external', 'embedded'])),
-                make_tagged_url("http://galeries.dhnet.be/album/people/jenniferlawrence/8.jpg/", u"""Les photos de l'incident !""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
+                make_tagged_url("http://galeries.dhnet.be/album/people/jenniferlawrence/8.jpg/", u"""Les photos de l'incident !""", set(['bottom box', 'internal', 'image gallery'])),
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
@@ -415,14 +415,14 @@ class TestDHNetLinkExtraction(object):
             article, raw_html = dhnet.extract_article_data(f)
             extracted_links = article.links
             tagged_urls = [
-                make_tagged_url("http://galeries.dhnet.be/album/cinema/magritte_2013/", u"""Les Magritte en photos""", set(['sidebar box', 'internal', 'image gallery', 'internal site'])),
+                make_tagged_url("http://galeries.dhnet.be/album/cinema/magritte_2013/", u"""Les Magritte en photos""", set(['sidebar box', 'internal', 'image gallery'])),
                 make_tagged_url("http://www.cinebel.be/fr", u"""Toute l'actu cinéma sur Cinebel""", set(['sidebar box', 'external', 'same owner'])),
                 make_tagged_url("#embed_pos1", u"""Revivez la cérémonie sur le Twitter d'Alain Lorfèvre""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("https://twitter.com/ALorfevre", u"""Tweets de @ALorfevre""", set(['tweet', 'external', 'embedded'])),
                 make_tagged_url("/cine-tele/cinema/article/423464/lafosse-et-gourmet-se-mefier-du-piege-du-communautarisme-dans-le-cinema.html", u'''Lafosse et Gourmet: "Se méfier du piège du communautarisme dans le cinéma"''', set(['bottom box', 'internal'])),
                 make_tagged_url("/people/cinema/article/423544/jamel-un-president-anormal.html", u"""Jamel, un président anormal""", set(['bottom box', 'internal'])),
                 make_tagged_url("http://www.cinebel.be/fr", u"""Toute l'actu cinéma sur Cinebel""", set(['bottom box', 'external', 'same owner'])),
-                make_tagged_url("http://galeries.dhnet.be/album/cinema/magritte_2013/", u"""Les Magritte en photos""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
+                make_tagged_url("http://galeries.dhnet.be/album/cinema/magritte_2013/", u"""Les Magritte en photos""", set(['bottom box', 'internal', 'image gallery'])),
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
@@ -535,9 +535,9 @@ class TestDHNetLinkExtraction(object):
                 make_tagged_url("/infos/monde/article/389603/qui-est-vraiment-mohamed-merah.html", u"""Qui est vraiment  Mohamed Merah ?""", set(['bottom box', 'internal'])),
                 make_tagged_url("/infos/monde/article/389629/toulouse-pouvoir-et-police-presentent-leur-defense-face-aux-critiques.html", u"""Toulouse : pouvoir et police présentent leur défense face aux critiques""", set(['bottom box', 'internal'])),
                 make_tagged_url("/infos/monde/article/394230/affaire-merah-le-pere-d-un-soldat-tue-porte-plainte-contre-sarkozy.html", u"""Affaire Merah: le père d'un soldat tué porte plainte contre Sarkozy""", set(['bottom box', 'internal'])),
-                make_tagged_url("http://galeries.dhnet.be/album/actumonde/raidtoulouse/", u"""L'opération en images""", set(['bottom box', 'internal', 'image gallery', 'internal site'])),
-                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_389327_1332310479.mp3", u"""Ecoutez Claude Guéant, ministre français de l'Intérieur (Europe 1 et Twizz Radio)""", set(['internal', 'sidebar box', 'internal site', 'embedded', 'audio'])),
-                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_389327_1332327971.mp3", u"""Ecoutez la journalsite (Ebba Kalondo) qui a reçu un appel du suspect (micro de Twizz et Europe 1)""", set(['internal', 'sidebar box', 'internal site', 'embedded', 'audio'])),
+                make_tagged_url("http://galeries.dhnet.be/album/actumonde/raidtoulouse/", u"""L'opération en images""", set(['bottom box', 'internal', 'image gallery'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_389327_1332310479.mp3", u"""Ecoutez Claude Guéant, ministre français de l'Intérieur (Europe 1 et Twizz Radio)""", set(['internal', 'sidebar box', 'embedded', 'audio', 'podcast'])),
+                make_tagged_url("http://podcast.dhnet.be/articles/audio_dh_389327_1332327971.mp3", u"""Ecoutez la journalsite (Ebba Kalondo) qui a reçu un appel du suspect (micro de Twizz et Europe 1)""", set(['internal', 'sidebar box', 'podcast', 'embedded', 'audio'])),
             ]
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)

@@ -101,7 +101,7 @@ class TestLalibreLinkExtraction(object):
             ]
 
             expected_sidebox_links = [
-                make_tagged_url("http://galeries.lalibre.be/album/actumonde/ouragansandy/15_21_01_171104928_624846-01-07.jpg/", u"""Les USA sur le pied de guerre avant le passage de Sandy""", set(['sidebar box', 'internal site'])),
+                make_tagged_url("http://galeries.lalibre.be/album/actumonde/ouragansandy/15_21_01_171104928_624846-01-07.jpg/", u"""Les USA sur le pied de guerre avant le passage de Sandy""", set(['sidebar box', 'image gallery', 'internal'])),
                 make_tagged_url("#embed_pos1", u"""Retrouvez les photos et les vidéos de l'ouragan""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("#embed_pos2", u"""Vidéo: Sandy vu de l'espace""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("#embed_pos3", u"""Sandy menace 50 millions d'Américains""", set(['internal', 'sidebar box', 'anchor'])),
@@ -110,7 +110,7 @@ class TestLalibreLinkExtraction(object):
             expected_bottom_links = [
                 make_tagged_url("/societe/planete/article/774682/comment-choisit-on-le-nom-des-tempetes.html", u"""Comment choisit-on le nom des tempêtes?""", set(['bottom box', 'internal'])),
                 make_tagged_url("/actu/international/article/774709/nouveau-numero-d-appel-d-urgence-pour-les-belges-aux-etats-unis.html", u"""Nouveau numéro d'appel d'urgence pour les Belges aux Etats-Unis""", set(['bottom box', 'internal'])),
-                make_tagged_url("http://galeries.lalibre.be/album/actumonde/ouragansandy/15_21_01_171104928_624846-01-07.jpg/", u"""Les USA sur le pied de guerre avant le passage de Sandy""", set(['bottom box', 'internal site'])),
+                make_tagged_url("http://galeries.lalibre.be/album/actumonde/ouragansandy/15_21_01_171104928_624846-01-07.jpg/", u"""Les USA sur le pied de guerre avant le passage de Sandy""", set(['bottom box', 'internal', 'image gallery'])),
             ]
 
             expected_embbeded_media_links = [
@@ -329,12 +329,12 @@ class TestLalibreLinkExtraction(object):
             updated_tagged_urls = [
                 make_tagged_url("#embed_pos1", u"""Vidéo : Comment prendre des photos au fond de la piscine ?""", set(['internal', 'sidebar box', 'anchor'])),
                 make_tagged_url("/sports/omnisports/article/753960/les-belges-aux-jeux-pas-de-podium-pour-van-alphen-qui-finit-4e.html", u"""Les Belges aux Jeux: pas de podium pour Van Alphen qui finit 4e""", set(['internal', 'sidebar box'])),
-                make_tagged_url("http://galeries.lalibre.be/album/omnisports/JO2012/insolites/34.jpg/", u"""Toutes les photos insolites des JO""", set(['internal', 'sidebar box', 'internal site'])),
-                make_tagged_url("http://ask.blogs.lalibre.be/", u"""Ask LaLibre, le blog qui vous permet de tout savoir""", set(['internal', 'sidebar box', 'internal site', 'jblog'])),
+                make_tagged_url("http://galeries.lalibre.be/album/omnisports/JO2012/insolites/34.jpg/", u"""Toutes les photos insolites des JO""", set(['internal', 'sidebar box', 'image gallery'])),
+                make_tagged_url("http://ask.blogs.lalibre.be/", u"""Ask LaLibre, le blog qui vous permet de tout savoir""", set(['internal', 'sidebar box', 'jblog'])),
                 make_tagged_url("/sports/omnisports/article/753960/les-belges-aux-jeux-pas-de-podium-pour-van-alphen-qui-finit-4e.html", u"""Les Belges aux Jeux: pas de podium pour Van Alphen qui finit 4e""", set(['bottom box', 'internal'])),
                 make_tagged_url("/sports/omnisports/article/754784/water-polo-coups-de-boule-et-coups-de-maillots-sous-l-eau.html", u"""Water polo: coups de boule et coups de maillots sous l'eau""", set(['bottom box', 'internal'])),
-                make_tagged_url("http://ask.blogs.lalibre.be/", u"""Ask LaLibre, le blog qui vous permet de tout savoir""", set(['bottom box', 'internal', 'internal site', 'jblog'])),
-                make_tagged_url("http://galeries.lalibre.be/album/omnisports/JO2012/insolites/34.jpg/", u"""Toutes les photos insolites des JO""", set(['bottom box', 'internal', 'internal site'])),
+                make_tagged_url("http://ask.blogs.lalibre.be/", u"""Ask LaLibre, le blog qui vous permet de tout savoir""", set(['bottom box', 'internal', 'jblog'])),
+                make_tagged_url("http://galeries.lalibre.be/album/omnisports/JO2012/insolites/34.jpg/", u"""Toutes les photos insolites des JO""", set(['bottom box', 'internal', 'image gallery'])),
                 make_tagged_url("http://www.vuvox.com/collage_express/collage.swf?collageID=05bf5f41ae", u"""http://www.vuvox.com/collage_express/collage.swf?collageID=05bf5f41ae""", set(['external', 'embedded'])),
             ]
             expected_links = updated_tagged_urls

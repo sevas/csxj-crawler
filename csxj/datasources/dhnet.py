@@ -33,7 +33,8 @@ DHNET_INTERNAL_SITES = {
     'alorsonbuzz.blogs.dhnet.be': ['internal', 'jblog'],
     'letitsound.blogs.dhnet.be': ['internal', 'jblog'],
 
-    'pdf-online.dhnet.be': ['internal', 'pdf newspaper']
+    'pdf-online.dhnet.be': ['internal', 'pdf newspaper'],
+    'podcast.dhnet.be': ['internal', 'podcast']
 
 }
 

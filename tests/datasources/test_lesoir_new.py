@@ -156,7 +156,7 @@ class TestLaSoirNewLinkExtraction(object):
             article, raw_html = lesoir_new.extract_article_data(f)
             extracted_links = article.links
             tagged_urls = [
-                make_tagged_url("http://pdf.lesoir.be", u"""Notre dossier complet pp. 2 et 3 dans Le Soir en PDF""", set(['internal', 'internal site', 'pdf newspaper', 'in text'])),
+                make_tagged_url("http://pdf.lesoir.be", u"""Notre dossier complet pp. 2 et 3 dans Le Soir en PDF""", set(['internal', 'pdf newspaper', 'in text'])),
                 make_tagged_url("http://www.lesoir.be/194330/article/actualite/belgique/2013-02-20/syndicats-ont-ils-raison-manifester", u"""Les syndicats ont-ils raison de manifester ? (sondage)""", set(['internal', 'sidebar box'])),
                 make_tagged_url("http://www.lesoir.be/193899/article/actualite/belgique/2013-02-20/manif-jeudi-gros-points-noirs-redout%C3%A9s-partout-en-belgique", u"""Manif de jeudi: de gros points noirs redoutés partout en Belgique""", set(['internal', 'sidebar box'])),
                 make_tagged_url("http://www.lesoir.be/194401/article/debats/editos/2013-02-21/crise-vaut-bien-une-manif-mais-pas-une-fuite", u"""L'édito - La crise vaut bien une manif, mais pas une fuite""", set(['internal', 'sidebar box'])),
