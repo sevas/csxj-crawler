@@ -109,8 +109,263 @@ class TestLavenirLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
 
-class TestLavenirContentExtraction(object):
+class TestLavenirNewLinkExtraction(object):
+    """ Test suite for the new lavenir.net page template """
+    def test_new_links_storify(self):
+        """ lavenir [new template] parser can extract a link to an embedded storify widget"""
+        with open(os.path.join(DATA_ROOT, "new_links_storify.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://storify.com/Lavenir/les-meilleurs-tweets-sur-l-euro", u"""View the story "Les meilleurs tweets sur l'Euro" on Storify""", set(['external', 'embedded'])),
+                make_tagged_url("http://www.lavenir.net/buzz", u"""Buzz""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/buzz/vusurinternet", u"""Vu sur internet""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/channel/index.aspx?channelid=299", u"""Tout sur l'Euro 2012 de football""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_new_links_scribblelive(self):
+        """ lavenir [new template] parser can extract a link to an embedded scribblelive iframe"""
+        with open(os.path.join(DATA_ROOT, "new_links_scribblelive.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/sports/cnt/DMF20130309_018", u"""+ Cliquez sur ce lien pour suivre notre grand direct D1: 8 matches au programme!""", set(['internal', 'in text'])),
+                make_tagged_url("http://live.lavenir.net/Event/D2-D3-Promotion-09-03-2013", u"""Si vous surfez via notre application mobile, cliquez sur ce lien pour suivre le multilive""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://embed.scribblelive.com/Embed/v5.aspx?Id=87875&ThemeId=6630", u"""http://embed.scribblelive.com/Embed/v5.aspx?Id=87875&ThemeId=6630""", set(['iframe', 'external', 'embedded', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/d2", u"""D2""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/d3b", u"""D3B""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/promotiond", u"""Promotion D""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/promotionb", u"""Promotion B""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/regions/hainaut/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/regions/brabantwallon/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/regions/liege/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/regions/namur/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/regions/luxembourg/sports/football", u"""Football""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_intext_iframe(self):
+        """ lavenir [new template] parser can extract a link to an in text embedded iframe"""
+        with open(os.path.join(DATA_ROOT, "new_links_intext_iframe.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.youtube.com/embed/_lEgFnNwPzY", u"""http://www.youtube.com/embed/_lEgFnNwPzY""", set(['iframe', 'external', 'embedded', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/enimages", u"""En images""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/videos", u"""Vidéos""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/basket", u"""Basket""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_ignore_photosets(self):
+        """ lavenir [new template] parser ignores photosets"""
+        with open(os.path.join(DATA_ROOT, "new_links_ignore_photosets.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("/sports/cyclisme", u"""Cyclisme""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_highlighted_video(self):
+        """ lavenir [new template] parser can extract a link to a video in the 'highlight' section"""
+        with open(os.path.join(DATA_ROOT, "new_links_highlighted_video.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.youtube.com/embed/6G-75ljWk3A", u"""http://www.youtube.com/embed/6G-75ljWk3A""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://www.lavenir.net/buzz", u"""Buzz""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/buzz/instantgag", u"""Instant Gag""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_in_text(self):
+        """ lavenir [new template] parser can extract in-text links"""
+        with open(os.path.join(DATA_ROOT, "new_links_in_text.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.cretesdespa.be", u"""www.cretesdespa.be""", set(['external', 'in text'])),
+                make_tagged_url("http://www.chronorace.be", u"""http://www.chronorace.be""", set(['external', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/jogging", u"""Jogging""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/regions/liege/sports", u"""Sports""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_iframe_videos(self):
+        """ lavenir [new template] parser can extract another kind of in text iframe videos (rtlinfo)"""
+        with open(os.path.join(DATA_ROOT, "new_links_iframe_videos.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.rtl.be/clubrtl/page/syndication/913.aspx?videoid=435782&key=cdbf072d-48bd-48f8-b711-0db29ad4a71f", u"""http://www.rtl.be/clubrtl/page/syndication/913.aspx?videoid=435782&key=cdbf072d-48bd-48f8-b711-0db29ad4a71f""", set(['iframe', 'external', 'embedded', 'in text'])),
+                make_tagged_url("http://www.rtl.be/clubrtl/page/syndication/913.aspx?videoid=435780&key=cdbf072d-48bd-48f8-b711-0db29ad4a71f", u"""http://www.rtl.be/clubrtl/page/syndication/913.aspx?videoid=435780&key=cdbf072d-48bd-48f8-b711-0db29ad4a71f""", set(['iframe', 'external', 'embedded', 'in text'])),
+                make_tagged_url("http://www.rtl.be/clubrtl/page/syndication/913.aspx?videoid=435781&key=cdbf072d-48bd-48f8-b711-0db29ad4a71f", u"""http://www.rtl.be/clubrtl/page/syndication/913.aspx?videoid=435781&key=cdbf072d-48bd-48f8-b711-0db29ad4a71f""", set(['iframe', 'external', 'embedded', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/europaleague", u"""Europa League""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/channel/index.aspx?channelid=86", u"""TOUT SUR LES DIABLES ROUGES""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_special_in_text(self):
+        """ lavenir [new template] parser can in-text links, even if they look like they are located in a bolded paragraph"""
+        with open(os.path.join(DATA_ROOT, "new_links_special_in_text.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://tech.lavenir.net/ge/visite_touristique.kmz", u"""Pour découvrir ce parcours en mode 3D avec photographies, cliquez sur ce lien""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("/sports/jogging", u"""Jogging""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_in_text_vimeo(self):
+        """ lavenir [new template] parser can extract a link to an embedded vimeo iframe. iframes are cool."""
+        with open(os.path.join(DATA_ROOT, "new_links_in_text_vimeo.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.marathonnature.be/", u"""Marathon Nature""", set(['external', 'in text'])),
+                make_tagged_url("http://www.marathonnature.be/", u"""www.lavenir.net/jogging""", set(['external', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/kyra", u"""www.lavenir.net/kyra""", set(['internal', 'in text'])),
+                make_tagged_url("http://jogging.lavenir.net/", u"""www.lavenir.net/jogging""", set(['internal', 'internal site', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/kyra", u"""page facebook""", set(['internal', 'in text'])),
+                make_tagged_url("http://player.vimeo.com/video/61011660?title=0&byline=0&portrait=0&color=47bf61", u"""http://player.vimeo.com/video/61011660?title=0&byline=0&portrait=0&color=47bf61""", set(['iframe', 'external', 'embedded', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/enimages", u"""En images""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/buzz", u"""Buzz""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/buzz/insolite", u"""Insolite""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/jogging", u"""Jogging""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/videos", u"""Vidéos""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_bottom_links(self):
+        """ lavenir [new template] parser can extract links for related articles"""
+        with open(os.path.join(DATA_ROOT, "new_links_bottom_links.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("/sports/cnt/DMF20130303_00276326", u"""Euro indoor de Göteborg: pas de médaille pour Tia Hellebaut, qui ne passe pas 1m92""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("http://www.lavenir.net/diaporamas", u"""Diaporamas""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/athletisme", u"""Athlétisme""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/channel/index.aspx?channelid=497", u"""Tout sur l'Euro indoor d'athlétisme""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_pdf_newspaper_tag(self):
+        """ lavenir [new template] parser correctly detects and tags links to the pdf version of the publication"""
+        with open(os.path.join(DATA_ROOT, "new_links_pdf_newspaper_tag.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://lavenir.newspaperdirect.com/epaper/viewer.aspx?utm_source=site&utm_medium=journal", u"""en format PDF""", set(['internal', 'external', 'pdf newspaper', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/diaporamas", u"""Diaporamas""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/basket", u"""Basket""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/regions/liege/sports", u"""Sports""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_another_storify(self):
+        with open(os.path.join(DATA_ROOT, "new_links_another_storify.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://storify.com/lavenir_net", u"""lavenir.net""", set(['external', 'in text'])),
+                make_tagged_url("//storify.com/lavenir_net/foot-les-incontournables-images-du-week-end-04-03", """View the story "Foot: les incontournables images du week-end (04/03/2013)" on Storify""", set(['external', 'embedded'])),
+                make_tagged_url("http://www.lavenir.net/enimages", u"""En images""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/la-video-du-jour", u"""La vidéo du jour""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/buzz/vusurinternet", u"""Vu sur internet""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/videos", u"""Vidéos""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/channel/index.aspx?channelid=448", u"""LES WEEK-ENDS FOOT EN IMAGES""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_embedded_poll(self):
+        with open(os.path.join(DATA_ROOT, "new_links_embedded_poll.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://qualifio.lavenir.net/10/v1.cfm?id=0D9ECE28-5056-8040-9FF7-84C0DDC965F9", u"""http://qualifio.lavenir.net/10/v1.cfm?id=0D9ECE28-5056-8040-9FF7-84C0DDC965F9""", set(['internal', 'iframe', 'internal site', 'embedded', 'in text'])),
+                make_tagged_url("/sports/autres", u"""Autres""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/athletisme", u"""Athlétisme""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/moteurs", u"""Moteurs""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/proleague", u"""Pro League""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/channel/index.aspx?channelid=447", u"""TOUS NOS QUIZ SPORTIFS""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_soccer_video_from_hungary(self):
+        with open(os.path.join(DATA_ROOT, "new_links_soccer_video_from_hungary.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://videa.hu/videok/sport/as-roma-3-1-genoa-alessio-romagnoli-francesco-totti-a7Mhqa5118CHtLlG", u"""szólj hozzá: AS Roma 3-1 Genoa MATCH HIGHLIGHTS""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/serie-a", u"""Serie A""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_epic_dataviz(self):
+        with open(os.path.join(DATA_ROOT, "new_links_epic_dataviz.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://lavenir.newspaperdirect.com/epaper/viewer.aspx?utm_source=site&utm_medium=journal", u"""en format PDF""", set(['internal', 'external', 'pdf newspaper', 'in text'])),
+                make_tagged_url("http://tech.lavenir.net/foot_d1_afp", u"""http://tech.lavenir.net/foot_d1_afp""", set(['internal', 'iframe', 'internal site', 'embedded', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/proleague", u"""Pro League""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/regions/hainaut/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/channel/index.aspx?channelid=70", u"""TOUT SUR LE SPORTING DE CHARLEROI""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_vimeo_in_header(self):
+        with open(os.path.join(DATA_ROOT, "new_links_vimeo_in_header.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/jogging", u"""www.lavenir.net/jogging""", set(['internal', 'in text'])),
+                make_tagged_url("http://player.vimeo.com/video/60939915?title=0&byline=0&portrait=0&color=47bf61", u"""http://player.vimeo.com/video/60939915?title=0&byline=0&portrait=0&color=47bf61""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://www.lavenir.net/enimages", u"""En images""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/jogging", u"""Jogging""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/videos", u"""Vidéos""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+class TestLavenirContentExtraction(object):
     def test_clean_title_extraction(self):
         """ lavenir parser correctly extracts the title"""
         with open(os.path.join(DATA_ROOT, "title_and_text.html")) as f:

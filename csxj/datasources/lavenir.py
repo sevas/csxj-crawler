@@ -3,7 +3,7 @@
 
 from datetime import datetime
 import codecs
-from itertools import izip, chain
+import itertools as it
 from urlparse import urlparse
 from scrapy.selector import HtmlXPathSelector
 
@@ -99,19 +99,20 @@ def extract_publication_date(raw_date):
     return datetime_published.date(), datetime_published.time()
 
 
-def extract_links_from_article_body(article_body_hxs):
+def extract_links_from_text_hxs(hxs):
     tagged_urls = list()
-    # intext urls
-    urls = article_body_hxs.select(".//p//a/@href").extract()
-    titles = [t.strip() for t in article_body_hxs.select(".//p//a//text()").extract()]
+    # intext urls: take all the <a>, except what might be inside a rendered tweet
 
-    for title, url in izip(titles, urls):
+
+    intext_link_hxs = hxs.select(".//p//a")
+    for link_hxs in intext_link_hxs:
+        title, url = extract_title_and_url(link_hxs)
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
         tags.add('in text')
         tagged_urls.append(make_tagged_url(url, title, tags))
 
     #plaintext text urls
-    raw_content = article_body_hxs.select(".//p/text()").extract()
+    raw_content = hxs.select(".//p/text()").extract()
 
     if raw_content:
         for paragraph in raw_content:
@@ -122,7 +123,7 @@ def extract_links_from_article_body(article_body_hxs):
                 tagged_urls.append(make_tagged_url(url, url, tags))
 
     #embedded objects
-    iframe_sources = article_body_hxs.select(".//iframe/@src").extract()
+    iframe_sources = hxs.select(".//iframe/@src").extract()
     for url in iframe_sources:
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
         tags = tags.union(['in text', 'embedded', 'iframe'])
@@ -131,29 +132,54 @@ def extract_links_from_article_body(article_body_hxs):
     return tagged_urls
 
 
-def extract_links_from_highlight_section(article_detail_hxs):
+def extract_links_from_article_body(article_body_hxs):
+    return extract_links_from_text_hxs(article_body_hxs)
+
+
+def extract_links_from_video_div(video_div_hxs):
     tagged_urls = list()
-    video_pane = article_detail_hxs.select(".//div [@id='video']")
+    iframes = video_div_hxs.select('.//iframe')
 
-    if not video_pane:
-        return tagged_urls
+    if iframes:
+        for iframe in iframes:
+            url = iframe.select('./@src').extract()
+            if not url:
+                raise ValueError("This iframe has no 'src' attribute. What?")
+            else:
+                url = url[0]
+                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                tags |= set(['embedded', 'video'])
+                tagged_urls.append(make_tagged_url(url, url, tags))
 
-    iframes = video_pane.select('.//iframe')
-
-    if not iframes:
-        raise ValueError("There is an embedded video in here somewhere, but it's not an iframe")
-
-    for iframe in iframes:
-        url = iframe.select('./@src').extract()
-        if not url:
-            raise ValueError("This iframe has no 'src' attribute. What?")
-        else:
-            url = url[0]
+    objects = video_div_hxs.select('.//object')
+    if objects:
+        for object_hxs in objects:
+            associated_link = object_hxs.select("./following-sibling::a[1]")
+            if associated_link:
+                title, url = extract_title_and_url(associated_link[0])
+            else:
+                url = object_hxs.select("./param [@name='movie']/@value")
+                title = url
             tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
             tags |= set(['embedded', 'video'])
-            tagged_urls.append(make_tagged_url(url, url, tags))
+            tagged_urls.append(make_tagged_url(url, title, tags))
 
-    return tagged_urls
+    if tagged_urls:
+        return tagged_urls
+    else:
+        raise ValueError("There is an embedded video in here somewhere, but it's not an iframe or an object")
+
+
+
+
+
+def extract_links_from_highlight_section(article_detail_hxs):
+    video_div_hxs = article_detail_hxs.select(".//div [@id='video']")
+
+    if not video_div_hxs:
+        return list()
+
+    return extract_links_from_video_div(video_div_hxs)
 
 
 def select_title_and_url(selector, tag_name):
@@ -179,21 +205,13 @@ def extract_bottom_links(bottom_links):
     return tagged_urls
 
 
-def extract_article_data(source):
-    if hasattr(source, 'read'):
-        html_content = source.read()
-    else:
-        html_content = fetch_html_content(source)
-
-    hxs = HtmlXPathSelector(text=html_content)
-
-    # extract breadcrumbs for category info
-    category = hxs.select("//div[@id='content']/*[1]/p/a/text()").extract()
-
-    #extractc title
+def extract_article_data_old(source, hxs):
+    """ process an old-style lavenir.net article page"""
     article_detail_hxs = hxs.select("//div[@id='content']/div[starts-with(@class,'span-3 article-detail')]")
-    #intro_h1s = hxs.select("//div[@id='content']/div[@class='span-3 article-detail ']//div[@id='intro']/h1/text()").extract()
+
+    category = hxs.select("//div[@id='content']/*[1]/p/a/text()").extract()
     intro_h1s = article_detail_hxs.select(".//div[@id='intro']/h1/text()").extract()
+
     title = ''
     if len(intro_h1s) == 1:
         title = intro_h1s[0].strip()
@@ -248,15 +266,185 @@ def extract_article_data(source):
 
     updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
 
-    import os
-    generate_unittest("links_highlighted_youtube_and_ghost_links", "lavenir", dict(urls=updated_tagged_urls), html_content, source, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
-
     article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                                updated_tagged_urls,
                                category, author,
                                intro, content)
 
-    return article_data, html_content
+    return article_data
+
+
+def datetime_from_iso8601(datetime_string):
+    """
+    >>> datetime_from_iso8601("2013-03-09T10h24")
+    datetime.datetime(2013, 3, 9, 10, 24)
+    """
+    return datetime.strptime(datetime_string, "%Y-%m-%dT%Hh%M")
+
+
+def extract_intro_and_links_new(content_hxs):
+    intro_hxs = content_hxs.select(".//div [@class='entry-lead']")
+
+    intro = u''
+    for p_hxs in intro_hxs.select('.//p'):
+        text = p_hxs.select('./text()').extract()
+        if text:
+            intro += text[0]
+
+    tagged_urls = extract_links_from_text_hxs(intro_hxs)
+
+    return intro, tagged_urls
+
+
+def extract_content_and_links_new(content_hxs):
+    content = []
+    body_hxs = content_hxs.select(".//div [@class='entry-body']")
+
+    for p_hxs in body_hxs.select('.//p'):
+        text = p_hxs.select('./text()').extract()
+        if text:
+            content.append(text[0])
+
+    tagged_urls = extract_links_from_text_hxs(body_hxs)
+
+    return content, tagged_urls
+
+
+def extract_links_from_embbeded_media(content_hxs):
+    body_hxs = content_hxs.select(".//div [@class='entry-body']")
+    tagged_urls = []
+    for script_hxs in body_hxs.select('./script'):
+        script_src = script_hxs.select("./@src").extract()
+        if not script_src:
+            raise ValueError("Found a <script> with no src attr.")
+
+        if script_src[0].startswith("//platform.twitter.com/widgets.js"):
+            # tagged_urls.append(make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'tweet', constants.UNFINISHED_TAG])))
+            previous_blockquote = script_hxs.select("./preceding-sibling::blockquote[1]")
+            if previous_blockquote:
+                print previous_blockquote[0].select("./@class").extract()
+                if 'twitter-tweet' in previous_blockquote[0].select("./@class").extract():
+                    url = previous_blockquote.select('./a[last()]/@href').extract()[0]
+                    tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                    title = u"[RENDERED TWEET]"
+                    tags |= set(['embedded', 'tweet'])
+                    tagged_urls.append(make_tagged_url(url, title, tags))
+                else:
+                    raise ValueError("This blockquote does not appear to be a tweet.")
+            else:
+                raise ValueError("Found a twitter widget <script> without its companion blockquote.")
+        else:
+            noscript_hxs = script_hxs.select('./following-sibling::noscript[1]')
+            if noscript_hxs:
+                link_hxs = noscript_hxs.select('a')
+                title, url = extract_title_and_url(link_hxs)
+                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                tags |= set(['embedded'])
+                tagged_urls.append(make_tagged_url(url, title, tags))
+            else:
+                raise ValueError("Found a <script> without a <noscript> counterpart")
+
+    return tagged_urls
+
+
+def extract_links_from_other_divs(other_div_hxs):
+    tagged_urls = list()
+
+    for div_hxs in other_div_hxs:
+        div_id = div_hxs.select("./@id").extract()
+        if not div_id:
+            continue
+        div_id = div_id[0]
+        if div_id in ['articlead', 'photoset']:
+            continue
+        else:
+            if div_id == 'video':
+                tagged_urls.extend(extract_links_from_video_div(div_hxs))
+            else:
+                raise ValueError("unknow <div id='{0}'>".format(div_id))
+
+    return tagged_urls
+
+
+def extract_related_links(hxs):
+    aside_hxs = hxs.select("//div [contains(@class, 'mod')]/aside [@class='entry-related']")
+    tagged_urls = []
+    related_link_hxs = aside_hxs.select("./ul/li//a")
+    for link_hxs in related_link_hxs:
+        title, url = extract_title_and_url(link_hxs)
+        tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+        tags |= set(['bottom box', 'related'])
+        tagged_urls.append(make_tagged_url(url, title, tags))
+    return tagged_urls
+
+
+def extract_links_from_tags(hxs):
+    tag_navbar_hxs = hxs.select("//nav [@class='entry-tags']")
+    tagged_urls = list()
+    for link_hxs in tag_navbar_hxs.select("./ul/li/a"):
+        title, url = extract_title_and_url(link_hxs)
+        tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+        tags |= set(['keyword'])
+        tagged_urls.append(make_tagged_url(url, title, tags))
+
+    return tagged_urls
+
+
+def extract_article_data_new_style(source, hxs):
+    """ """
+    category = hxs.select("//nav [contains(@id,'breadcrumb')]//li").extract()
+
+    datetime_string = hxs.select("//div [@class='row content']//time/@datetime").extract()
+    if not datetime_string:
+        raise ValueError("Could not find the date, update the parser")
+
+    parsed_datetime = datetime_from_iso8601(datetime_string[0])
+    pub_date, pub_time = parsed_datetime.date(), parsed_datetime.time()
+    fetched_datetime = datetime.now()
+
+    title = hxs.select("//header//h1/text()").extract()
+    if not title:
+        raise ValueError()
+    title = title[0]
+
+    content_hxs = hxs.select("//div [@class='entry-content']")
+
+    author_fragments = content_hxs.select(".//p [@class='copyright']/text()").extract()
+    author = ''.join([remove_text_formatting_markup_from_fragments(author_fragments, strip_chars='\r\n\t ')])
+
+    intro, intro_links = extract_intro_and_links_new(content_hxs)
+    content, content_links = extract_content_and_links_new(content_hxs)
+
+    other_div_hxs = content_hxs.select("//div [@class='entry-content']/div [not(contains(@class, 'entry-'))]")
+    content_media_links = extract_links_from_other_divs(other_div_hxs)
+    related_links = extract_related_links(hxs)
+    media_links = extract_links_from_embbeded_media(content_hxs)
+    tag_links = extract_links_from_tags(hxs)
+
+    all_links = it.chain(intro_links, content_links, media_links, content_media_links, related_links, tag_links)
+    updated_tagged_urls = update_tagged_urls(all_links, LAVENIR_SAME_OWNER)
+
+    article_data = ArticleData(source, title, pub_date, pub_time, fetched_datetime,
+                               updated_tagged_urls,
+                               category, author,
+                               intro, content)
+    return article_data
+
+
+def extract_article_data(source):
+    if hasattr(source, 'read'):
+        html_content = source.read()
+    else:
+        html_content = fetch_html_content(source)
+
+    hxs = HtmlXPathSelector(text=html_content)
+
+    old_style_content_hxs = hxs.select("//div[@id='content']")
+
+    if old_style_content_hxs:
+        return extract_article_data_old(source, hxs), html_content
+    else:
+        return extract_article_data_new_style(source, hxs), html_content
 
 
 def expand_full_url(local_url):
@@ -267,8 +455,18 @@ def expand_full_url(local_url):
 
 
 def extract_title_and_url(link_hxs):
-    url = link_hxs.select("./@href").extract()[0]
-    title = link_hxs.select("./text()").extract()[0].strip()
+    href = link_hxs.select("./@href").extract()
+    if href:
+        url = href[0]
+    else:
+        url = constants.NO_URL
+
+    title = link_hxs.select("./text()").extract()
+    if title:
+        title = title[0].strip()
+    else:
+        title = constants.NO_TITLE
+
     return title, url
 
 
@@ -290,7 +488,7 @@ def get_frontpage_toc():
     local_sport_links = hxs.select("//div[@id='content']//div[contains(@class, 'article-with-photo')]//h2/a")
     nopic_story_list = hxs.select("//div[@id='content']//ul[@class='nobullets']//li//div[contains(@class, 'item-title')]//a")
 
-    all_links = chain(story_links, more_story_links, local_sport_links, nopic_story_list)
+    all_links = it.chain(story_links, more_story_links, local_sport_links, nopic_story_list)
 
     all_items = [extract_title_and_url(link_hxs) for link_hxs in all_links]
     news_items, blogpost_items = separate_blogposts(all_items)
@@ -317,10 +515,10 @@ def test_sample_data():
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130221_00271965",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_00273104",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_005",
-        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968"
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968",  # highlighted videos + ghost links
         ]
 
-    urls_ = [
+    urls_new_style = [
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168756",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_005",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_008",
@@ -335,15 +533,45 @@ def test_sample_data():
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120608_00168309",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168735",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120609_00168743",
-    ]
+        "http://www.lavenir.net/sports/cnt/DMF20120608_036",  # storify
+        "http://www.lavenir.net/sports/cnt/DMF20130309_001",  # scribblelive
+        "http://www.lavenir.net/sports/cnt/DMF20130309_00279912",  # youtube
+        "http://www.lavenir.net/sports/cnt/DMF20130308_00279411",  # photoset in header
+        "http://www.lavenir.net/sports/cnt/DMF20130308_00279366",  # youtube in header
+        "http://www.lavenir.net/sports/cnt/DMF20130308_00279386",   # in text links
+        "http://www.lavenir.net/sports/cnt/DMF20130307_00278978",  # rtlinfo vids
+        "http://www.lavenir.net/sports/cnt/DMF20130307_00278892",  # in text link
+        "http://www.lavenir.net/sports/cnt/DMF20130306_00278406m",  # vimeo link
+        "http://www.lavenir.net/sports/cnt/DMF20130306_00278376",  # bottom links
+        "http://www.lavenir.net/sports/cnt/DMF20130305_00277489",  # pdf newspaper
+        "http://www.lavenir.net/sports/cnt/DMF20130304_037",  #another storify
+        "http://www.lavenir.net/sports/cnt/DMF20130304_010",   # poll
+        "http://www.lavenir.net/sports/cnt/DMF20130303_00276383",  # hungary video
+        "http://www.lavenir.net/sports/cnt/DMF20130303_00276372",
+        "http://www.lavenir.net/sports/cnt/DMF20130303_00276357",  # something intereactive
+        "http://www.lavenir.net/sports/cnt/DMF20130303_00276369",
+        #"http://www.lavenir.net/sports/cnt/DMF20130305_010",  # embedded tweets TODO
+]
 
-    for url in urls[-1:]:
-        article, _ = extract_article_data(url)
-        print(article.title)
-        print(article.url)
-        print_taggedURLs(article.links, 70)
-        print("°" * 80)
+    for url in urls_new_style[-1:]:
+        article, html_content = extract_article_data(url)
+        if article:
+            print(article.title)
+            print(article.url)
+            print_taggedURLs(article.links, 70)
+            print("°" * 80)
+
+            import os
+            #generate_unittest("new_links_vimeo_in_header", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
+
+        else:
+            print('page was not recognized as an article')
 
 
 if __name__ == "__main__":
-    test_sample_data()
+    import sys
+    if "--test" in sys.argv:
+        import doctest
+        doctest.testmod(verbose=True)
+    else:
+        test_sample_data()
