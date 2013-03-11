@@ -10,6 +10,7 @@ import traceback
 from csxj.common.decorators import deprecated
 from csxj.datasources.parser_tools.utils import fetch_html_content
 from csxj.datasources.parser_tools.utils import convert_utf8_url_to_ascii
+from csxj.datasources.parser_tools import constants
 
 from db import Provider, ProviderStats, make_error_log_entry2
 from db.constants import *
@@ -196,18 +197,26 @@ class ArticleQueueDownloader(object):
                 for (i, batch) in enumerate(batches):
                     batch_hour_string, items = batch
 
-                    self.log.info(self.make_log_message("Downloading {0} articles for batch#{1} ({2})".format(len(items['articles']), i, batch_hour_string)))
-                    articles, deleted_articles, errors, raw_data = self.download_batch(items['articles'])
+                    news_items, junk = self.source.filter_news_items(items['articles'])
+                    if junk:
+                        self.log.info(self.make_log_message("Found {0} articles which are not actually news".format(len(junk))))
+
+                    self.log.info(self.make_log_message("Downloading {0} articles for batch#{1} ({2})".format(len(news_items), i, batch_hour_string)))
+                    articles, detected_paywalled_articles, deleted_articles, errors, raw_data = self.download_batch(news_items)
 
                     self.log_info(u"Found data for {0} articles ({1} errors)".format(len(articles),
                                                                                      len(errors)))
                     batch_output_directory = os.path.join(day_directory, batch_hour_string)
-                    self.save_articles_to_db(articles, deleted_articles, errors, items['blogposts'], batch_output_directory)
+                    self.save_articles_to_db(articles, deleted_articles, errors, items['blogposts']+junk, batch_output_directory)
+
+                    # paywalled stuff
                     if 'paywalled_articles' not in items:
                         items['paywalled_articles'] = []
-                    self.log_info(u"Writing {0} paywalled article links to {1}".format(len(items['paywalled_articles']), os.path.join(batch_output_directory, PAYWALLED_ARTICLES_FILENAME)))
-                    write_dict_to_file(dict(paywalled_articles=items['paywalled_articles']), batch_output_directory, PAYWALLED_ARTICLES_FILENAME)
+                    all_paywalled_articles = items['paywalled_articles'] + detected_paywalled_articles
+                    self.log_info(u"Writing {0} paywalled article links to {1}".format(len(all_paywalled_articles), os.path.join(batch_output_directory, PAYWALLED_ARTICLES_FILENAME)))
+                    write_dict_to_file(dict(paywalled_articles=all_paywalled_articles), batch_output_directory, PAYWALLED_ARTICLES_FILENAME)
 
+                    # raw data
                     self.save_raw_data_to_db(raw_data, batch_output_directory)
                     self.save_errors_raw_data_to_db(errors, batch_output_directory)
 
@@ -217,13 +226,16 @@ class ArticleQueueDownloader(object):
             self.log_info(u"Empty queue. Nothing to do.")
 
     def download_batch(self, items):
-        articles, deleted_articles, errors, raw_data = list(), list(), list(), list()
+        articles, detected_paywalled_articles, deleted_articles, errors, raw_data = list(), list(), list(), list(), list()
         for title, url in items:
             try:
                 article_data, html_content = self.source.extract_article_data(url)
                 if article_data:
-                    articles.append(article_data)
-                    raw_data.append((url, html_content))
+                    if article_data.content == constants.PAYWALLED_CONTENT:
+                        detected_paywalled_articles.append((article_data.title, article_data.url))
+                    else:
+                        articles.append(article_data)
+                        raw_data.append((url, html_content))
                 else:
                     deleted_articles.append((title, url))
             except Exception:
@@ -232,7 +244,7 @@ class ArticleQueueDownloader(object):
                 new_error = make_error_log_entry2(url, title, stacktrace)
                 errors.append(new_error)
 
-        return articles, deleted_articles, errors, raw_data
+        return articles, detected_paywalled_articles, deleted_articles, errors, raw_data
 
     def save_articles_to_db(self, articles, deleted_articles, errors, blogposts, outdir):
         all_data = {'articles': [art.to_json() for art in articles],
