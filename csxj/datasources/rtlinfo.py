@@ -286,13 +286,15 @@ def extract_first_articles(maincontent):
     return titles_and_urls
 
 
-
 def make_full_url((title, url)):
     if url.startswith('http://'):
         return title, url
     else:
         return title, 'http://www.rtl.be{0}'.format(url)
 
+
+def filter_news_items(frontpage_items):
+    return frontpage_items, list()
 
 
 def separate_news_and_blogposts(titles_and_urls):
@@ -303,13 +305,12 @@ def separate_news_and_blogposts(titles_and_urls):
     return news_items, blogposts
 
 
-
 def get_frontpage_toc():
     url = 'http://www.rtl.be/info/'
     html_content = fetch_content_from_url(url)
     soup = make_soup_from_html_content(html_content)
 
-    maincontent = soup.find('div', {'class':'mainContent'})
+    maincontent = soup.find('div', {'class': 'mainContent'})
 
     first_articles = extract_first_articles(maincontent)
     small_articles = extract_small_articles(maincontent)
@@ -320,7 +321,6 @@ def get_frontpage_toc():
     news_items, blogposts = separate_news_and_blogposts(all_articles)
 
     return [make_full_url(title_and_url) for title_and_url in news_items], list(blogposts), []
-
 
 
 def test_sample_data():
@@ -340,9 +340,7 @@ def show_frontpage_news():
         else:
             print 'Was redirected to a blogpost'
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     #show_frontpage_news()
     test_sample_data()
-
-
-

@@ -113,9 +113,10 @@ def extract_title(soup):
     # print soup.find(attrs={"class": "meta"}).previous_sibling.previous_sibling
     if main_content.find("h1"):
         title = main_content.find("h1").contents[0]
-    else :
+    else:
         title = main_content.find("h2").contents[0]
     return title
+
 
 def extract_author_name(soup):
     authors = []
@@ -125,7 +126,6 @@ def extract_author_name(soup):
     authors.append(author_name)
 
     #sometimes there's an author mentioned in bold at the end of the article
-
     return authors
 
 
@@ -185,12 +185,12 @@ def extract_title_and_url_from_bslink(link):
     return title, url, base_tags
 
 
-def extract_text_content_and_links(soup) :
+def extract_text_content_and_links(soup):
     tagged_urls = list()
     inline_links = []
     text = list()
 
-    article_body = soup.find(attrs = {"class" : "article-body"})
+    article_body = soup.find(attrs={"class": "article-body"})
     text_fragments = article_body.find_all("p")
 
     if text_fragments:
@@ -206,7 +206,7 @@ def extract_text_content_and_links(soup) :
     else:
         text = u""
 
-    for p in text_fragments :
+    for p in text_fragments:
         link = p.find_all("a")
         inline_links.extend(link)
 
@@ -267,7 +267,7 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
         if url_part1 is not None and url_part2 is not None:
             url = "%s?%s" % (url_part1, url_part2)
             all_tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-            if kplayer.next_sibling :
+            if kplayer.next_sibling:
                 if len(kplayer.next_sibling) > 0 and kplayer.next_sibling.name == 'figcaption':
                     title = kplayer.next_sibling.contents[0]
                     all_tags = tagging.classify_and_tag(url, site_netloc, site_internal_sites)
@@ -342,7 +342,6 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
     elif container.find("img"):
         return None
 
-
     # if it's not a known case maybe we can still detect something:
     elif container.find("embed"):
         url = container.find("embed").get("src")
@@ -355,7 +354,6 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
             raise ValueError("There to be an embedded object but we could not find an link. Update the parser.")
     else:
         raise ValueError("Unknown type of embedded media")
-
 
 
 def extract_links_to_embedded_content(soup):
@@ -391,7 +389,7 @@ def extract_embedded_media_from_bottom(soup):
 
 def extract_embedded_media_in_article(soup):
     tagged_urls = list()
-    story = soup.find(attrs = {'class': 'article-body'})
+    story = soup.find(attrs={'class': 'article-body'})
     scripts = story.findAll('script', recursive=True)
     for script in scripts:
         url = script.get('src')
@@ -404,20 +402,30 @@ def extract_embedded_media_in_article(soup):
     return tagged_urls
 
 
-def filter_articles_from_photoalbums_and_polls(url):
-    IS_PHOTOALBUM = 1
-    IS_POLL = 2
-    IS_ARTICLE = 3
+IS_PHOTOALBUM = 1
+IS_POLL = 2
+IS_ARTICLE = 3
 
+
+def filter_articles_from_photoalbums_and_polls(url):
     if "/sondage" in url:
         return IS_POLL
-
     elif "/gallerie" in url:
         return IS_PHOTOALBUM
-
     else:
         return IS_ARTICLE
 
+
+def filter_news_items(frontpage_items):
+    news_items = list()
+    other_stuff = list()
+    for title, url in frontpage_items:
+        page_type = filter_articles_from_photoalbums_and_polls(url)
+        if page_type == IS_ARTICLE:
+            news_items.append((title, url))
+        else:
+            other_stuff.append((title, url))
+    return news_items, other_stuff
 
 
 def extract_article_data(source):
@@ -426,6 +434,7 @@ def extract_article_data(source):
         html_data = source.read()
     else:
         try:
+            source = convert_utf8_url_to_ascii(source)
             html_data = fetch_html_content(source)
         except HTTPError as e:
             if e.code == 404 or e.code == 403:
@@ -435,13 +444,12 @@ def extract_article_data(source):
         except Exception:
             raise
 
-
     soup = bs4.BeautifulSoup(html_data)
 
     # this is how we detect paywalled articles
     if soup.find(attrs={"id": "main-content"}).h2 and soup.find(attrs={"id": "main-content"}).h2.find(attrs={'class': 'ir locked'}):
         title = extract_title(soup)
-        return (ArticleData(source, title, None, None, None, None, None, None, None, "PAYWALLED"), html_data)
+        return (ArticleData(source, title, None, None, None, None, None, None, None, constants.PAYWALLED_CONTENT), html_data)
 
     else:
         title = extract_title(soup)
@@ -465,10 +473,10 @@ def extract_article_data(source):
         # save_sample_data_file(html_data, source, 'loads_of_embedded_stuff_and_pdf_newspaper', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
 
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
-                    updated_tagged_urls,
-                    category, author_name,
-                    intro, text),
-        html_data)
+                updated_tagged_urls,
+                category, author_name,
+                intro, text),
+                html_data)
 
 
 def test_sample_data():
@@ -480,10 +488,6 @@ def test_sample_data():
 
 
 if __name__ == '__main__':
-    # _, _, paywalled = get_frontpage_toc()
-    # for p in paywalled:
-    #     print p
-
     urls = ["file://localhost/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new/embedded_dailymotion_video.html",
             "http://www.lesoir.be/187412/article/debats/chats/2013-02-11/11h02-%C2%ABil-est-temps-d%C3%A9finir-notre-politique-%C3%A9nerg%C3%A9tique%C2%BB"
             "http://www.lesoir.be/191397/article/culture/cinema/2013-02-16/l%E2%80%99ours-d%E2%80%99or-d%C3%A9cern%C3%A9-au-drame-roumain-%C2%ABchild%E2%80%99s-pose%C2%BB",
@@ -493,33 +497,3 @@ if __name__ == '__main__':
             "http://www.lesoir.be/200851/article/actualite/belgique/2013-03-02/budget-pour-andr%C3%A9-antoine-%C2%AB-bons-comptes-font-bons-amis-%C2%BB",
             "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB"
             ]
-
-    # article, html = extract_article_data(urls_from_errors[0])
-    # article, html = extract_article_data(urls[0])
-
-    # print article.title
-    # print article.intro
-    # print article.content
-
-    # for link in article.links:
-    #     print link.title
-    #     print link.URL
-    #     print link.tags
-    #     print "__________"
-
-
-    # from csxj.common.tagging import print_taggedURLs
-    # print_taggedURLs(article.links)
-
-    # toc, blogposts = get_frontpage_toc()
-    # for t, u in toc:
-    #     url = codecs.encode(u, 'utf-8')
-    #     print url
-    #     try:
-    #         extract_article_data(url)
-    #     except Exception as e:
-    #         print "Something went wrong with: ", url
-    #         import traceback
-    #         print traceback.format_exc()
-
-    #     print "************************"

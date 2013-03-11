@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
 from itertools import chain
 import urlparse
 
@@ -11,7 +10,6 @@ from csxj.db.article import ArticleData
 from parser_tools.utils import fetch_html_content
 from parser_tools.utils import setup_locales
 
-
 setup_locales()
 
 
@@ -19,15 +17,13 @@ SOURCE_TITLE = u"Le Vif"
 SOURCE_NAME = u"levif"
 
 LEVIF_INTERNAL_BLOGS = {
-    'trends.levif.be':['internal blog', 'internal', 'economy'],
-    'sportmagazine.levif.be':['internal blog', 'internal', 'sports'],
-    'focus.lesoir.be':['internal blog', 'internal', 'entertainment'],
-    'weekend.lesoir.be':['internal blog', 'internal']
+    'trends.levif.be': ['internal blog', 'internal', 'economy'],
+    'sportmagazine.levif.be': ['internal blog', 'internal', 'sports'],
+    'focus.lesoir.be': ['internal blog', 'internal', 'entertainment'],
+    'weekend.lesoir.be': ['internal blog', 'internal']
 }
 
 LEVIF_NETLOC = 'www.levif.be'
-
-
 
 
 def split_news_and_blogposts(titles_and_urls):
@@ -44,7 +40,6 @@ def split_news_and_blogposts(titles_and_urls):
     return frontpage_items, blogposts
 
 
-
 def extract_title_and_url(link_selector):
     url = link_selector.select("./@href").extract()[0]
     title = link_selector.select("./text()").extract()[0]
@@ -57,7 +52,6 @@ def get_frontpage_toc():
 
     hxs = HtmlXPathSelector(text=html_data)
 
-
     h1_breaking_news_links = hxs.select("//div [@id='body']/div/div[@class='frame col_650']/div [@class='frame breakingNews']//div[@class='teaserContent']//h1/a")
     h2_breaking_news_links = hxs.select("//div [@id='body']/div/div[@class='frame col_650']/div [@class='frame breakingNews']//div[@class='teaserContent']//h2/a")
 
@@ -69,6 +63,9 @@ def get_frontpage_toc():
 
     return frontpage_items, blogposts, []
 
+
+def filter_news_items(frontpage_items):
+    return frontpage_items, list()
 
 
 def show_frontpage():

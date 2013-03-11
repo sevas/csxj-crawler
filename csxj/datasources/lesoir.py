@@ -344,6 +344,10 @@ def element_has_two_columns_stories(element):
     return len(element.findAll('ul', {'class': 'two_cols'}, recursive=False)) == 1
 
 
+def filter_news_items(frontpage_items):
+    return frontpage_items, list()
+
+
 def get_frontpage_toc():
     """
     Fetch links to articles listed on the 'Le Soir' front page.

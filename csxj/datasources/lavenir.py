@@ -477,6 +477,10 @@ def separate_blogposts(all_items):
     return news_items, blogpost_items
 
 
+def filter_news_items(frontpage_items):
+    return frontpage_items, list()
+
+
 def get_frontpage_toc():
     frontpage_url = "http://{0}".format(LAVENIR_NETLOC)
     html_data = fetch_html_content(frontpage_url)

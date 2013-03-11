@@ -276,6 +276,10 @@ def extract_article_data(source):
     return extract_article_data_from_html(html_content, source)
 
 
+def filter_news_items(frontpage_items):
+    return frontpage_items, list()
+
+
 def get_frontpage_toc():
     hostname_url = 'http://www.lalibre.be'
     html_content = fetch_html_content(hostname_url)

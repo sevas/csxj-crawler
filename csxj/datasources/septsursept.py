@@ -559,6 +559,10 @@ def extract_article_data(source):
                 html_data)
 
 
+def filter_news_items(frontpage_items):
+    return frontpage_items, list()
+
+
 # on vérifie que les urls de la frontpage ne renvoient pas vers la frontpage (en y appliquant la fonction qui extrait les urls des la frontpage!!)
 def show_frontpage():
     frontpage_items, blogposts, _ = get_frontpage_toc()

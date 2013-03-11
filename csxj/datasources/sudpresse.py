@@ -378,6 +378,10 @@ def show_frontpage_articles():
         print article_data.to_json()
 
 
+def filter_news_items(frontpage_items):
+    return frontpage_items, list()
+
+
 def test_sample_data():
     fpaths = [
 "/Volumes/Curst/csxj/tartiflette/json_db_0_5/sudpresse/2012-01-08/17.06.41/raw_data/0.html",

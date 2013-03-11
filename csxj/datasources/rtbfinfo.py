@@ -35,7 +35,6 @@ def extract_title_and_url_from_span_thing(link_selector):
     return title, url
 
 
-
 def get_frontpage_toc():
     url = "http://{0}/info".format(RTBFINFO_NETLOC)
     html_data = fetch_html_content(url)
@@ -52,12 +51,13 @@ def get_frontpage_toc():
 
     chronic_stories = zip(chronic_titles, chronic_links)
 
-
     titles_and_urls = [extract_title_and_url(link_hxs) for link_hxs in chain(main_story, featured_stories, anchored_stories)] + chronic_stories
 
     return titles_and_urls, [], []
 
 
+def filter_news_items(frontpage_items):
+    return frontpage_items, list()
 
 
 def show_frontpage():

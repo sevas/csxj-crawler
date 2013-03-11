@@ -305,7 +305,7 @@ def extract_links_from_media_items(media_items):
                     tagged_urls.append(make_tagged_url(url, title, tags))
                 else:
                     raise ValueError("There is a dailymotion video here somewhere, but we could not find the link.")
-    
+
 
             else:
                 raise ValueError("A unknown type of embedded video has been detected. Please update this parser.")
@@ -527,6 +527,10 @@ def get_frontpage_toc():
 
     news, blogposts = separate_blogposts_and_news(headlines)
     return [(title, convert_utf8_url_to_ascii(url)) for title, url in make_full_url(BASE_URL, news)], blogposts, []
+
+
+def filter_news_items(frontpage_items):
+    return frontpage_items, list()
 
 
 def show_article():
