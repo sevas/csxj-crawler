@@ -377,7 +377,7 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
             raise ValueError("There seems to be an iframe but it doesn't match known patterns")
 
     # we want to avoid images
-    elif container.find("img"):
+    elif container.find("img") or container.find("figcaption", {"class": "photo"}):
         return None
 
 
@@ -532,7 +532,13 @@ if __name__ == '__main__':
             "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB",
             "http://www.lesoir.be/95589/article/sports/football/2012-10-08/diables-rouges-mboyo-surprise-wilmots",
             "http://www.lesoir.be/95700/article/actualite/monde/2012-10-08/gr%C3%A8ce-doit-%C3%AAtre-plus-convaincante",
-            "http://www.lesoir.be/96047/article/sports/football/2012-10-09/diables-fellaini-touch\u00e9-au-genou"
+            "http://www.lesoir.be/96047/article/sports/football/2012-10-09/diables-fellaini-touch\u00e9-au-genou",
+            "http://www.lesoir.be/96047/article/sports/football/2012-10-09/diables-fellaini-ne-jouera-pas-contre-serbie",
+            "http://www.lesoir.be/95589/article/sports/football/2012-10-08/diables-rouges-mboyo-surprise-wilmots",
+            "http://www.lesoir.be/96818/article/sports/football/2012-10-10/diables-rouges-kompany-\u00ab-90-chances-jouer-\u00bb",
+            "http://www.lesoir.be/97581/article/debats/chats/2012-10-11/communales-dernier-d%C3%A9bat-tillieux-pr%C3%A9vot",
+            "http://www.lesoir.be/98143/article/culture/cinema/2012-10-12/schwarzenegger-\u00ab-je-suis-all\u00e9-au-del\u00e0-mes-r\u00eaves-\u00bb",
+            "http://www.lesoir.be/103224/article/styles/air-du-temps/2012-10-20/une-mini-fashion-week-\u00e0-bruxelles"
             ]
 
     # article, html = extract_article_data(urls_from_errors[0])
