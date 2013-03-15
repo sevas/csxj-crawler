@@ -210,7 +210,6 @@ def extract_title_and_url_from_bslink(link):
                         base_tags.append("ghost link")
             else:
                 for x in link.contents:
-                    print x
                     if type(x) is bs4.element.NavigableString:
                         title = x
 
