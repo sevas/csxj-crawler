@@ -202,6 +202,8 @@ def extract_title_and_url_from_bslink(link):
             else:
                 if link.find("strong") and type(link.find("strong").contents[0]) is bs4.element.NavigableString :
                     title = link.find("strong").contents[0]
+                elif link.find("span") and type(link.find("span").contents[0]) is bs4.element.NavigableString :
+                    title = link.find("span").contents[0]
                 else:
                     title = "__GHOST_LINK__"
                     base_tags.append("ghost link")
@@ -391,6 +393,10 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
 
         else:
             raise ValueError("There to be an embedded object but we could not find an link. Update the parser.")
+
+    elif len(container.find("a")) == 0:
+        #to detect empty containers
+        return None
     else:
         raise ValueError("Unknown type of embedded media")
 
@@ -538,11 +544,24 @@ if __name__ == '__main__':
             "http://www.lesoir.be/96818/article/sports/football/2012-10-10/diables-rouges-kompany-\u00ab-90-chances-jouer-\u00bb",
             "http://www.lesoir.be/97581/article/debats/chats/2012-10-11/communales-dernier-d%C3%A9bat-tillieux-pr%C3%A9vot",
             "http://www.lesoir.be/98143/article/culture/cinema/2012-10-12/schwarzenegger-\u00ab-je-suis-all\u00e9-au-del\u00e0-mes-r\u00eaves-\u00bb",
-            "http://www.lesoir.be/103224/article/styles/air-du-temps/2012-10-20/une-mini-fashion-week-\u00e0-bruxelles"
+            "http://www.lesoir.be/103224/article/styles/air-du-temps/2012-10-20/une-mini-fashion-week-\u00e0-bruxelles",
+            "http://www.lesoir.be/103374/article/actualite/belgique/2012-10-20/questions-royales-\u00ab-en-isolant-certains-extraits-on-fausse-contenu-\u00bb",
+            "http://www.lesoir.be/106465/article/actualite/monde/presidentielle-usa-2012/2012-10-25/obama-\u00ab-un-viol-reste-un-viol-c\u2019est-un-crime-\u00bb"
             ]
 
+
+    urls_from_errors = [
+    "http://www.lesoir.be/165044/article/geeko/2013-01-15/que-va-annoncer-facebook-suivre-en-direct", 
+    #"http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche-en-direct", 
+    #"http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche", 
+    #"http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-leemens-nouvel-entra\u00eeneur-des-gardiens", 
+    #"http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-lemmens-nouvel-entra\u00eeneur-des-gardiens-des-diables"
+        ]
     # article, html = extract_article_data(urls_from_errors[0])
-    article, html = extract_article_data(urls[-1])
+    for url in urls_from_errors :
+        print url
+        article, html = extract_article_data(url)
+        print "this one was ok"
 
     # print article.title
     # print article.intro
