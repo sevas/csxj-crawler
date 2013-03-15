@@ -185,5 +185,16 @@ class TestLaSoirNewLinkExtraction(object):
             expected_links = tagged_urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_embedded_storify_top_box(self):
+        with open(os.path.join(DATA_ROOT, "embedded_storify_top_box.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://storify.com/lesoir/conference-de-presse-de-l-eurogroupe-sur-le-me", u"""http://storify.com/lesoir/conference-de-presse-de-l-eurogroupe-sur-le-me""", set(['external', 'embedded', 'storify'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
 
 
