@@ -44,10 +44,11 @@ def extract_url_and_title(bslink):
     return url, title
 
 BLACKLIST = ["http://www.tvbrussel.be",
-            "http://video.belga.be",
-            "http://s0.videopress.com",
-            "http://c.brightcove.com",
-            "http://francoishollande.fr"]
+             "http://video.belga.be",
+             "http://s0.videopress.com",
+             "http://c.brightcove.com",
+             "http://francoishollande.fr"]
+
 
 def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_sites):
     if item_div.iframe:
@@ -99,8 +100,6 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             #example: http://www.lalibre.be/actu/politique-belge/article/787994/bart-de-wever-a-preside-pour-la-premiere-fois-le-conseil-communal-d-anvers.html
             tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
             return tagged_url
-
-
 
         elif item_div.object:
             container = item_div.object
@@ -279,7 +278,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 # example : http://www.lalibre.be/sports/golf/article/765908/colsaerts-de-plus-en-plus-present-sur-le-circuit-americain.html
                 tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
                 return tagged_url
-            
+
             elif value.startswith("http://embed.5min.com/"):
                 # example : http://www.lalibre.be/actu/international/article/752119/romney-l-homme-de-nulle-part-s-egare-avec-sa-gaffe-sur-les-jeux.html
                 tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
@@ -305,10 +304,8 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                 raise ValueError("Looks like a visual.ly splendid dataviz, but it does not match known patterns")
 
         # it might be a hungarian video, or any other type of player
-
-
         elif item_div.find('script'):
-            if len(item_div.find('script').contents) > 0 :
+            if len(item_div.find('script').contents) > 0:
                 if "vmmaplayer" in item_div.find('script').contents[0]:
                     url = item_div.find('script').contents[0].split("videoUrl:'")[1].split("',width")[0]
                     all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
@@ -363,10 +360,7 @@ def extract_tagged_url_from_associated_link(link_list_item, netloc, associated_s
 
 
 def extract_and_tag_associated_links(main_content, netloc, associated_sites):
-    """
-    Extract the associated links. .
-
-    """
+    """Extract the associated links."""
     strong_article_links = main_content.find('div', {'id': 'strongArticleLinks'})
     if not strong_article_links:
         return []
