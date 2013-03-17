@@ -427,6 +427,30 @@ class TestLavenirNewLinkExtraction(object):
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_links_new_jwplayer(self):
+        """ lavenir [new template] parser tags embedded jwplayer videos as embedded videos (but does not extract url and marks it as 'unfinished')"""
+        with open(os.path.join(DATA_ROOT, "links_new_jwplayer.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20110331_063", u"""Il avait été condamné à une peine de prison de deux semaines avec suris, une amende et un retrait de permis d'un mois""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20110331_063", u"""Le joueur de Grozny avait été condamné en première instance à une déchéance du droit de conduire de six mois.""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20110310_044", u"""et avait proposé d’accomplir une peine de travail sous la forme d’une action sociale""", set(['internal', 'in text'])),
+                make_tagged_url("__EMBEDDED_VIDEO_URL__", u"""__EMBEDDED_VIDEO_TITLE__""", set([u'unfinished', 'video', 'external', 'embedded', 'jwplayer'])),
+                make_tagged_url("/sports/cnt/DMF20121009_00215953", u"""Jonathan Legear : « Mon accident ne changera rien à ma carrière »""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20121010_00216197", u"""Une peine alternative via l’IBSR""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20121010_00215993", u"""Et pourtant… Porsche propose des cours de conduite""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("/sports/cnt/DMF20121008_00215326", u"""Jonathan Legear: «Je n’étais pas dans un état profond d’ivresse»""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("http://www.lavenir.net/enimages", u"""En images""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/societe/faitsdivers", u"""Faits divers""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/regions", u"""Régions""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/videos", u"""Vidéos""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestLavenirContentExtraction(object):
     def test_clean_title_extraction(self):

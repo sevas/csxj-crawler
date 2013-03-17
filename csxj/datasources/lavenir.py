@@ -164,14 +164,22 @@ def extract_links_from_video_div(video_div_hxs):
             tagged_urls.append(make_tagged_url(url, title, tags))
 
     scripts = video_div_hxs.select('.//script')
-    for script_hxs in scripts:
-        script_src = script_hxs.select('./@src').extract()
-        if script_src and 'flowplayer' in script_src[0]:
-            title = constants.EMBEDDED_VIDEO_TITLE
-            url = constants.EMBEDDED_VIDEO_URL
-            tags = set(['external', 'embedded', 'video', 'flowplayer', constants.UNFINISHED_TAG])
-            tagged_urls.append(make_tagged_url(url, title, tags))
-
+    if scripts:
+        for script_hxs in scripts:
+            script_src = script_hxs.select('./@src').extract()
+            if script_src:
+                if 'flowplayer' in script_src[0]:
+                    title = constants.EMBEDDED_VIDEO_TITLE
+                    url = constants.EMBEDDED_VIDEO_URL
+                    tags = set(['external', 'embedded', 'video', 'flowplayer', constants.UNFINISHED_TAG])
+                    tagged_urls.append(make_tagged_url(url, title, tags))
+                elif 'jwplay' in script_src[0]:
+                    title = constants.EMBEDDED_VIDEO_TITLE
+                    url = constants.EMBEDDED_VIDEO_URL
+                    tags = set(['external', 'embedded', 'video', 'jwplayer', constants.UNFINISHED_TAG])
+                    tagged_urls.append(make_tagged_url(url, title, tags))
+                else:
+                    raise ValueError("Found a <script> for an embedded video, for an unknown type")
     if tagged_urls:
         return tagged_urls
     else:
@@ -377,9 +385,9 @@ def extract_links_from_other_divs(other_div_hxs):
 
 
 def extract_related_links(hxs):
-    aside_hxs = hxs.select("//div [contains(@class, 'mod')]/aside [@class='entry-related']")
-    tagged_urls = []
-    related_link_hxs = aside_hxs.select("./ul/li//a")
+    aside_hxs = hxs.select("//div//aside [@class='entry-related']")
+    tagged_urls = list()
+    related_link_hxs = aside_hxs.select(".//ul/li//a")
     for link_hxs in related_link_hxs:
         title, url = extract_title_and_url(link_hxs)
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
@@ -566,7 +574,8 @@ def test_sample_data():
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276357",  # something intereactive
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276369",
         "http://www.lavenir.net/sports/cnt/DMF20130305_010",  # embedded tweets
-        "http://www.lavenir.net/sports/cnt/DMF20120719_00183602"  # weird storify (no <noscript>)
+        "http://www.lavenir.net/sports/cnt/DMF20120719_00183602",  # weird storify (no <noscript>)
+        "http://www.lavenir.net/sports/cnt/DMF20121007_007",
     ]
 
     urls_before_june = [
@@ -576,7 +585,7 @@ def test_sample_data():
 
 
 
-    for url in urls[-1:]:
+    for url in urls_new_style[-1:]:
         article, html_content = extract_article_data(url)
         if article:
             print(article.title)
@@ -585,7 +594,7 @@ def test_sample_data():
             print("°" * 80)
 
             import os
-            #generate_unittest("links_flowplayer", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
+            #generate_unittest("links_new_jwplayer", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
 
         else:
             print('page was not recognized as an article')
