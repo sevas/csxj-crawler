@@ -117,7 +117,7 @@ class TestLavenirNewLinkExtraction(object):
             article, raw_html = lavenir.extract_article_data(f)
             extracted_links = article.links
             urls = [
-                make_tagged_url("http://storify.com/Lavenir/les-meilleurs-tweets-sur-l-euro", u"""View the story "Les meilleurs tweets sur l'Euro" on Storify""", set(['external', 'embedded'])),
+                make_tagged_url("http://storify.com/Lavenir/les-meilleurs-tweets-sur-l-euro.js", u"""View the story "Les meilleurs tweets sur l'Euro" on Storify""", set(['external', 'embedded'])),
                 make_tagged_url("http://www.lavenir.net/buzz", u"""Buzz""", set(['internal', 'keyword'])),
                 make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
                 make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
@@ -288,6 +288,7 @@ class TestLavenirNewLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_new_links_another_storify(self):
+        """ lavenir [new template] parser handles several kinds of embedded storify"""
         with open(os.path.join(DATA_ROOT, "new_links_another_storify.html")) as f:
             article, raw_html = lavenir.extract_article_data(f)
             extracted_links = article.links
@@ -305,6 +306,7 @@ class TestLavenirNewLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_new_links_embedded_poll(self):
+        """ lavenir [new template] parser handles embedded in-house polling system (qualifio.lavenir.net)"""
         with open(os.path.join(DATA_ROOT, "new_links_embedded_poll.html")) as f:
             article, raw_html = lavenir.extract_article_data(f)
             extracted_links = article.links
@@ -322,6 +324,7 @@ class TestLavenirNewLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_new_links_soccer_video_from_hungary(self):
+        """ lavenir [new template] parser loves hungarian soccer videos"""
         with open(os.path.join(DATA_ROOT, "new_links_soccer_video_from_hungary.html")) as f:
             article, raw_html = lavenir.extract_article_data(f)
             extracted_links = article.links
@@ -334,6 +337,7 @@ class TestLavenirNewLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_new_links_epic_dataviz(self):
+        """ lavenir [new template] parser handles some kind of soccer-related dataviz thingy"""
         with open(os.path.join(DATA_ROOT, "new_links_epic_dataviz.html")) as f:
             article, raw_html = lavenir.extract_article_data(f)
             extracted_links = article.links
@@ -349,6 +353,7 @@ class TestLavenirNewLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_new_links_vimeo_in_header(self):
+        """ lavenir [new template] parser can extract (vimeo) videos from the article header"""
         with open(os.path.join(DATA_ROOT, "new_links_vimeo_in_header.html")) as f:
             article, raw_html = lavenir.extract_article_data(f)
             extracted_links = article.links
@@ -364,6 +369,7 @@ class TestLavenirNewLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
     def test_new_links_rendered_tweet_in_iframes(self):
+        """ lavenir [new template] parser handles embedded tweets rendered in an iframe"""
         with open(os.path.join(DATA_ROOT, "new_links_rendered_tweet_in_iframes.html")) as f:
             article, raw_html = lavenir.extract_article_data(f)
             extracted_links = article.links
@@ -375,6 +381,25 @@ class TestLavenirNewLinkExtraction(object):
                 make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
                 make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
                 make_tagged_url("/sports/football/ligue1", u"""Ligue 1""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_yet_another_storify(self):
+        """ lavenir [new template] parser has no issue handling an embedded storify, even if there is no <noscript> element"""
+        with open(os.path.join(DATA_ROOT, "new_links_yet_another_storify.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=dmf20120711_00180928", u"""des tenues, plutôt chics, signées Ralph Lauren""", set(['internal', 'in text'])),
+                make_tagged_url("http://storify.com/lavenir_net/les-espagnols-seront-beaux-aux-jo.js?header=false", u"""__RENDERED_STORIFY__""", set(['tweet', 'external', 'embedded'])),
+                make_tagged_url("http://www.lavenir.net/life", u"""Life""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/autres", u"""Autres""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/belgiqueetmonde", u"""Belgique et monde""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/life/belle", u"""Belle""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/life/belle/mode", u"""Mode""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/channel/index.aspx?channelid=300", u"""Tout sur les JO 2012 à Londres""", set(['internal', 'keyword'])),
             ]
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)

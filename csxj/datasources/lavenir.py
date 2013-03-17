@@ -321,13 +321,19 @@ def extract_links_from_embbeded_media(content_hxs):
                 if 'twitter-tweet' in previous_blockquote[0].select("./@class").extract():
                     url = previous_blockquote.select('./a[last()]/@href').extract()[0]
                     tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-                    title = u"[RENDERED TWEET]"
+                    title = constants.RENDERED_TWEET_TITLE
                     tags |= set(['embedded', 'tweet'])
                     tagged_urls.append(make_tagged_url(url, title, tags))
                 else:
                     raise ValueError("This blockquote does not appear to be a tweet.")
             else:
                 raise ValueError("Found a twitter widget <script> without its companion blockquote.")
+        elif script_src[0].startswith("http://storify.com"):
+            url = script_src[0]
+            title = constants.RENDERED_STORIFY_TITLE
+            tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+            tags |= set(['embedded', 'tweet'])
+            tagged_urls.append(make_tagged_url(url, title, tags))
         else:
             noscript_hxs = script_hxs.select('./following-sibling::noscript[1]')
             if noscript_hxs:
@@ -549,7 +555,8 @@ def test_sample_data():
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276372",
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276357",  # something intereactive
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276369",
-        "http://www.lavenir.net/sports/cnt/DMF20130305_010",  # embedded tweets TODO
+        "http://www.lavenir.net/sports/cnt/DMF20130305_010",  # embedded tweets
+        "http://www.lavenir.net/sports/cnt/DMF20120719_00183602"  # weird storify (no <noscript>)
     ]
 
     for url in urls_new_style[-1:]:
@@ -561,7 +568,7 @@ def test_sample_data():
             print("°" * 80)
 
             import os
-            #generate_unittest("new_links_rendered_tweet_in_iframes", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
+            #generate_unittest("new_links_yet_another_storify", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
 
         else:
             print('page was not recognized as an article')
