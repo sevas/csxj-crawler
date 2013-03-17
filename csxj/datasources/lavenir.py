@@ -163,6 +163,15 @@ def extract_links_from_video_div(video_div_hxs):
             tags |= set(['embedded', 'video'])
             tagged_urls.append(make_tagged_url(url, title, tags))
 
+    scripts = video_div_hxs.select('.//script')
+    for script_hxs in scripts:
+        script_src = script_hxs.select('./@src').extract()
+        if script_src and 'flowplayer' in script_src[0]:
+            title = constants.EMBEDDED_VIDEO_TITLE
+            url = constants.EMBEDDED_VIDEO_URL
+            tags = set(['external', 'embedded', 'video', 'flowplayer', constants.UNFINISHED_TAG])
+            tagged_urls.append(make_tagged_url(url, title, tags))
+
     if tagged_urls:
         return tagged_urls
     else:
@@ -521,6 +530,7 @@ def test_sample_data():
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_00273104",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_005",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968",  # highlighted videos + ghost links
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_00122978"
         ]
 
     urls_new_style = [
@@ -559,7 +569,14 @@ def test_sample_data():
         "http://www.lavenir.net/sports/cnt/DMF20120719_00183602"  # weird storify (no <noscript>)
     ]
 
-    for url in urls_new_style[-1:]:
+    urls_before_june = [
+        "/Volumes/Curst/csxj/tasks/lavenir_backwards_compat/jsondb/lavenir/2012-02-27/01.13.09/raw_data/39.html",
+        "/Volumes/Curst/csxj/tasks/lavenir_backwards_compat/jsondb/lavenir/2012-02-27/13.05.12/raw_data/7.html",
+    ]
+
+
+
+    for url in urls[-1:]:
         article, html_content = extract_article_data(url)
         if article:
             print(article.title)
@@ -568,10 +585,11 @@ def test_sample_data():
             print("°" * 80)
 
             import os
-            #generate_unittest("new_links_yet_another_storify", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
+            #generate_unittest("links_flowplayer", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
 
         else:
             print('page was not recognized as an article')
+
 
 
 if __name__ == "__main__":

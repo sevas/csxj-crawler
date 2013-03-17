@@ -14,8 +14,20 @@ from csxj_test_tools import assert_taggedURLs_equals
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', lavenir.SOURCE_NAME)
 
 
-class TestLavenirLinkExtraction(object):
+class TestLavenirOldLinkExtraction(object):
+    def test_links_old_flowplayer(self):
+        """[BACKWARDS] lavenir parser tags embedded flowplayer videos as embedded videos (but does not extract url and marks it as 'unfinished')"""
+        with open(os.path.join(DATA_ROOT, "links_old_flowplayer.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("__EMBEDDED_VIDEO_URL__", u"""__EMBEDDED_VIDEO_TITLE__""", set([u'unfinished', 'video', 'external', 'embedded', 'flowplayer'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
+
+class TestLavenirLinkExtraction(object):
     def test_bottom_box_and_sidebar_and_intext_links(self):
         """ lavenir parser correctly extracts and tags in text links + sidebar box links + bottom box links. Btw it also tests 'same owner' tagging, it's an all-in-one test. """
         with open(os.path.join(DATA_ROOT, "bottom_box_and_sidebar_and_intext_links.html")) as f:
@@ -104,6 +116,17 @@ class TestLavenirLinkExtraction(object):
                 make_tagged_url("http://www.youtube.com/embed/KtzqvqzBdUQ", u"""http://www.youtube.com/embed/KtzqvqzBdUQ""", set(['video', 'external', 'embedded'])),
                 make_tagged_url("http://", u"""__GHOST_LINK__""", set([u'ghost link', 'sidebar box'])),
                 make_tagged_url("http://", u"""__GHOST_LINK__""", set(['bottom box', u'ghost link'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_flowplayer(self):
+        """ lavenir parser tags embedded flowplayer videos as embedded videos (but does not extract url and marks it as 'unfinished')"""
+        with open(os.path.join(DATA_ROOT, "links_flowplayer.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("__EMBEDDED_VIDEO_URL__", u"""__EMBEDDED_VIDEO_TITLE__""", set([u'unfinished', 'video', 'external', 'embedded', 'flowplayer'])),
             ]
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
