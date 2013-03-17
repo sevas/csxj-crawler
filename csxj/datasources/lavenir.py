@@ -166,9 +166,51 @@ def extract_links_from_video_div(video_div_hxs):
             tags |= set(['embedded', 'video'])
             tagged_urls.append(make_tagged_url(url, title, tags))
 
+    embeds = video_div_hxs.select('.//embed')
+    for embed_hxs in embeds:
+        embed_src = embed_hxs.select('./@src').extract()
+        if 'videa.hu' in embed_src[0]:
+            continue
+        if 'meltybuzz.fr' in embed_src[0]:
+            continue
+        flashvars_str = embed_hxs.select('./@flashvars').extract()
+        if not flashvars_str:
+            raise ValueError("Found an <embed> element with no @flashvars")
+        flashvars = dict([kv.split('=') for kv in flashvars_str[0].split('&')])
+        url = flashvars['playlistfile']
+        title = constants.EMBEDDED_VIDEO_TITLE
+        tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+        tags |= set(['embedded', 'video'])
+        tagged_urls.append(make_tagged_url(url, title, tags))
+
+    scripts = video_div_hxs.select('.//script')
+    if scripts:
+        for script_hxs in scripts:
+            script_src = script_hxs.select('./@src').extract()
+            if script_src:
+                if 'flowplayer' in script_src[0]:
+                    title = constants.EMBEDDED_VIDEO_TITLE
+                    url = constants.EMBEDDED_VIDEO_URL
+                    tags = set(['external', 'embedded', 'video', 'flowplayer', constants.UNFINISHED_TAG])
+                    tagged_urls.append(make_tagged_url(url, title, tags))
+                elif 'jwplay' in script_src[0]:
+                    title = constants.EMBEDDED_VIDEO_TITLE
+                    url = constants.EMBEDDED_VIDEO_URL
+                    tags = set(['external', 'embedded', 'video', 'jwplayer', constants.UNFINISHED_TAG])
+                    tagged_urls.append(make_tagged_url(url, title, tags))
+                elif 'ooyala' in script_src[0]:
+                    title = constants.EMBEDDED_VIDEO_TITLE
+                    url = constants.EMBEDDED_VIDEO_URL
+                    tags = set(['external', 'embedded', 'video', 'ooyala', constants.UNFINISHED_TAG])
+                    tagged_urls.append(make_tagged_url(url, title, tags))
+                else:
+                    raise ValueError("Found a <script> for an embedded video, for an unknown type")
+
     if tagged_urls:
         return tagged_urls
     else:
+        if video_div_hxs.select('.//p/img'):
+            return list()
         raise ValueError("There is an embedded video in here somewhere, but it's not an iframe or an object")
 
 
@@ -378,9 +420,9 @@ def extract_links_from_other_divs(other_div_hxs):
 
 
 def extract_related_links(hxs):
-    aside_hxs = hxs.select("//div [contains(@class, 'mod')]/aside [@class='entry-related']")
-    tagged_urls = []
-    related_link_hxs = aside_hxs.select("./ul/li//a")
+    aside_hxs = hxs.select("//div//aside [@class='entry-related']")
+    tagged_urls = list()
+    related_link_hxs = aside_hxs.select(".//ul/li//a")
     for link_hxs in related_link_hxs:
         title, url = extract_title_and_url(link_hxs)
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
@@ -480,7 +522,7 @@ def extract_title_and_url(link_hxs):
     else:
         url = constants.NO_URL
 
-    title = link_hxs.select("./text()").extract()
+    title = link_hxs.select(".//text()").extract()
     if title:
         title = title[0].strip()
     else:
@@ -539,6 +581,7 @@ def test_sample_data():
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_00273104",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130224_005",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120831_00198968",  # highlighted videos + ghost links
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_00122978"
         ]
 
     urls_new_style = [
@@ -573,10 +616,19 @@ def test_sample_data():
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276372",
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276357",  # something intereactive
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276369",
-        "http://www.lavenir.net/sports/cnt/DMF20130305_010",  # embedded tweets TODO
-        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120801_002", # script without src
-        # "http://www.lavenir.net/sports/cnt/DMF20130305_010",  # embedded tweets
-        # "http://www.lavenir.net/sports/cnt/DMF20120719_00183602"  # weird storify (no <noscript>)
+        "http://www.lavenir.net/sports/cnt/DMF20130305_010",  # embedded tweets
+        "http://www.lavenir.net/sports/cnt/DMF20120719_00183602",  # weird storify (no <noscript>)
+        "http://www.lavenir.net/sports/cnt/DMF20121007_007",  # jwplayer
+        "http://www.lavenir.net/sports/cnt/DMF20121213_026",  # <embed> with eitb.com video
+        "http://www.lavenir.net/sports/cnt/DMF20130103_025",  # picture instead of video
+        "http://www.lavenir.net/sports/cnt/DMF20130116_00256248",  # animated gif
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120813_026",
+
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20121213_026",
+
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130116_00256248",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130123_044",
+
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120920_011",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20121007_007",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120706_027",
@@ -588,23 +640,20 @@ def test_sample_data():
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20121213_026",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130103_025",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130116_00256248",
-        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130123_044"
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130123_044",
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_00122978" # flowplayer
+    ]
 
-]
+    for url in urls_new_style[-1:]:
+        article, html_content = extract_article_data(url)
+        if article:
+            print(article.title)
+            print(article.url)
+            print_taggedURLs(article.links, 70)
+            print("°" * 80)
 
-    # for url in urls_new_style[-1:]:
-    #     article, html_content = extract_article_data(url)
-    #     if article:
-    #         print(article.title)
-    #         print(article.url)
-    #         for link in article.links:
-    #             print link
-    #             print "**********"
-    #         print_taggedURLs(article.links, 70)
-    #         print("°" * 80)
-
-            # import os
-            # generate_unittest("meltybuzz_video", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
+            import os
+            #generate_unittest("links_new_ooyala_videos", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
 
     #     else:
     #         print('page was not recognized as an article')

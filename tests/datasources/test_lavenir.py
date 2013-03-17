@@ -14,8 +14,20 @@ from csxj_test_tools import assert_taggedURLs_equals
 DATA_ROOT = os.path.join(os.path.dirname(__file__), 'test_data', lavenir.SOURCE_NAME)
 
 
-class TestLavenirLinkExtraction(object):
+class TestLavenirOldLinkExtraction(object):
+    def test_links_old_flowplayer(self):
+        """[BACKWARDS] lavenir parser tags embedded flowplayer videos as embedded videos (but does not extract url and marks it as 'unfinished')"""
+        with open(os.path.join(DATA_ROOT, "links_old_flowplayer.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("__EMBEDDED_VIDEO_URL__", u"""__EMBEDDED_VIDEO_TITLE__""", set([u'unfinished', 'video', 'external', 'embedded', 'flowplayer'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
 
+
+class TestLavenirLinkExtraction(object):
     def test_bottom_box_and_sidebar_and_intext_links(self):
         """ lavenir parser correctly extracts and tags in text links + sidebar box links + bottom box links. Btw it also tests 'same owner' tagging, it's an all-in-one test. """
         with open(os.path.join(DATA_ROOT, "bottom_box_and_sidebar_and_intext_links.html")) as f:
@@ -108,6 +120,17 @@ class TestLavenirLinkExtraction(object):
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_links_flowplayer(self):
+        """ lavenir parser tags embedded flowplayer videos as embedded videos (but does not extract url and marks it as 'unfinished')"""
+        with open(os.path.join(DATA_ROOT, "links_flowplayer.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("__EMBEDDED_VIDEO_URL__", u"""__EMBEDDED_VIDEO_TITLE__""", set([u'unfinished', 'video', 'external', 'embedded', 'flowplayer'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
     def test_meltybuzz_video(self):
         with open(os.path.join(DATA_ROOT, "meltybuzz_video.html")) as f:
             article, raw_html = lavenir.extract_article_data(f)
@@ -122,8 +145,6 @@ class TestLavenirLinkExtraction(object):
             ]
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
-
-
 
 class TestLavenirNewLinkExtraction(object):
     """ Test suite for the new lavenir.net page template """
@@ -416,6 +437,93 @@ class TestLavenirNewLinkExtraction(object):
                 make_tagged_url("http://www.lavenir.net/life/belle", u"""Belle""", set(['internal', 'keyword'])),
                 make_tagged_url("http://www.lavenir.net/life/belle/mode", u"""Mode""", set(['internal', 'keyword'])),
                 make_tagged_url("http://www.lavenir.net/channel/index.aspx?channelid=300", u"""Tout sur les JO 2012 à Londres""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_new_jwplayer(self):
+        """ lavenir [new template] parser tags embedded jwplayer videos as embedded videos (but does not extract url and marks it as 'unfinished')"""
+        with open(os.path.join(DATA_ROOT, "links_new_jwplayer.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20110331_063", u"""Il avait été condamné à une peine de prison de deux semaines avec suris, une amende et un retrait de permis d'un mois""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20110331_063", u"""Le joueur de Grozny avait été condamné en première instance à une déchéance du droit de conduire de six mois.""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20110310_044", u"""et avait proposé d’accomplir une peine de travail sous la forme d’une action sociale""", set(['internal', 'in text'])),
+                make_tagged_url("__EMBEDDED_VIDEO_URL__", u"""__EMBEDDED_VIDEO_TITLE__""", set([u'unfinished', 'video', 'external', 'embedded', 'jwplayer'])),
+                make_tagged_url("/sports/cnt/DMF20121009_00215953", u"""Jonathan Legear : « Mon accident ne changera rien à ma carrière »""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20121010_00216197", u"""Une peine alternative via l’IBSR""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20121010_00215993", u"""Et pourtant… Porsche propose des cours de conduite""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("/sports/cnt/DMF20121008_00215326", u"""Jonathan Legear: «Je n’étais pas dans un état profond d’ivresse»""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("http://www.lavenir.net/enimages", u"""En images""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/societe/faitsdivers", u"""Faits divers""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/regions", u"""Régions""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/videos", u"""Vidéos""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_new_video_embed_element_eitb(self):
+        """ lavenir [new template] parser can extract eitb.com videos in an <embed> element """
+        with open(os.path.join(DATA_ROOT, "links_new_video_embed_element_eitb.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.eitb.com/en/get/multimedia/video/id/1002865/size/grande/f_mod/1355423402", u"""__EMBEDDED_VIDEO_TITLE__""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://www.lavenir.net/buzz", u"""Buzz""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/buzz/vusurinternet", u"""Vu sur internet""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/basket", u"""Basket""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_new_ignore_images_in_video_div(self):
+        """ lavenir [new template] parser ignore <img> elements located where a video should have been"""
+        with open(os.path.join(DATA_ROOT, "links_new_ignore_images_in_video_div.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/buzz/insolite", u"""Insolite""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_new_ignore_animated_gifs_in_video_div(self):
+        """ lavenir [new template] parser ignore <img> elements located where a video should have been. It also works for animated gif files. Which are pronoucened 'jif', btw."""
+        with open(os.path.join(DATA_ROOT, "links_new_ignore_animated_gifs_in_video_div.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/premierleague", u"""Premier League""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_new_ooyala_videos(self):
+        with open(os.path.join(DATA_ROOT, "links_new_ooyala_videos.html")) as f:
+            """ lavenir [new template] handles ooyala videos (tagged as unfinished)"""
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/sports/cnt/DMF20130124_00259765", u"""+ Chelsea: enquête de la police sur Hazard""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lequipe.fr/Football/match/289914", u"""L'Equipe.fr""", set(['external', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/sports/cnt/DMF20130124_00259765", u"""Nous mettons tout en place pour interroger Hazard. Nous prenons cette affaire très au sérieux""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/sports/cnt/DMF20130124_00259819", u"""Hazard échappe donc à des poursuites judiciaires""", set(['internal', 'in text'])),
+                make_tagged_url("https://twitter.com/CHARLIEM0RGAN/status/294135719700602881", u"""__RENDERED_TWEET__""", set(['tweet', 'external', 'embedded'])),
+                make_tagged_url("__EMBEDDED_VIDEO_URL__", u"""__EMBEDDED_VIDEO_TITLE__""", set([u'unfinished', 'video', 'external', 'embedded', 'ooyala'])),
+                make_tagged_url("/sports/cnt/DMF20130126_00260499", u"""La FA veut plus de trois matches pour Hazard""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("http://www.lavenir.net/enimages", u"""En images""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/la-video-du-jour", u"""La vidéo du jour""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/videos", u"""Vidéos""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/diables", u"""Diables rouges""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/premierleague", u"""Premier League""", set(['internal', 'keyword'])),
             ]
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
