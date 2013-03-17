@@ -163,6 +163,21 @@ def extract_links_from_video_div(video_div_hxs):
             tags |= set(['embedded', 'video'])
             tagged_urls.append(make_tagged_url(url, title, tags))
 
+    embeds = video_div_hxs.select('.//embed')
+    for embed_hxs in embeds:
+        embed_src = embed_hxs.select('./@src').extract()
+        if 'videa.hu' in embed_src[0]:
+            continue
+        flashvars_str = embed_hxs.select('./@flashvars').extract()
+        if not flashvars_str:
+            raise ValueError("Found an <embed> element with no @flashvars")
+        flashvars = dict([kv.split('=') for kv in flashvars_str[0].split('&')])
+        url = flashvars['playlistfile']
+        title = constants.EMBEDDED_VIDEO_TITLE
+        tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+        tags |= set(['embedded', 'video'])
+        tagged_urls.append(make_tagged_url(url, title, tags))
+
     scripts = video_div_hxs.select('.//script')
     if scripts:
         for script_hxs in scripts:
@@ -180,9 +195,12 @@ def extract_links_from_video_div(video_div_hxs):
                     tagged_urls.append(make_tagged_url(url, title, tags))
                 else:
                     raise ValueError("Found a <script> for an embedded video, for an unknown type")
+
     if tagged_urls:
         return tagged_urls
     else:
+        if video_div_hxs.select('.//p/img'):
+            return list()
         raise ValueError("There is an embedded video in here somewhere, but it's not an iframe or an object")
 
 
@@ -575,7 +593,9 @@ def test_sample_data():
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276369",
         "http://www.lavenir.net/sports/cnt/DMF20130305_010",  # embedded tweets
         "http://www.lavenir.net/sports/cnt/DMF20120719_00183602",  # weird storify (no <noscript>)
-        "http://www.lavenir.net/sports/cnt/DMF20121007_007",
+        "http://www.lavenir.net/sports/cnt/DMF20121007_007",  # jwplayer
+        "http://www.lavenir.net/sports/cnt/DMF20121213_026",  # <embed> with eitb.com video
+        "http://www.lavenir.net/sports/cnt/DMF20130103_025",  # picture instead of video
     ]
 
     urls_before_june = [
@@ -594,7 +614,7 @@ def test_sample_data():
             print("°" * 80)
 
             import os
-            #generate_unittest("links_new_jwplayer", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
+            #generate_unittest("links_new_ignore_images_in_video_div", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
 
         else:
             print('page was not recognized as an article')

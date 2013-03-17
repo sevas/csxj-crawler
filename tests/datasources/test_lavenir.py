@@ -451,6 +451,34 @@ class TestLavenirNewLinkExtraction(object):
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_links_new_video_embed_element_eitb(self):
+        """ lavenir [new template] parser can extract eitb.com videos in an <embed> element """
+        with open(os.path.join(DATA_ROOT, "links_new_video_embed_element_eitb.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.eitb.com/en/get/multimedia/video/id/1002865/size/grande/f_mod/1355423402", u"""__EMBEDDED_VIDEO_TITLE__""", set(['video', 'external', 'embedded'])),
+                make_tagged_url("http://www.lavenir.net/buzz", u"""Buzz""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/buzz/vusurinternet", u"""Vu sur internet""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/basket", u"""Basket""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_new_ignore_images_in_video_div(self):
+        """ lavenir [new template] parser ignore <img> elements located where a video should have been"""
+        with open(os.path.join(DATA_ROOT, "links_new_ignore_images_in_video_div.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/buzz/insolite", u"""Insolite""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestLavenirContentExtraction(object):
     def test_clean_title_extraction(self):

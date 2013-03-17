@@ -115,6 +115,14 @@
     [
       "http://www.lavenir.net/sports/cnt/DMF20121007_007", 
       "links_new_jwplayer.html"
+    ], 
+    [
+      "http://www.lavenir.net/sports/cnt/DMF20121213_026", 
+      "links_new_video_embed_element_eitb.html"
+    ], 
+    [
+      "http://www.lavenir.net/sports/cnt/DMF20130103_025", 
+      "links_new_ignore_images_in_video_div.html"
     ]
   ]
 }
