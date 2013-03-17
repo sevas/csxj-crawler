@@ -18,18 +18,25 @@ def extract_url_from_iframe(iframe):
     return url, title
 
 
+def clean_snippet(snippet):
+    return ''.join(c for c in snippet if c not in u' \n\t').lower()
+
+
 IGNORED_JS_SNIPPETS = [
-    """
+    clean_snippet(u"""
             // default textHighlight call
             textHighlight();
-     """.translate(None, ' \n\t').lower(),
+     """),
+    clean_snippet(u"""
+            setTimeout(' document.location=document.location' ,45000);
+    """)
 ]
 
 
 def ignore_snippet(snippet):
-    print type(snippet)
+    #print type(snippet)
     for s in IGNORED_JS_SNIPPETS:
-        if snippet.translate(None, ' \n\t').lower() == s:
+        if clean_snippet(snippet) == s:
             return True
     return False
 
