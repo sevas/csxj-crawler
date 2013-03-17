@@ -193,6 +193,11 @@ def extract_links_from_video_div(video_div_hxs):
                     url = constants.EMBEDDED_VIDEO_URL
                     tags = set(['external', 'embedded', 'video', 'jwplayer', constants.UNFINISHED_TAG])
                     tagged_urls.append(make_tagged_url(url, title, tags))
+                elif 'ooyala' in script_src[0]:
+                    title = constants.EMBEDDED_VIDEO_TITLE
+                    url = constants.EMBEDDED_VIDEO_URL
+                    tags = set(['external', 'embedded', 'video', 'ooyala', constants.UNFINISHED_TAG])
+                    tagged_urls.append(make_tagged_url(url, title, tags))
                 else:
                     raise ValueError("Found a <script> for an embedded video, for an unknown type")
 
@@ -497,7 +502,7 @@ def extract_title_and_url(link_hxs):
     else:
         url = constants.NO_URL
 
-    title = link_hxs.select("./text()").extract()
+    title = link_hxs.select(".//text()").extract()
     if title:
         title = title[0].strip()
     else:
@@ -596,13 +601,14 @@ def test_sample_data():
         "http://www.lavenir.net/sports/cnt/DMF20121007_007",  # jwplayer
         "http://www.lavenir.net/sports/cnt/DMF20121213_026",  # <embed> with eitb.com video
         "http://www.lavenir.net/sports/cnt/DMF20130103_025",  # picture instead of video
+        "http://www.lavenir.net/sports/cnt/DMF20130116_00256248",  # animated gif
+        "http://www.lavenir.net/sports/cnt/DMF20130123_044",  # ooyala videos
     ]
 
     urls_before_june = [
         "/Volumes/Curst/csxj/tasks/lavenir_backwards_compat/jsondb/lavenir/2012-02-27/01.13.09/raw_data/39.html",
         "/Volumes/Curst/csxj/tasks/lavenir_backwards_compat/jsondb/lavenir/2012-02-27/13.05.12/raw_data/7.html",
     ]
-
 
 
     for url in urls_new_style[-1:]:
@@ -614,7 +620,7 @@ def test_sample_data():
             print("°" * 80)
 
             import os
-            #generate_unittest("links_new_ignore_images_in_video_div", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
+            #generate_unittest("links_new_ooyala_videos", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
 
         else:
             print('page was not recognized as an article')

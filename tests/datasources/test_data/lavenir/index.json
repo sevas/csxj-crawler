@@ -123,6 +123,14 @@
     [
       "http://www.lavenir.net/sports/cnt/DMF20130103_025", 
       "links_new_ignore_images_in_video_div.html"
+    ], 
+    [
+      "http://www.lavenir.net/sports/cnt/DMF20130116_00256248", 
+      "links_new_ignore_animated_gifs_in_video_div.html"
+    ], 
+    [
+      "http://www.lavenir.net/sports/cnt/DMF20130123_044", 
+      "links_new_ooyala_videos.html"
     ]
   ]
 }

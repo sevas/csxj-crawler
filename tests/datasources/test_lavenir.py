@@ -479,6 +479,41 @@ class TestLavenirNewLinkExtraction(object):
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
 
+    def test_links_new_ignore_animated_gifs_in_video_div(self):
+        """ lavenir [new template] parser ignore <img> elements located where a video should have been. It also works for animated gif files. Which are pronoucened 'jif', btw."""
+        with open(os.path.join(DATA_ROOT, "links_new_ignore_animated_gifs_in_video_div.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/premierleague", u"""Premier League""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_new_ooyala_videos(self):
+        with open(os.path.join(DATA_ROOT, "links_new_ooyala_videos.html")) as f:
+            """ lavenir [new template] handles ooyala videos (tagged as unfinished)"""
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/sports/cnt/DMF20130124_00259765", u"""+ Chelsea: enquête de la police sur Hazard""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lequipe.fr/Football/match/289914", u"""L'Equipe.fr""", set(['external', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/sports/cnt/DMF20130124_00259765", u"""Nous mettons tout en place pour interroger Hazard. Nous prenons cette affaire très au sérieux""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/sports/cnt/DMF20130124_00259819", u"""Hazard échappe donc à des poursuites judiciaires""", set(['internal', 'in text'])),
+                make_tagged_url("https://twitter.com/CHARLIEM0RGAN/status/294135719700602881", u"""__RENDERED_TWEET__""", set(['tweet', 'external', 'embedded'])),
+                make_tagged_url("__EMBEDDED_VIDEO_URL__", u"""__EMBEDDED_VIDEO_TITLE__""", set([u'unfinished', 'video', 'external', 'embedded', 'ooyala'])),
+                make_tagged_url("/sports/cnt/DMF20130126_00260499", u"""La FA veut plus de trois matches pour Hazard""", set(['bottom box', 'internal', 'related'])),
+                make_tagged_url("http://www.lavenir.net/enimages", u"""En images""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/la-video-du-jour", u"""La vidéo du jour""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("http://www.lavenir.net/videos", u"""Vidéos""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/diables", u"""Diables rouges""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/premierleague", u"""Premier League""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
 
 class TestLavenirContentExtraction(object):
     def test_clean_title_extraction(self):
