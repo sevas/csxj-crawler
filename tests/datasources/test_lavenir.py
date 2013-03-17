@@ -292,7 +292,6 @@ class TestLavenirNewLinkExtraction(object):
             article, raw_html = lavenir.extract_article_data(f)
             extracted_links = article.links
             urls = [
-                make_tagged_url("http://storify.com/lavenir_net", u"""lavenir.net""", set(['external', 'in text'])),
                 make_tagged_url("//storify.com/lavenir_net/foot-les-incontournables-images-du-week-end-04-03", """View the story "Foot: les incontournables images du week-end (04/03/2013)" on Storify""", set(['external', 'embedded'])),
                 make_tagged_url("http://www.lavenir.net/enimages", u"""En images""", set(['internal', 'keyword'])),
                 make_tagged_url("http://www.lavenir.net/la-video-du-jour", u"""La vidéo du jour""", set(['internal', 'keyword'])),
@@ -360,6 +359,22 @@ class TestLavenirNewLinkExtraction(object):
                 make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
                 make_tagged_url("/sports/jogging", u"""Jogging""", set(['internal', 'keyword'])),
                 make_tagged_url("http://www.lavenir.net/videos", u"""Vidéos""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_new_links_rendered_tweet_in_iframes(self):
+        with open(os.path.join(DATA_ROOT, "new_links_rendered_tweet_in_iframes.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("http://www.lavenir.net/sports/cnt/DMF20130305_00277443", u"""+ Maradona prêt à étudier une éventuelle proposition de Montpellier""", set(['internal', 'in text'])),
+                make_tagged_url("http://www.lavenir.net/sports/cnt/DMF20130303_00276317", u"""C'est désormais officiel, René Girard va quitter le champion de France en titre, en fin de saison.""", set(['internal', 'in text'])),
+                make_tagged_url("https://twitter.com/Footballogue/status/308856064181424129", u"""[RENDERED TWEET]""", set(['tweet', 'external', 'embedded'])),
+                make_tagged_url("https://twitter.com/Midilibre/status/308662550617284608", u"""[RENDERED TWEET]""", set(['tweet', 'external', 'embedded'])),
+                make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football", u"""Football""", set(['internal', 'keyword'])),
+                make_tagged_url("/sports/football/ligue1", u"""Ligue 1""", set(['internal', 'keyword'])),
             ]
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)

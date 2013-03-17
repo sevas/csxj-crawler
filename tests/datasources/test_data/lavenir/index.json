@@ -95,6 +95,10 @@
     [
       "http://www.lavenir.net/sports/cnt/DMF20130303_00276369", 
       "new_links_vimeo_in_header.html"
+    ], 
+    [
+      "http://www.lavenir.net/sports/cnt/DMF20130305_010", 
+      "new_links_rendered_tweet_in_iframes.html"
     ]
   ]
 }

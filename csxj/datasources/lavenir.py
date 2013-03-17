@@ -103,8 +103,7 @@ def extract_links_from_text_hxs(hxs):
     tagged_urls = list()
     # intext urls: take all the <a>, except what might be inside a rendered tweet
 
-
-    intext_link_hxs = hxs.select(".//p//a")
+    intext_link_hxs = hxs.select(".//a")
     for link_hxs in intext_link_hxs:
         title, url = extract_title_and_url(link_hxs)
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
@@ -168,9 +167,6 @@ def extract_links_from_video_div(video_div_hxs):
         return tagged_urls
     else:
         raise ValueError("There is an embedded video in here somewhere, but it's not an iframe or an object")
-
-
-
 
 
 def extract_links_from_highlight_section(article_detail_hxs):
@@ -284,28 +280,28 @@ def datetime_from_iso8601(datetime_string):
 
 def extract_intro_and_links_new(content_hxs):
     intro_hxs = content_hxs.select(".//div [@class='entry-lead']")
-
+    tagged_urls = list()
     intro = u''
     for p_hxs in intro_hxs.select('.//p'):
         text = p_hxs.select('./text()').extract()
         if text:
             intro += text[0]
 
-    tagged_urls = extract_links_from_text_hxs(intro_hxs)
+        tagged_urls.extend(extract_links_from_text_hxs(p_hxs))
 
     return intro, tagged_urls
 
 
 def extract_content_and_links_new(content_hxs):
-    content = []
+    content = list()
     body_hxs = content_hxs.select(".//div [@class='entry-body']")
-
-    for p_hxs in body_hxs.select('.//p'):
+    tagged_urls = list()
+    for p_hxs in body_hxs.select('./p'):
         text = p_hxs.select('./text()').extract()
         if text:
             content.append(text[0])
 
-    tagged_urls = extract_links_from_text_hxs(body_hxs)
+        tagged_urls.extend(extract_links_from_text_hxs(p_hxs))
 
     return content, tagged_urls
 
@@ -322,7 +318,6 @@ def extract_links_from_embbeded_media(content_hxs):
             # tagged_urls.append(make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'tweet', constants.UNFINISHED_TAG])))
             previous_blockquote = script_hxs.select("./preceding-sibling::blockquote[1]")
             if previous_blockquote:
-                print previous_blockquote[0].select("./@class").extract()
                 if 'twitter-tweet' in previous_blockquote[0].select("./@class").extract():
                     url = previous_blockquote.select('./a[last()]/@href').extract()[0]
                     tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
@@ -548,14 +543,14 @@ def test_sample_data():
         "http://www.lavenir.net/sports/cnt/DMF20130306_00278406m",  # vimeo link
         "http://www.lavenir.net/sports/cnt/DMF20130306_00278376",  # bottom links
         "http://www.lavenir.net/sports/cnt/DMF20130305_00277489",  # pdf newspaper
-        "http://www.lavenir.net/sports/cnt/DMF20130304_037",  #another storify
+        "http://www.lavenir.net/sports/cnt/DMF20130304_037",  # another storify
         "http://www.lavenir.net/sports/cnt/DMF20130304_010",   # poll
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276383",  # hungary video
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276372",
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276357",  # something intereactive
         "http://www.lavenir.net/sports/cnt/DMF20130303_00276369",
-        #"http://www.lavenir.net/sports/cnt/DMF20130305_010",  # embedded tweets TODO
-]
+        "http://www.lavenir.net/sports/cnt/DMF20130305_010",  # embedded tweets TODO
+    ]
 
     for url in urls_new_style[-1:]:
         article, html_content = extract_article_data(url)
@@ -566,7 +561,7 @@ def test_sample_data():
             print("°" * 80)
 
             import os
-            #generate_unittest("new_links_vimeo_in_header", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
+            #generate_unittest("new_links_rendered_tweet_in_iframes", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
 
         else:
             print('page was not recognized as an article')
