@@ -30,6 +30,9 @@ def classify_and_tag(url, own_netloc, associated_sites):
 
     >>> classify_and_tag("#anchor", "foo.org", {})
     set(['internal', 'anchor'])
+
+    >>> classify_and_tag("//pokey.com", "foo.org", {})
+    set(['external'])
     """
     tags = []
     parsed = urlparse.urlparse(url)
