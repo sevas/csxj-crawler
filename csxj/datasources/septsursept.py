@@ -175,7 +175,7 @@ def extract_intro(soup):
         intro = utils.remove_text_formatting_markup_from_fragments(intro_fragments)
         inline_links = intro_box.find_all("a")
         titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
-        plaintext_urls = utils.extract_plaintext_urls_from_text(intro)
+        plaintext_urls = utils.extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(intro))
 
         for title, url, base_tags in titles_and_urls:
             tags = tagging.classify_and_tag(url, SEPTSURSEPT_NETLOC, SEPTSURSEPT_INTERNAL_SITES)

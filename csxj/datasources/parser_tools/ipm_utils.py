@@ -95,6 +95,13 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
             tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
             return tagged_url
 
+        elif item_div.find("embed") and item_div.find("embed").get("src").startswith("http://video.belga.be"):
+            #example: http://www.lalibre.be/actu/politique-belge/article/787994/bart-de-wever-a-preside-pour-la-premiere-fois-le-conseil-communal-d-anvers.html
+            tagged_url = make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
+            return tagged_url
+
+
+
         elif item_div.object:
             container = item_div.object
 
@@ -207,7 +214,7 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                         d[name] = value
 
                     if 'playerID' in d and 'videoId' in d:
-                        url = "http://link.brightcove.com/services/player/bcpid{0}?bctid={1}" .format(d['playerID'],d['videoId'])
+                        url = "http://link.brightcove.com/services/player/bcpid{0}?bctid={1}" .format(d['playerID'], d['videoId'])
                         all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
                         tagged_url = make_tagged_url(url, url, all_tags | set(['embedded', 'video']))
                         return tagged_url
@@ -232,6 +239,13 @@ def extract_tagged_url_from_embedded_item(item_div, site_netloc, site_internal_s
                     title = url
                 all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
                 tagged_url = make_tagged_url(url, title, all_tags | set(['embedded']))
+                return tagged_url
+
+            elif value.startswith("http://static.issuu.com"):
+                # example : http://www.lalibre.be/economie/actualite/article/749238/l-agriculture-devra-croitre-de-60-d-ici-2050.html
+                url = value
+                all_tags = classify_and_tag(url, site_netloc, site_internal_sites)
+                tagged_url = make_tagged_url(url, url, all_tags | set(['embedded']))
                 return tagged_url
 
             elif value.startswith("http://player.canalplus.fr"):

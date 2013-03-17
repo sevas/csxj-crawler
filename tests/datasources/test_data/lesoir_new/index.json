@@ -43,6 +43,14 @@
     [
       "http://www.lesoir.be/194330/article/actualite/belgique/2013-02-20/syndicats-ont-ils-raison-manifester", 
       "loads_of_embedded_stuff_and_pdf_newspaper.html"
+    ], 
+    [
+      "http://www.lesoir.be/95589/article/sports/football/2012-10-08/diables-rouges-mboyo-surprise-wilmots", 
+      "link_in_intro.html"
+    ], 
+    [
+      "http://www.lesoir.be/95700/article/actualite/monde/2012-10-08/gr%C3%A8ce-doit-%C3%AAtre-plus-convaincante", 
+      "embedded_storify_top_box.html"
     ]
   ]
 }

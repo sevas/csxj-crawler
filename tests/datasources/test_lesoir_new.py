@@ -170,4 +170,31 @@ class TestLaSoirNewLinkExtraction(object):
             assert_taggedURLs_equals(expected_links, extracted_links)
 
 
+    def test_link_in_intro(self):
+        with open(os.path.join(DATA_ROOT, "link_in_intro.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://www.lesoir.be/95459/article/sports/football/2012-10-08/diables-lukaku-absent-contre-serbie-et-l%E2%80%99ecosse", u"""Diables : Lukaku absent contre la Serbie et l’Ecosse""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/93314/article/sports/football/2012-10-04/serbie-belgique-pas-surprise-dans-s%C3%A9lection-des-diables", u"""Serbie-Belgique : pas de surprise dans la sélection des Diables""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/95308/article/sports/football/2012-10-08/prestations-des-diables-%C3%A0-loupe", u"""Les prestations des Diables à la loupe""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lesoir.be/archives?url=/sports/football/2012-10-03/les-diables-rouges-30e-au-classement-fifa-941023.php", u"""Les Diables Rouges 30e au classement FIFA""", set(['internal', 'sidebar box'])),
+                make_tagged_url("/tag/diables-rouges", u"""diables rouges""", set(['internal', 'keyword'])),
+                make_tagged_url("http://soundcloud.com/lesoir/sets/diables-rouges-mboyo-la-1", u"""L’analyse de Frédéric Larsimont""", set(['in intro', 'external'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_embedded_storify_top_box(self):
+        with open(os.path.join(DATA_ROOT, "embedded_storify_top_box.html")) as f:
+            article, raw_html = lesoir_new.extract_article_data(f)
+            extracted_links = article.links
+            tagged_urls = [
+                make_tagged_url("http://storify.com/lesoir/conference-de-presse-de-l-eurogroupe-sur-le-me", u"""http://storify.com/lesoir/conference-de-presse-de-l-eurogroupe-sur-le-me""", set(['external', 'embedded', 'storify'])),
+            ]
+            expected_links = tagged_urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+
+
 

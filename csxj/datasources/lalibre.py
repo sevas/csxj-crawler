@@ -315,15 +315,36 @@ def test_sample_data():
             'http://www.lalibre.be/culture/mediastele/article/748553/veronique-genest-mon-coeur-est-en-berne.html',
             'http://www.lalibre.be/actu/usa-2012/article/773294/obama-raille-les-chevaux-et-baionnettes-de-romney.html',
             'http://www.lalibre.be/actu/politique-belge/article/800170/moureaux-schepmans-n-a-que-mepris-pour-les-personnes-d-origine-etrangere.html',
-            "http://www.lalibre.be/societe/insolite/article/754351/mais-que-fait-il-au-fond-de-la-piscine.html"]
+            "http://www.lalibre.be/societe/insolite/article/754351/mais-que-fait-il-au-fond-de-la-piscine.html",
+            "http://www.lalibre.be/actu/politique-belge/article/787994/bart-de-wever-a-preside-pour-la-premiere-fois-le-conseil-communal-d-anvers.html",
+            "http://www.lalibre.be/actu/politique-belge/article/787994/anvers-bart-de-wever-cumule-les-roles.html",
+            "http://www.lalibre.be/economie/actualite/article/749238/l-agriculture-devra-croitre-de-60-d-ici-2050.html",
+            #"http://www.lalibre.be/economie/actualite/article/721260/la-grece-devant-un-sprint-jalonne-d-obstacles.html"
+            ]
 
     from pprint import pprint
     import os
 
 
-    # article, html = extract_article_data(urls[-1])
-    # print article.title
+    article, html = extract_article_data(urls[-1])
+    print article.title
     # print [article.content]
+    print article.links
+    print len(article.links)
+    liste = []
+    for link in article.links:
+        title = link.title
+        url = link.URL
+        both = (title, url)
+        if both not in liste:
+            liste.append(both)
+
+    print liste
+    print len(liste)
+
+
+
+
     # for link in article.links:
     #     print link.title
     #     print link.URL

@@ -143,19 +143,42 @@ def extract_date_and_time(soup):
 def extract_intro(soup):
     if soup.find(attrs={"class": "article-content"}).h3:
         intro_box = soup.find(attrs={"class": "article-content"})
+
+        def extract_links_from_intro(fragment):
+            tagged_urls = list()
+            inline_links = fragment.find_all('a')
+            titles_and_urls = [extract_title_and_url_from_bslink(i) for i in inline_links]
+            plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(fragment))
+
+            for title, url, base_tags in titles_and_urls:
+                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+                tags.update(base_tags)
+                tags.add('in intro')
+                tagged_urls.append(tagging.make_tagged_url(url, title, tags))
+
+            for url in plaintext_urls:
+                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+                tags.add('in intro')
+                tags.add('plaintext')
+                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
+            return tagged_urls
+
         if len(intro_box.find("h3").contents) > 0:
             fragment = intro_box.find("h3").contents[0]
+            tagged_urls = extract_links_from_intro(intro_box.find("h3"))
             intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n').rstrip()
-            return intro
+            return intro, tagged_urls
 
         if intro_box.find("h3").find_next_sibling("p"):
             fragment = intro_box.find("h3").find_next_sibling("p")
+            tagged_urls = extract_links_from_intro(fragment)
             intro = remove_text_formatting_markup_from_fragments(fragment, strip_chars='\t\r\n')
-            return intro
+            return intro, tagged_urls
+
         else:
-            return []
+            return [], []
     else:
-        return []
+        return [], []
 
 
 def extract_title_and_url_from_bslink(link):
@@ -170,43 +193,55 @@ def extract_title_and_url_from_bslink(link):
         title = link.find('h3').contents[0].strip()
     else:
         if link.contents:
-            if len(link.contents[0]) > 1:
-                if type(link.contents[0]) is bs4.element.NavigableString:
-                    title = link.contents[0].strip()
+            if len(link.contents) == 1:
+                if len(link.contents[0]) > 1:
+                    if type(link.contents[0]) is bs4.element.NavigableString:
+                        title = link.contents[0].strip()
+                    else:
+                        title = "__GHOST_LINK__"
+                        base_tags.append("ghost link")
                 else:
-                    title = constants.GHOST_LINK_TITLE
-                    base_tags.append(constants.GHOST_LINK_TAG)
+                    if link.find("strong") and type(link.find("strong").contents[0]) is bs4.element.NavigableString :
+                        title = link.find("strong").contents[0]
+                    elif link.find("span") and type(link.find("span").contents[0]) is bs4.element.NavigableString :
+                        title = link.find("span").contents[0]
+                    else:
+                        title = "__GHOST_LINK__"
+                        base_tags.append("ghost link")
             else:
-                title = constants.GHOST_LINK_TITLE
-                base_tags.append(constants.GHOST_LINK_TAG)
+                for x in link.contents:
+                    if type(x) is bs4.element.NavigableString:
+                        title = x
+
         else:
-            title = constants.GHOST_LINK_TITLE
-            base_tags.append(constants.GHOST_LINK_TAG)
+            title = "__GHOST_LINK__"
+            base_tags.append("ghost link")
     return title, url, base_tags
 
 
-def extract_text_content_and_links(soup):
+def extract_text_content_and_links(soup) :
     tagged_urls = list()
     inline_links = []
     text = list()
 
-    article_body = soup.find(attrs={"class": "article-body"})
+    article_body = soup.find(attrs = {"class" : "article-body"})
     text_fragments = article_body.find_all("p")
+    other_fragments = article_body.find_all("h2", {"style": "display: inline; font-size: 1em; padding: 0px; margin: 0px;"})
+    all_fragments = text_fragments + other_fragments
 
-    if text_fragments:
+    if all_fragments:
         for paragraph in text_fragments:
             text.append(u"".join(remove_text_formatting_markup_from_fragments(paragraph)))
+            plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(paragraph))
+            for url in plaintext_urls:
+                tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+                tags.update(['plaintext', 'in text'])
+                tagged_urls.append(tagging.make_tagged_url(url, url, tags))
 
-        plaintext_urls = extract_plaintext_urls_from_text(remove_text_formatting_and_links_from_fragments(text_fragments))
-        for url in plaintext_urls:
-            tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
-            tags.update(['plaintext', 'in text'])
-
-            tagged_urls.append(tagging.make_tagged_url(url, url, tags))
     else:
         text = u""
 
-    for p in text_fragments:
+    for p in all_fragments :
         link = p.find_all("a")
         inline_links.extend(link)
 
@@ -287,15 +322,13 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
         else:
             raise ValueError("We couldn't find an URL in the flash player. Update the parser.")
 
-    # it might be a dailymotion or ustream video
+    # it might be a dailymotion or ustream video or an embedded storify
     elif container.find(attrs={'class': 'emvideo emvideo-video emvideo-embedly'}):
         if container.find("param", {'name': 'movie'}):
             if container.find("param").get("value"):
                 if container.find("param", {"name": "movie"}).get("value").startswith("http://www.ustream.tv"):
                     tagged_url = tagging.make_tagged_url(constants.NO_URL, constants.NO_TITLE, set(['embedded', 'video', constants.UNFINISHED_TAG]))
                     return tagged_url
-            else:
-                print "no value or what?"
 
         elif container.find("iframe"):
             url = container.find("iframe").get("src")
@@ -305,6 +338,21 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
                 return tagged_url
             else:
                 raise ValueError("There seems to be a Dailymotion player but we couldn't find an URL. Update the parser.")
+
+        elif len(container.find(attrs={'class': 'emvideo emvideo-video emvideo-embedly'}).contents) == 0:
+            # this is to check if the div is not just empty...
+            return None
+
+        elif container.find("script"):
+            if container.find("script").get("src").startswith("http://storify.com"):
+                url = container.find("script").get("src").rstrip(".sjs")
+                all_tags = tagging.classify_and_tag(url, LESOIR_NETLOC, LESOIR_INTERNAL_SITES)
+                tagged_url = tagging.make_tagged_url(url, url, all_tags | set(['embedded', 'storify']))
+                return tagged_url
+            else:
+                "Looks like a script but not something we know"
+
+
         else:
             raise ValueError("There's an embedded video that does not match known patterns")
 
@@ -339,8 +387,9 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
             raise ValueError("There seems to be an iframe but it doesn't match known patterns")
 
     # we want to avoid images
-    elif container.find("img"):
+    elif container.find("img") or container.find("figcaption", {"class": "photo"}):
         return None
+
 
     # if it's not a known case maybe we can still detect something:
     elif container.find("embed"):
@@ -352,6 +401,10 @@ def extract_embedded_media_from_top_box(container, site_netloc, site_internal_si
 
         else:
             raise ValueError("There to be an embedded object but we could not find an link. Update the parser.")
+
+    elif len(container.find("a")) == 0:
+        #to detect empty containers
+        return None
     else:
         raise ValueError("Unknown type of embedded media")
 
@@ -454,7 +507,7 @@ def extract_article_data(source):
     else:
         title = extract_title(soup)
         author_name = extract_author_name(soup)
-        intro = extract_intro(soup)
+        intro, links_from_intro = extract_intro(soup)
         text, tagged_urls_intext = extract_text_content_and_links(soup)
         category = extract_category(soup)
         sidebar_links = extract_links_from_sidebar_box(soup)
@@ -463,14 +516,14 @@ def extract_article_data(source):
         embedded_media_from_bottom = extract_embedded_media_from_bottom(soup)
         embedded_media_in_article = extract_embedded_media_in_article(soup)
         embedded_media = embedded_media_from_top_box + embedded_media_from_bottom + embedded_media_in_article
-        all_links = tagged_urls_intext + sidebar_links + article_tags + embedded_media
+        all_links = tagged_urls_intext + sidebar_links + article_tags + embedded_media + links_from_intro
         pub_date, pub_time = extract_date_and_time(soup)
         fetched_datetime = datetime.today()
 
         updated_tagged_urls = tagging.update_tagged_urls(all_links, rossel_utils.LESOIR_SAME_OWNER)
 
-        # print generate_test_func('loads_of_embedded_stuff_and_pdf_newspaper', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
-        # save_sample_data_file(html_data, source, 'loads_of_embedded_stuff_and_pdf_newspaper', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
+        # print generate_test_func('embedded_storify_top_box', 'lesoir_new', dict(tagged_urls=updated_tagged_urls))
+        # save_sample_data_file(html_data, source, 'embedded_storify_top_box', '/Users/judemaey/code/csxj-crawler/tests/datasources/test_data/lesoir_new')
 
         return (ArticleData(source, title, pub_date, pub_time, fetched_datetime,
                 updated_tagged_urls,
@@ -495,5 +548,53 @@ if __name__ == '__main__':
             "http://www.lesoir.be/200800/article/sports/football/2013-03-02/coupe-genk-anderlecht-1-0-apr%C3%A8s-prolongations-direct",
             "http://www.lesoir.be/200395/article/actualite/quiz/2013-03-01/quiz-actu-chiffr%C3%A9-semaine",
             "http://www.lesoir.be/200851/article/actualite/belgique/2013-03-02/budget-pour-andr%C3%A9-antoine-%C2%AB-bons-comptes-font-bons-amis-%C2%BB",
-            "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB"
+            "http://www.lesoir.be/200881/article/actualite/regions/bruxelles/2013-03-02/philippe-moureaux-%C2%ABa-pourtant-temps-pour-une-s%C3%A9rieuse-psychanalyse%C2%BB",
+            "http://www.lesoir.be/95589/article/sports/football/2012-10-08/diables-rouges-mboyo-surprise-wilmots",
+            "http://www.lesoir.be/95700/article/actualite/monde/2012-10-08/gr%C3%A8ce-doit-%C3%AAtre-plus-convaincante",
+            "http://www.lesoir.be/96047/article/sports/football/2012-10-09/diables-fellaini-touch\u00e9-au-genou",
+            "http://www.lesoir.be/96047/article/sports/football/2012-10-09/diables-fellaini-ne-jouera-pas-contre-serbie",
+            "http://www.lesoir.be/95589/article/sports/football/2012-10-08/diables-rouges-mboyo-surprise-wilmots",
+            "http://www.lesoir.be/96818/article/sports/football/2012-10-10/diables-rouges-kompany-\u00ab-90-chances-jouer-\u00bb",
+            "http://www.lesoir.be/97581/article/debats/chats/2012-10-11/communales-dernier-d%C3%A9bat-tillieux-pr%C3%A9vot"
             ]
+
+
+    urls_from_errors = [
+    "http://www.lesoir.be/165044/article/geeko/2013-01-15/que-va-annoncer-facebook-suivre-en-direct", 
+    "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche-en-direct", 
+    "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche", 
+    "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-leemens-nouvel-entra\u00eeneur-des-gardiens", 
+    "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-lemmens-nouvel-entra\u00eeneur-des-gardiens-des-diables"
+        ]
+    article, html = extract_article_data(urls[-1])
+    # for url in urls_from_errors :
+    #     print url
+    #     article, html = extract_article_data(url)
+    #     print "this one was ok"
+
+    # print article.title
+    # print article.intro
+    # print article.content
+
+    for link in article.links:
+        print link.title
+        print link.URL
+        print link.tags
+        print "__________"
+
+
+    # from csxj.common.tagging import print_taggedURLs
+    # print_taggedURLs(article.links)
+
+    # toc, blogposts = get_frontpage_toc()
+    # for t, u in toc:
+    #     url = codecs.encode(u, 'utf-8')
+    #     print url
+    #     try:
+    #         extract_article_data(url)
+    #     except Exception as e:
+    #         print "Something went wrong with: ", url
+    #         import traceback
+    #         print traceback.format_exc()
+
+    #     print "************************"
