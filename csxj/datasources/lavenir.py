@@ -17,8 +17,6 @@ from parser_tools.utils import remove_text_formatting_markup_from_fragments, rem
 from parser_tools import constants
 from parser_tools import media_utils
 
-from helpers.unittest_generator import generate_unittest
-
 setup_locales()
 
 SOURCE_TITLE = u"L'Avenir"
@@ -138,79 +136,141 @@ def extract_links_from_article_body(article_body_hxs):
     return extract_links_from_text_hxs(article_body_hxs)
 
 
+IGNORED_EMBED_SOURCES = ['videa.hu', 'meltybuzz.fr', 'canalplus.fr',
+                         'brightcove', 'liveleak.com', 'facebook.com/v/',
+                         'bimvid.com', 'qik.com']
+
+
+def should_skip_embed_element(url):
+    for ignored_source in IGNORED_EMBED_SOURCES:
+        if ignored_source in url:
+            return True
+    return False
+
+
 def extract_links_from_video_div(video_div_hxs):
     tagged_urls = list()
     iframes = video_div_hxs.select('.//iframe')
+    did_skip_items = False
 
-    if iframes:
-        for iframe in iframes:
-            url = iframe.select('./@src').extract()
-            if not url:
-                raise ValueError("This iframe has no 'src' attribute. What?")
-            else:
-                url = url[0]
-                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-                tags |= set(['embedded', 'video'])
-                tagged_urls.append(make_tagged_url(url, url, tags))
+    for iframe in iframes:
 
-    objects = video_div_hxs.select('.//object')
-    if objects:
-        for object_hxs in objects:
-            associated_link = object_hxs.select("./following-sibling::a[1]")
-            if associated_link:
-                title, url = extract_title_and_url(associated_link[0])
-            else:
-                url = object_hxs.select("./param [@name='movie']/@value").extract()[0]
-                title = url
+        url = iframe.select('./@src').extract()
+        if not url:
+            raise ValueError("This iframe has no 'src' attribute. What?")
+        else:
+            url = url[0]
             tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
             tags |= set(['embedded', 'video'])
-            tagged_urls.append(make_tagged_url(url, title, tags))
+            tagged_urls.append(make_tagged_url(url, url, tags))
 
-    embeds = video_div_hxs.select('.//embed')
-    for embed_hxs in embeds:
-        embed_src = embed_hxs.select('./@src').extract()
-        if 'videa.hu' in embed_src[0]:
-            continue
-        if 'meltybuzz.fr' in embed_src[0]:
-            continue
-        flashvars_str = embed_hxs.select('./@flashvars').extract()
-        if not flashvars_str:
-            raise ValueError("Found an <embed> element with no @flashvars")
-        flashvars = dict([kv.split('=') for kv in flashvars_str[0].split('&')])
-        url = flashvars['playlistfile']
-        title = constants.EMBEDDED_VIDEO_TITLE
+    objects = video_div_hxs.select('.//object')
+    for object_hxs in objects:
+        associated_link = object_hxs.select("./following-sibling::a[1]")
+        if associated_link:
+            title, url = extract_title_and_url(associated_link[0])
+        else:
+            url = object_hxs.select("./param [@name='movie']/@value").extract()[0]
+            if 'canalplus.fr' in url:
+                flashvars_str = object_hxs.select("./param [@name='flashvars']/@value").extract()[0]
+                url = "{0}?{1}".format(url, flashvars_str)
+            title = url
         tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
         tags |= set(['embedded', 'video'])
         tagged_urls.append(make_tagged_url(url, title, tags))
 
-    scripts = video_div_hxs.select('.//script')
-    if scripts:
-        for script_hxs in scripts:
-            script_src = script_hxs.select('./@src').extract()
-            if script_src:
-                if 'flowplayer' in script_src[0]:
-                    title = constants.EMBEDDED_VIDEO_TITLE
-                    url = constants.EMBEDDED_VIDEO_URL
-                    tags = set(['external', 'embedded', 'video', 'flowplayer', constants.UNFINISHED_TAG])
-                    tagged_urls.append(make_tagged_url(url, title, tags))
-                elif 'jwplay' in script_src[0]:
-                    title = constants.EMBEDDED_VIDEO_TITLE
-                    url = constants.EMBEDDED_VIDEO_URL
-                    tags = set(['external', 'embedded', 'video', 'jwplayer', constants.UNFINISHED_TAG])
-                    tagged_urls.append(make_tagged_url(url, title, tags))
-                elif 'ooyala' in script_src[0]:
-                    title = constants.EMBEDDED_VIDEO_TITLE
-                    url = constants.EMBEDDED_VIDEO_URL
-                    tags = set(['external', 'embedded', 'video', 'ooyala', constants.UNFINISHED_TAG])
-                    tagged_urls.append(make_tagged_url(url, title, tags))
-                else:
-                    raise ValueError("Found a <script> for an embedded video, for an unknown type")
+    embeds = video_div_hxs.select('.//embed')
+    for embed_hxs in embeds:
+        embed_src = embed_hxs.select('./@src').extract()
+        # some were already processed in the <object> loop, we can ignore them.
 
-    if tagged_urls:
+        if should_skip_embed_element(embed_src[0]):
+            continue
+
+        flashvars_str = embed_hxs.select('./@flashvars').extract()
+        if flashvars_str:
+            flashvars = dict([kv.split('=') for kv in flashvars_str[0].split('&')])
+
+            url = flashvars['playlistfile']
+            title = constants.EMBEDDED_VIDEO_TITLE
+            tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+            tags |= set(['embedded', 'video'])
+            tagged_urls.append(make_tagged_url(url, title, tags))
+        else:
+            if 'turner.com' in embed_src[0]:
+                url = embed_src[0]
+                title = constants.EMBEDDED_VIDEO_TITLE
+                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                tags |= set(['embedded', 'video', constants.UNFINISHED_TAG])
+                tagged_urls.append(make_tagged_url(url, title, tags))
+            else:
+                raise ValueError("Found an <embed> element with no @flashvars")
+
+    scripts = video_div_hxs.select('.//script')
+    for script_hxs in scripts:
+        script_src = script_hxs.select('./@src').extract()
+        if script_src:
+            script_src = script_src[0]
+            if 'flowplayer' in script_src:
+                title = constants.EMBEDDED_VIDEO_TITLE
+                url = constants.EMBEDDED_VIDEO_URL
+                tags = set(['external', 'embedded', 'video', 'flowplayer', constants.UNFINISHED_TAG])
+                tagged_urls.append(make_tagged_url(url, title, tags))
+            elif 'jwplay' in script_src:
+                title = constants.EMBEDDED_VIDEO_TITLE
+                url = constants.EMBEDDED_VIDEO_URL
+                tags = set(['external', 'embedded', 'video', 'jwplayer', constants.UNFINISHED_TAG])
+                tagged_urls.append(make_tagged_url(url, title, tags))
+            elif 'ooyala' in script_src:
+                title = constants.EMBEDDED_VIDEO_TITLE
+                url = constants.EMBEDDED_VIDEO_URL
+                tags = set(['external', 'embedded', 'video', 'ooyala', constants.UNFINISHED_TAG])
+                tagged_urls.append(make_tagged_url(url, title, tags))
+            elif 'thinglink.' in script_src:
+                title = u"__THINGLINK_ANNOTATED_IMAGE__"
+                url = script_src
+                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                tags |= set(['embedded', 'annoted image'])
+                tagged_urls.append(make_tagged_url(url, title, tags))
+            elif 'storify.com' in script_src:
+                url = script_src
+                title = constants.RENDERED_STORIFY_TITLE
+                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                tags |= set(['embedded', 'storify'])
+                tagged_urls.append(make_tagged_url(url, title, tags))
+            elif 'vtm.be' in script_src:
+                url = script_src
+                title = constants.EMBEDDED_VIDEO_TITLE
+                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                tags |= set(['embedded', 'video', 'vtm', constants.UNFINISHED_TAG])
+                tagged_urls.append(make_tagged_url(url, title, tags))
+            elif 'kewego.com' in script_src:
+                url = script_src
+                title = constants.EMBEDDED_VIDEO_TITLE
+                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                tags |= set(['embedded', 'video', 'kewego', constants.UNFINISHED_TAG])
+                tagged_urls.append(make_tagged_url(url, title, tags))
+            elif 'worldnow.com' in script_src:
+                url = script_src
+                title = constants.EMBEDDED_VIDEO_TITLE
+                tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
+                tags |= set(['embedded', 'video', 'worldnow.com', constants.UNFINISHED_TAG])
+                tagged_urls.append(make_tagged_url(url, title, tags))
+            else:
+                raise ValueError("Found a <script> for an embedded video, for an unknown type")
+
+    if tagged_urls or did_skip_items:
         return tagged_urls
     else:
+        # Sometimes that video div was there as a placeholder for images.
+        # We just ignore them.
         if video_div_hxs.select('.//p/img'):
             return list()
+        if video_div_hxs.select('.//a/img'):
+            return list()
+        if video_div_hxs.select('.//div/img'):
+            return list()
+        # Could not extract any link? Break everything.
         raise ValueError("There is an embedded video in here somewhere, but it's not an iframe or an object")
 
 
@@ -382,7 +442,7 @@ def extract_links_from_embbeded_media(content_hxs):
             url = script_src[0]
             title = constants.RENDERED_STORIFY_TITLE
             tags = classify_and_tag(url, LAVENIR_NETLOC, LAVENIR_INTERNAL_BLOGS)
-            tags |= set(['embedded', 'tweet'])
+            tags |= set(['embedded', 'storify'])
             tagged_urls.append(make_tagged_url(url, title, tags))
         else:
             noscript_hxs = script_hxs.select('./following-sibling::noscript[1]')
@@ -395,7 +455,6 @@ def extract_links_from_embbeded_media(content_hxs):
                 tagged_urls.append(make_tagged_url(url, title, tags))
             else:
                 raise ValueError("This blockquote does not appear to be a tweet.")
-
 
     return tagged_urls
 
@@ -641,24 +700,113 @@ def test_sample_data():
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130103_025",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130116_00256248",
         "http://www.lavenir.net/article/detail.aspx?articleid=DMF20130123_044",
-        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_00122978" # flowplayer
+        "http://www.lavenir.net/article/detail.aspx?articleid=DMF20120226_00122978"  # flowplayer
     ]
 
-    for url in urls_new_style[-1:]:
-        article, html_content = extract_article_data(url)
+    fpaths = [
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-11-14/15.05.09/raw_data/8.html",  # canalplus video
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-09-30/19.05.13/raw_data/1.html",  # image link in video div
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-08-06/18.05.11/raw_data/1.html",  # thinglink annonated image
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-09-13/11.05.11/raw_data/6.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-09-05/19.05.09/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-09-05/22.05.10/raw_data/5.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-09-05/14.05.11/raw_data/4.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-19/15.05.09/raw_data/0.html",  # brightcove
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-19/15.05.09/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-03-29/19.05.10/raw_data/2.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-10/17.05.10/raw_data/6.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-15/09.05.10/raw_data/5.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-15/13.05.09/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-15/12.05.10/raw_data/5.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-03-23/19.05.10/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-04-03/13.05.10/raw_data/2.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-12-31/13.05.09/raw_data/2.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-04-20/11.05.10/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-09-06/10.05.10/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-28/19.05.10/raw_data/1.html",  # vtm
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-07-11/23.05.10/raw_data/3.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-16/09.05.10/raw_data/7.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-06/21.05.13/raw_data/8.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-07/11.05.12/raw_data/7.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-07/09.05.09/raw_data/13.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-26/09.05.10/raw_data/2.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-02/14.05.12/raw_data/3.html",  # kewego
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-02/19.05.10/raw_data/2.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-08-13/11.05.09/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-11-05/16.05.09/raw_data/5.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-11-04/16.05.15/raw_data/4.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-11-04/10.05.09/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-11-04/12.05.10/raw_data/3.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-11-04/11.05.08/raw_data/2.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-18/12.05.10/raw_data/5.html",  # facebook video
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-02-19/16.05.10/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-11-28/11.05.09/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-11-28/07.05.09/raw_data/0.html",  # bimvid.com
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-11-08/12.05.09/raw_data/8.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-03-19/19.05.09/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-03-19/19.05.09/raw_data/3.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-03-19/20.05.09/raw_data/3.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-03/09.05.10/raw_data/4.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-03/13.05.16/raw_data/4.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-08/10.05.11/raw_data/6.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-08/14.05.09/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-03-30/14.05.12/raw_data/6.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-02/23.05.14/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-02/08.05.12/raw_data/8.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-03/23.05.10/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-03/07.05.11/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-01/10.05.30/raw_data/12.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-01/08.05.26/raw_data/8.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-01/23.05.10/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-10-07/23.05.10/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-04-10/14.05.11/raw_data/6.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-08-08/19.05.11/raw_data/2.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-12-07/15.05.09/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-23/18.05.06/raw_data/4.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-23/01.05.09/raw_data/0.html",  # worldnow.com
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-22/17.05.13/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-22/21.05.09/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-22/22.05.08/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-12-24/14.05.09/raw_data/4.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-07-23/19.05.12/raw_data/1.html",  # cnn, loads of links
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-07-23/21.05.10/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-07-24/08.05.10/raw_data/6.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-09-11/15.05.09/raw_data/1.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-09-11/13.05.10/raw_data/7.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-09-11/14.05.10/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-24/12.05.14/raw_data/24.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-02/18.05.09/raw_data/7.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-07-03/15.05.16/raw_data/4.html",  # qik  video
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-06/11.05.10/raw_data/0.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-08/15.05.12/raw_data/3.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-08/18.05.09/raw_data/3.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-01-08/16.05.09/raw_data/2.html",
+        #"/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2012-05-25/19.05.11/raw_data/0.html",
+        "/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-02-27/11.05.16/raw_data/2.html",  # div/img
+        "/Volumes/Curst/csxj/tasks/121_final_reprocess/jsondb/lavenir/2013-02-25/11.05.22/raw_data/5.html",
+    ]
+
+    def process_single(source):
+        article, html_content = extract_article_data(source)
         if article:
             print(article.title)
             print(article.url)
             print_taggedURLs(article.links, 70)
             print("°" * 80)
 
-            import os
-            #generate_unittest("links_new_ooyala_videos", "lavenir", dict(urls=article.links), html_content, url, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
+            # from helpers.unittest_generator import generate_unittest
+            # import os
+            # generate_unittest("links_new_thinglink", "lavenir", dict(urls=article.links), html_content, source.name, os.path.join(os.path.dirname(__file__), "../../tests/datasources/test_data/lavenir"), True)
+        else:
+            print('page was not recognized as an article')
 
-    #     else:
-    #         print('page was not recognized as an article')
+    # for url in urls_new_style[-1:]:
+    #     process_single(url)
 
-
+    for i, fpath in enumerate(fpaths[:]):
+        print(i, fpath)
+        with open(fpath) as f:
+            process_single(f)
 
 if __name__ == "__main__":
     import sys

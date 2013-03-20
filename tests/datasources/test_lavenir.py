@@ -429,7 +429,7 @@ class TestLavenirNewLinkExtraction(object):
             extracted_links = article.links
             urls = [
                 make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=dmf20120711_00180928", u"""des tenues, plutôt chics, signées Ralph Lauren""", set(['internal', 'in text'])),
-                make_tagged_url("http://storify.com/lavenir_net/les-espagnols-seront-beaux-aux-jo.js?header=false", u"""__RENDERED_STORIFY__""", set(['tweet', 'external', 'embedded'])),
+                make_tagged_url("http://storify.com/lavenir_net/les-espagnols-seront-beaux-aux-jo.js?header=false", u"""__RENDERED_STORIFY__""", set(['storify', 'external', 'embedded'])),
                 make_tagged_url("http://www.lavenir.net/life", u"""Life""", set(['internal', 'keyword'])),
                 make_tagged_url("/sports/autres", u"""Autres""", set(['internal', 'keyword'])),
                 make_tagged_url("http://www.lavenir.net/filinfo/sports", u"""Sports""", set(['internal', 'keyword'])),
@@ -524,6 +524,20 @@ class TestLavenirNewLinkExtraction(object):
                 make_tagged_url("http://www.lavenir.net/videos", u"""Vidéos""", set(['internal', 'keyword'])),
                 make_tagged_url("/sports/football/diables", u"""Diables rouges""", set(['internal', 'keyword'])),
                 make_tagged_url("/sports/football/premierleague", u"""Premier League""", set(['internal', 'keyword'])),
+            ]
+            expected_links = urls
+            assert_taggedURLs_equals(expected_links, extracted_links)
+
+    def test_links_new_thinglink(self):
+        with open(os.path.join(DATA_ROOT, "links_new_thinglink.html")) as f:
+            article, raw_html = lavenir.extract_article_data(f)
+            extracted_links = article.links
+            urls = [
+                make_tagged_url("//www.thinglink.com/jse/embed.js#288963391949635586", u"""__THINGLINK_ANNOTATED_IMAGE__""", set(['external', 'embedded', 'annoted image'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20120806_00189384", u"""06/08/12 « Il y a de l’envie sur le terrain »""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20120806_00189287", u"""06/08/12 Albert Gonthier a tout vu""", set(['internal', 'sidebar box'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20120806_00189384", u"""« Il y a de l’envie sur le terrain »""", set(['bottom box', 'internal'])),
+                make_tagged_url("http://www.lavenir.net/article/detail.aspx?articleid=DMF20120806_00189287", u"""Albert Gonthier a tout vu""", set(['bottom box', 'internal'])),
             ]
             expected_links = urls
             assert_taggedURLs_equals(expected_links, extracted_links)
