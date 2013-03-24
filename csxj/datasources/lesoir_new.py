@@ -199,7 +199,7 @@ def extract_title_and_url_from_bslink(link):
                         title = link.contents[0].strip()
                     else:
                         title = "__GHOST_LINK__"
-                        base_tags.append("ghost link")
+                        base_tags.append(constants.GHOST_LINK_TAG)
                 else:
                     if link.find("strong") and type(link.find("strong").contents[0]) is bs4.element.NavigableString :
                         title = link.find("strong").contents[0]
@@ -207,15 +207,30 @@ def extract_title_and_url_from_bslink(link):
                         title = link.find("span").contents[0]
                     else:
                         title = "__GHOST_LINK__"
-                        base_tags.append("ghost link")
+                        base_tags.append(constants.GHOST_LINK_TAG)
             else:
                 for x in link.contents:
-                    if type(x) is bs4.element.NavigableString:
-                        title = x
+                    if len(x) > 1:
+                        if type(x) is bs4.element.NavigableString:
+                            title = x
+                        else:
+                            title = "__GHOST_LINK__"
+                            base_tags.append(constants.GHOST_LINK_TAG)
+
+                    else:
+                        if type(x) is bs4.element.Tag:
+                            if x.name == "strong":
+                                title = x.contents[0]
+                                print x
+                                print "STRONG"
+                            else:
+                                print x
+                                print "ELSE"
 
         else:
             title = "__GHOST_LINK__"
-            base_tags.append("ghost link")
+            base_tags.append(constants.GHOST_LINK_TAG)
+
     return title, url, base_tags
 
 
@@ -555,15 +570,16 @@ if __name__ == '__main__':
             "http://www.lesoir.be/96047/article/sports/football/2012-10-09/diables-fellaini-ne-jouera-pas-contre-serbie",
             "http://www.lesoir.be/95589/article/sports/football/2012-10-08/diables-rouges-mboyo-surprise-wilmots",
             "http://www.lesoir.be/96818/article/sports/football/2012-10-10/diables-rouges-kompany-\u00ab-90-chances-jouer-\u00bb",
-            "http://www.lesoir.be/97581/article/debats/chats/2012-10-11/communales-dernier-d%C3%A9bat-tillieux-pr%C3%A9vot"
+            "http://www.lesoir.be/97581/article/debats/chats/2012-10-11/communales-dernier-d%C3%A9bat-tillieux-pr%C3%A9vot",
+            "http://www.lesoir.be/160924/article/actualite/belgique/2013-01-14/bon-plan-anti-crise-repas-gratuit-au-\u00ab-bar-\u00e0-soupe-\u00bb"
             ]
 
 
     urls_from_errors = [
-    "http://www.lesoir.be/165044/article/geeko/2013-01-15/que-va-annoncer-facebook-suivre-en-direct", 
-    "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche-en-direct", 
-    "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche", 
-    "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-leemens-nouvel-entra\u00eeneur-des-gardiens", 
+    "http://www.lesoir.be/165044/article/geeko/2013-01-15/que-va-annoncer-facebook-suivre-en-direct",
+    "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche-en-direct",
+    "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche",
+    "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-leemens-nouvel-entra\u00eeneur-des-gardiens",
     "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-lemmens-nouvel-entra\u00eeneur-des-gardiens-des-diables"
         ]
     article, html = extract_article_data(urls[-1])
