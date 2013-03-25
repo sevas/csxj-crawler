@@ -219,13 +219,8 @@ def extract_title_and_url_from_bslink(link):
 
                     else:
                         if type(x) is bs4.element.Tag:
-                            if x.name == "strong":
+                            if x.name == "strong" or x.name == "em" or x.name == "b":
                                 title = x.contents[0]
-                                print x
-                                print "STRONG"
-                            else:
-                                print x
-                                print "ELSE"
 
         else:
             title = "__GHOST_LINK__"
@@ -571,7 +566,12 @@ if __name__ == '__main__':
             "http://www.lesoir.be/95589/article/sports/football/2012-10-08/diables-rouges-mboyo-surprise-wilmots",
             "http://www.lesoir.be/96818/article/sports/football/2012-10-10/diables-rouges-kompany-\u00ab-90-chances-jouer-\u00bb",
             "http://www.lesoir.be/97581/article/debats/chats/2012-10-11/communales-dernier-d%C3%A9bat-tillieux-pr%C3%A9vot",
-            "http://www.lesoir.be/160924/article/actualite/belgique/2013-01-14/bon-plan-anti-crise-repas-gratuit-au-\u00ab-bar-\u00e0-soupe-\u00bb"
+            "http://www.lesoir.be/160924/article/actualite/belgique/2013-01-14/bon-plan-anti-crise-repas-gratuit-au-\u00ab-bar-\u00e0-soupe-\u00bb",
+            "http://www.lesoir.be/121653/article/actualite/belgique/2012-11-16/jean-denis-lejeune-rencontr\u00e9-michelle-martin",
+            "http://www.lesoir.be/101568/article/actualite/belgique/2012-10-18/michelle-martin-autoris\u00e9e-\u00e0-rencontrer-jean-denis-lejeune",
+            "http://www.lesoir.be/134309/article/actualite/monde/2012-12-07/que-faire-jour-fin-du-monde",
+            "http://www.lesoir.be/186293/article/styles/air-du-temps/2013-02-08/votre-week-end-en-15-clics",
+            "http://www.lesoir.be/127339/article/styles/air-du-temps/2012-11-26/carla-bruni-\u00ab-ma-g\u00e9n\u00e9ration-n-pas-besoin-du-f\u00e9minisme-\u00bb"
             ]
 
 
@@ -580,7 +580,9 @@ if __name__ == '__main__':
     "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche-en-direct",
     "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche",
     "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-leemens-nouvel-entra\u00eeneur-des-gardiens",
-    "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-lemmens-nouvel-entra\u00eeneur-des-gardiens-des-diables"
+    "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-lemmens-nouvel-entra\u00eeneur-des-gardiens-des-diables",
+    "http://www.lesoir.be/186293/article/styles/air-du-temps/2013-02-08/votre-week-end-en-15-clics",
+    "http://www.lesoir.be/134309/article/actualite/monde/2012-12-07/que-faire-jour-fin-du-monde"
         ]
     article, html = extract_article_data(urls[-1])
     # for url in urls_from_errors :
