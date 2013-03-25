@@ -201,9 +201,9 @@ def extract_title_and_url_from_bslink(link):
                         title = "__GHOST_LINK__"
                         base_tags.append(constants.GHOST_LINK_TAG)
                 else:
-                    if link.find("strong") and type(link.find("strong").contents[0]) is bs4.element.NavigableString :
+                    if link.find("strong") and type(link.find("strong").contents[0]) is bs4.element.NavigableString:
                         title = link.find("strong").contents[0]
-                    elif link.find("span") and type(link.find("span").contents[0]) is bs4.element.NavigableString :
+                    elif link.find("span") and type(link.find("span").contents[0]) is bs4.element.NavigableString:
                         title = link.find("span").contents[0]
                     else:
                         title = "__GHOST_LINK__"
@@ -251,7 +251,7 @@ def extract_text_content_and_links(soup) :
     else:
         text = u""
 
-    for p in all_fragments :
+    for p in all_fragments:
         link = p.find_all("a")
         inline_links.extend(link)
 
@@ -512,7 +512,7 @@ def extract_article_data(source):
     # this is how we detect paywalled articles
     if soup.find(attrs={"id": "main-content"}).h2 and soup.find(attrs={"id": "main-content"}).h2.find(attrs={'class': 'ir locked'}):
         title = extract_title(soup)
-        return (ArticleData(source, title, None, None, None, None, None, None, None, constants.PAYWALLED_CONTENT), html_data)
+        return (ArticleData(source, title, constants.NO_DATE, constants.NO_TIME, datetime.today(), [], [constants.NO_CATEGORY_NAME], None, None, constants.PAYWALLED_CONTENT), html_data)
 
     else:
         title = extract_title(soup)
@@ -571,35 +571,25 @@ if __name__ == '__main__':
             "http://www.lesoir.be/101568/article/actualite/belgique/2012-10-18/michelle-martin-autoris\u00e9e-\u00e0-rencontrer-jean-denis-lejeune",
             "http://www.lesoir.be/134309/article/actualite/monde/2012-12-07/que-faire-jour-fin-du-monde",
             "http://www.lesoir.be/186293/article/styles/air-du-temps/2013-02-08/votre-week-end-en-15-clics",
-            "http://www.lesoir.be/127339/article/styles/air-du-temps/2012-11-26/carla-bruni-\u00ab-ma-g\u00e9n\u00e9ration-n-pas-besoin-du-f\u00e9minisme-\u00bb"
+            "http://www.lesoir.be/127339/article/styles/air-du-temps/2012-11-26/carla-bruni-\u00ab-ma-g\u00e9n\u00e9ration-n-pas-besoin-du-f\u00e9minisme-\u00bb",
+            "http://www.lesoir.be/189598/article/economie/2013-02-14/karel-gucht-\u00ab-deux-ans-pour-r\u00e9ussir-\u00bb",
             ]
 
+    urls_from_errors = ["http://www.lesoir.be/165044/article/geeko/2013-01-15/que-va-annoncer-facebook-suivre-en-direct",
+                        "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche-en-direct",
+                        "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche",
+                        "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-leemens-nouvel-entra\u00eeneur-des-gardiens",
+                        "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-lemmens-nouvel-entra\u00eeneur-des-gardiens-des-diables",
+                        "http://www.lesoir.be/186293/article/styles/air-du-temps/2013-02-08/votre-week-end-en-15-clics",
+                        "http://www.lesoir.be/134309/article/actualite/monde/2012-12-07/que-faire-jour-fin-du-monde"
+                        ]
 
-    urls_from_errors = [
-    "http://www.lesoir.be/165044/article/geeko/2013-01-15/que-va-annoncer-facebook-suivre-en-direct",
-    "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche-en-direct",
-    "http://www.lesoir.be/165044/article/geeko/2013-01-15/facebook-lance-un-moteur-recherche",
-    "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-leemens-nouvel-entra\u00eeneur-des-gardiens",
-    "http://www.lesoir.be/171006/article/sports/football/2013-01-24/erwin-lemmens-nouvel-entra\u00eeneur-des-gardiens-des-diables",
-    "http://www.lesoir.be/186293/article/styles/air-du-temps/2013-02-08/votre-week-end-en-15-clics",
-    "http://www.lesoir.be/134309/article/actualite/monde/2012-12-07/que-faire-jour-fin-du-monde"
-        ]
-    article, html = extract_article_data(urls[-1])
-    # for url in urls_from_errors :
-    #     print url
-    #     article, html = extract_article_data(url)
-    #     print "this one was ok"
-
-    # print article.title
-    # print article.intro
-    # print article.content
-
-    for link in article.links:
-        print link.title
-        print link.URL
-        print link.tags
-        print "__________"
-
+    for url in urls[-1:]:
+        print url
+        article, html = extract_article_data(url)
+        print "this one was ok"
+        article.print_summary()
+        print article.to_json()
 
     # from csxj.common.tagging import print_taggedURLs
     # print_taggedURLs(article.links)
