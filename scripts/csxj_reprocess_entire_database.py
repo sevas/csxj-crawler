@@ -3,14 +3,16 @@
 import os
 import json
 import traceback
+import itertools as it
 from datetime import datetime
 
 import csxj.db as csxjdb
-from csxj.datasources import lesoir, lalibre, dhnet, sudinfo, rtlinfo, lavenir, rtbfinfo, levif, septsursept, sudpresse
+from csxj.datasources import lesoir, lalibre, dhnet, sudinfo, rtlinfo, lavenir, rtbfinfo, levif, septsursept, sudpresse, lesoir_new
 
 
 NAME_TO_SOURCE_MODULE_MAPPING = {
     'lesoir': lesoir,
+    'lesoir_new': lesoir_new,
     'lalibre': lalibre,
     'dhnet': dhnet,
     'sudinfo': sudinfo,
@@ -40,14 +42,24 @@ def write_dict_to_file(d, outdir, outfile):
 
 
 def reprocess_single_batch(datasource_parser, raw_data_dir):
-    raw_data_index_file = os.path.join(raw_data_dir, csxjdb.constants.RAW_DATA_INDEX_FILENAME)
+
+    errors_index = []
+    errors_raw_data_dir = os.path.join(raw_data_dir, os.path.pardir, csxjdb.constants.ERRORS_RAW_DATA_DIR)
+    if os.path.exists(errors_raw_data_dir):
+        errors_index_fpath = os.path.join(errors_raw_data_dir, csxjdb.constants.RAW_DATA_INDEX_FILENAME)
+        f = open(errors_index_fpath, 'r')
+        errors_index = json.load(f)
+        errors_index = [(errors_raw_data_dir, url, filename) for (url, filename) in errors_index]
+        f.close()
 
     reprocessed_articles = list()
     errors_encountered = list()
+    raw_data_index_file = os.path.join(raw_data_dir, csxjdb.constants.RAW_DATA_INDEX_FILENAME)
 
     with open(raw_data_index_file, 'r') as f:
         index = json.load(f)
-        for url, raw_file in index:
+        index = [(raw_data_dir, url, filename) for (url, filename) in index]
+        for raw_data_dir, url, raw_file in it.chain(index, errors_index):
             raw_filepath = os.path.join(raw_data_dir, raw_file)
             try:
                 print u"°°° Reprocessing: {1} ({0})".format(url, raw_filepath)
@@ -147,6 +159,7 @@ def main(source_path, dest_path, processes, source_names):
     else:
         results = list()
         for name in [_ for _ in provider_names if _ in source_names]:
+            print "***", name
             results.append(reprocess_raw_html((name, source_path, dest_path)))
 
     n_samples = sum([x[0] for x in results])
@@ -177,6 +190,7 @@ if __name__ == "__main__":
 
     source_root = args.source_jsondb
     dest_root = args.dest_jsondb
+    selected_sources = args.source_names.split(',')
 
     print "Using {0} processes".format(args.processes)
-    main(source_root, dest_root, args.processes, args.source_names)
+    main(source_root, dest_root, args.processes, selected_sources)
