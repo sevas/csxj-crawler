@@ -56,6 +56,10 @@ def reprocess_single_batch(datasource_parser, raw_data_dir):
     errors_encountered = list()
     raw_data_index_file = os.path.join(raw_data_dir, csxjdb.constants.RAW_DATA_INDEX_FILENAME)
 
+    if not os.path.exists(raw_data_index_file):
+        errors_encountered.append(("NO_URL", raw_data_index_file, "IOError: [Errno 2] No such file or directory: "+raw_data_index_file))
+        return reprocessed_articles, errors_encountered
+
     with open(raw_data_index_file, 'r') as f:
         index = json.load(f)
         index = [(raw_data_dir, url, filename) for (url, filename) in index]
@@ -105,14 +109,14 @@ def save_reprocessed_batch(dest_root_dir, source_name, day_string, batch_hour_st
 
 
 def reprocess_raw_html(args):
-    provider_name, source_root_dir, dest_root_dir = args
+    provider_name, source_root_dir, dest_root_dir, start_from = args
     p = csxjdb.Provider(source_root_dir, provider_name)
     datasource = NAME_TO_SOURCE_MODULE_MAPPING[provider_name]
     article_count = 0
 
     errors_by_day = dict()
-    all_days = p.get_all_days()
-    for day in all_days[:]:
+    all_days = (d for d in p.get_all_days() if csxjdb.utils.is_after_start_date(start_from, d))
+    for day in all_days:
         errors_by_batch = dict()
         for batch_hour in p.get_all_batch_hours(day):
             batch_root_dir = os.path.join(p.directory, day, batch_hour)
@@ -141,7 +145,7 @@ def reprocess_raw_html(args):
     return article_count, err_dict
 
 
-def main(source_path, dest_path, processes, source_names):
+def main(source_path, dest_path, processes, source_names, start_from):
     if not os.path.exists(dest_path):
         print "°°° Creating missing destination root:", dest_path
         os.makedirs(dest_path)
@@ -155,12 +159,12 @@ def main(source_path, dest_path, processes, source_names):
     if processes > 1:
         import multiprocessing as mp
         p = mp.Pool(processes)
-        results = p.map(reprocess_raw_html, [(name, source_path, dest_path) for name in provider_names if name in source_names])
+        results = p.map(reprocess_raw_html, [(name, source_path, dest_path, start_from) for name in provider_names if name in source_names])
     else:
         results = list()
         for name in [_ for _ in provider_names if _ in source_names]:
             print "***", name
-            results.append(reprocess_raw_html((name, source_path, dest_path)))
+            results.append(reprocess_raw_html((name, source_path, dest_path, start_from)))
 
     n_samples = sum([x[0] for x in results])
     errors_by_source = [x[1] for x in results]
@@ -185,6 +189,7 @@ if __name__ == "__main__":
     parser.add_argument('--dest-jsondb', type=str, dest='dest_jsondb', required=True, help='dest json db root directory')
     parser.add_argument('--sources', type=str, dest='source_names', default=make_parser_list(), help='comma-separated list of the sources to consider (default={0})'.format(make_parser_list()))
     parser.add_argument('--processes', type=int, dest='processes', required=False, default=1, help='Number of parallel processes to use (default=1)')
+    parser.add_argument('--start-from', type=str, dest='start_from', default='', help='forces to start at a specific date (format: YYYY-MM-DD)')
 
     args = parser.parse_args()
 
@@ -193,4 +198,4 @@ if __name__ == "__main__":
     selected_sources = args.source_names.split(',')
 
     print "Using {0} processes".format(args.processes)
-    main(source_root, dest_root, args.processes, selected_sources)
+    main(source_root, dest_root, args.processes, selected_sources, args.start_from)

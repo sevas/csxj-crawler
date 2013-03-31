@@ -1,4 +1,4 @@
-import os, os.path
+import os
 from datetime import datetime, time
 
 
@@ -14,7 +14,7 @@ def get_json_files(parent_dir):
     Returns a list of file names corresponding to all the .json files in the supplied directory.
     """
     return [i for i in os.listdir(parent_dir)
-                    if os.path.isfile(os.path.join(parent_dir, i)) and i.endswith(".json")]
+            if os.path.isfile(os.path.join(parent_dir, i)) and i.endswith(".json")]
 
 
 def make_time_from_string(time_string):
@@ -27,8 +27,7 @@ def make_time_from_string(time_string):
     datetime.time(22, 6, 10)
     """
     h, m, s = [int(i) for i in time_string.split('.')]
-    return time(h, m ,s)
-
+    return time(h, m, s)
 
 
 def make_date_from_string(date_string):
@@ -43,10 +42,8 @@ def make_date_from_string(date_string):
     return datetime.strptime(date_string, '%Y-%m-%d')
 
 
-
 def make_date_time_from_string(date_string, time_string):
     return make_date_from_string(date_string), make_time_from_string(time_string)
-
 
 
 def convert_date_to_string(d):
@@ -62,14 +59,13 @@ def get_latest_hour(hour_directory_names):
     From a list of string-formatted hours ('HH.MM.SS'), returns the latest hour (also in string form).
 
     For example:
-    
+
     >>> get_latest_hour(['12.00.10', '21.00.00', '01.00.30'])
     '21.00.00'
 
     """
     l = [(make_time_from_string(time_string), time_string) for time_string in hour_directory_names]
     return max(l, key=lambda x: x[0])[1]
-
 
 
 def get_latest_day(day_directory_names):
@@ -84,3 +80,29 @@ def get_latest_day(day_directory_names):
     l = [(make_date_from_string(date_string), date_string) for date_string in day_directory_names]
     last_day = max(l, key=lambda x: x[0])[1]
     return last_day
+
+
+def is_after_start_date(start_from, d):
+    """
+
+    >>> is_after_start_date('2012-12-20', '2012-12-21')
+    True
+
+    >>> is_after_start_date('2012-07-31', '2012-07-31')
+    True
+
+    >>> is_after_start_date('2012-09-05', '2012-07-31')
+    False
+
+    >>> is_after_start_date('2012-12-31', '2013-01-01')
+    True
+    """
+    start_date, actual_date = make_date_from_string(start_from), make_date_from_string(d)
+    return actual_date >= start_date
+
+
+if __name__ == '__main__':
+    import sys
+    if '--test' in sys.argv:
+        import doctest
+        doctest.testmod(verbose=True)
