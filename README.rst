@@ -19,7 +19,7 @@ as a series of JSON files.
   there are no confusions.
 - `nose <http://nose.readthedocs.org/en/latest/>`_ for unit testing.
 
-Licence
+License
 -------
 
 This project is licensed under the MIT open-source license.
