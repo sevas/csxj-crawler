@@ -1,5 +1,11 @@
+.. -*- mode: rst -*-
 
-[![Build Status](https://travis-ci.org/sevas/csxj-crawler.png)](https://travis-ci.org/sevas/csxj-crawler)
+|Travis|_
+
+
+.. |Travis| image:: https://api.travis-ci.org/sevas/csxj-crawler.png?branch=master
+.. _Travis: https://travis-ci.org/sevas/csxj-crawler
+
 
 
 What is this ?
