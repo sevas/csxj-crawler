@@ -5,3 +5,4 @@ Scrapy==0.20.0
 coverage==3.7
 lxml==3.2.1
 nose==1.2.1
+web.py==0.37
