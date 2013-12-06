@@ -1,0 +1,7 @@
+include setup.py
+include MANIFEST.in
+include README.txt
+include requirements.txt
+
+recursive-include csxj *.py *.tmpl
+recursive-include tests *.py *.html *.json

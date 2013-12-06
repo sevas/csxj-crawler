@@ -1,0 +1,7 @@
+BeautifulSoup==3.2.1
+beautifulsoup4==4.3.2
+Jinja2==2.6
+Scrapy==0.20.0
+coverage==3.7
+lxml==3.2.1
+nose==1.2.1
