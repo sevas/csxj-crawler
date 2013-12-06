@@ -1,3 +1,7 @@
+
+[![Build Status](https://travis-ci.org/sevas/csxj-crawler.png)](https://travis-ci.org/sevas/csxj-crawler)
+
+
 What is this ?
 --------------
 
